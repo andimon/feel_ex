@@ -240,8 +240,6 @@ defmodule FeelEx.Lexer do
   end
 
   def get_transition_type(<<x::utf8>>) do
-    IO.puts("Transition type #{x}")
-
     cond do
       x == 10 -> :line_feed
       x == 32 -> :space
