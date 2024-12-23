@@ -16,27 +16,55 @@ defmodule FeelEx.Lexer do
     :state_8,
     :state_9,
     :state_10,
-    :state_11
+    :state_11,
+    :state_12,
+    :state_13,
+    :state_14
   ]
-  @final_states [:state_1, :state_3, :state_6, :state_9, :state_10, :state_11]
+  @final_states [
+    :state_1,
+    :state_3,
+    :state_4,
+    :state_6,
+    :state_9,
+    :state_10,
+    :state_11,
+    :state_12,
+    :state_14
+  ]
   @states_excluding_error_state @states -- [@error_state]
   @transition_table %{
     dot: [state_0: :state_3, state_1: :state_2, state_5: :state_5],
     digit: [state_0: :state_1, state_1: :state_1, state_2: :state_3, state_3: :state_3],
     forward_slash: [state_0: :state_4, state_4: :state_5, state_5: :state_5, state_8: :state_9],
     line_feed: [state_5: :state_6],
-    asterisk: [state_4: :state_7, state_5: :state_5, state_7: :state_8, state_8: :state_8],
+    asterisk: [
+      state_0: :state_12,
+      state_4: :state_7,
+      state_5: :state_5,
+      state_7: :state_8,
+      state_8: :state_8
+    ],
     question_mark: [state_5: :state_5],
-    capital_a_to_z: [state_5: :state_5, state_10: :state_11, state_11: :state_11],
+    capital_a_to_z: [
+      state_5: :state_5,
+      state_10: :state_11,
+      state_11: :state_11,
+      state_13: :state_13
+    ],
     underscore: [state_5: :state_5],
     small_a_to_z: [
       state_0: :state_10,
       state_5: :state_5,
       state_7: :state_7,
       state_10: :state_11,
-      state_11: :state_11
+      state_11: :state_11,
+      state_13: :state_13
     ],
-    space: [state_5: :state_5, state_7: :state_7, state_8: :state_7]
+    space: [state_5: :state_5, state_7: :state_7, state_8: :state_7, state_13: :state_13],
+    plus: [state_0: :state_12],
+    minus: [state_0: :state_12],
+    quote: [state_0: :state_13, state_13: :state_14]
   }
 
   def tokens(program) do
@@ -243,8 +271,11 @@ defmodule FeelEx.Lexer do
     cond do
       x == 10 -> :line_feed
       x == 32 -> :space
+      x == 34 -> :quote
       x == 42 -> :asterisk
-      x == 46 -> :dot
+      x == 43 -> :plus
+      x == 45 -> :minus
+      x == 45 -> :dot
       x == 47 -> :forward_slash
       x in 48..57 -> :digit
       x == 63 -> :question_mark
