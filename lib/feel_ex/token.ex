@@ -21,6 +21,10 @@ defmodule FeelEx.Token do
     %__MODULE__{type: :comment, value: lexeme, line_number: line_number - 1}
   end
 
+  def new(%{current_state: :state_4, lexeme: "/", current_line_number: line_number}) do
+    %__MODULE__{type: :arithemtic_op_div, value: "/", line_number: line_number - 1}
+  end
+
   def new(%{current_state: :state_9, lexeme: lexeme, current_line_number: line_number}) do
     %__MODULE__{type: :comment, value: lexeme, line_number: line_number}
   end
@@ -33,7 +37,25 @@ defmodule FeelEx.Token do
     %__MODULE__{type: check_for_keywords(lexeme), value: lexeme, line_number: line_number}
   end
 
+  def new(%{current_state: :state_12, lexeme: "*", current_line_number: line_number}) do
+    %__MODULE__{type: :arithemtic_op_mul, value: "*", line_number: line_number - 1}
+  end
+
+  def new(%{current_state: :state_12, lexeme: "+", current_line_number: line_number}) do
+    %__MODULE__{type: :arithemtic_op_add, value: "+", line_number: line_number - 1}
+  end
+
+  def new(%{current_state: :state_12, lexeme: "-", current_line_number: line_number}) do
+    %__MODULE__{type: :arithemtic_op_sub, value: "-", line_number: line_number - 1}
+  end
+
+  def new(%{current_state: :state_14, lexeme: lexeme, current_line_number: line_number}) do
+    %__MODULE__{type: :string, value: unescape(lexeme), line_number: line_number - 1}
+  end
+
   defp check_for_keywords("if"), do: :if
+  defp check_for_keywords("then"), do: :then
+  defp check_for_keywords("else"), do: :else
   defp check_for_keywords("for"), do: :for
   defp check_for_keywords("in"), do: :in
   defp check_for_keywords("return"), do: :return
@@ -41,5 +63,11 @@ defmodule FeelEx.Token do
   defp check_for_keywords("every"), do: :every
   defp check_for_keywords("or"), do: :or
   defp check_for_keywords("and"), do: :and
+  defp check_for_keywords("true"), do: :boolean
+  defp check_for_keywords("false"), do: :boolean
   defp check_for_keywords(_), do: :name
+  defp unescape(string) when is_binary(string) do
+    string
+    |> String.replace("\"","")
+  end
 end
