@@ -17,6 +17,10 @@ defmodule FeelEx.Helper do
     end
   end
 
+  def filter_out_comments(list) when is_list(list) do
+    Enum.reject(list, fn x -> Map.get(x, :type) == :comment end)
+  end
+
   defp are_all_keys_atoms?(map) when is_map(map) do
     Enum.all?(map, fn {key, value} ->
       is_atom(key) and
