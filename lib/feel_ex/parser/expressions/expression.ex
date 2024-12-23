@@ -4,6 +4,7 @@ defmodule FeelEx.Expression do
   alias FeelEx.Expression.{
     Name,
     Number,
+    Negation,
     OpAdd,
     OpSubtract,
     OpMultiply,
@@ -21,6 +22,11 @@ defmodule FeelEx.Expression do
   alias FeelEx.Value
   require Logger
   defstruct [:child]
+  # create negation treee
+  def new(:negation, operand) do
+    %__MODULE__{child: %Negation{operand: operand}}
+  end
+
   # evaluate a string
   def new(:string, string) do
     %__MODULE__{child: %String_{value: string}}
@@ -58,7 +64,7 @@ defmodule FeelEx.Expression do
     }
   end
 
-  # arithemetic operations
+  # arithmetic operations
   def new(:op_add, left_tree, right_tree) do
     %__MODULE__{child: %OpAdd{left_tree: left_tree, right_tree: right_tree}}
   end
@@ -190,6 +196,13 @@ defmodule FeelEx.Expression do
   end
 
   def evaluate(
+        %__MODULE__{child: %Negation{operand: operand}},
+        context
+      ) do
+    do_negation(evaluate(operand, context))
+  end
+
+  def evaluate(
         %__MODULE__{
           child: %If{
             condition: condition,
@@ -278,6 +291,10 @@ defmodule FeelEx.Expression do
          %FeelEx.Value{value: val2, type: :number}
        ) do
     Value.new(val1 != val2)
+  end
+
+  defp do_negation(%FeelEx.Value{value: val1, type: :number}) do
+    Value.new(-val1)
   end
 
   defp do_if(

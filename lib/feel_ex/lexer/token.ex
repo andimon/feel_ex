@@ -22,7 +22,7 @@ defmodule FeelEx.Token do
   end
 
   def new(%{current_state: :state_4, lexeme: "/", current_line_number: line_number}) do
-    %__MODULE__{type: :arithemtic_op_div, value: "/", line_number: line_number - 1}
+    %__MODULE__{type: :arithmetic_op_div, value: "/", line_number: line_number - 1}
   end
 
   def new(%{current_state: :state_9, lexeme: lexeme, current_line_number: line_number}) do
@@ -38,15 +38,15 @@ defmodule FeelEx.Token do
   end
 
   def new(%{current_state: :state_12, lexeme: "*", current_line_number: line_number}) do
-    %__MODULE__{type: :arithemtic_op_mul, value: "*", line_number: line_number - 1}
+    %__MODULE__{type: :arithmetic_op_mul, value: "*", line_number: line_number - 1}
   end
 
   def new(%{current_state: :state_12, lexeme: "+", current_line_number: line_number}) do
-    %__MODULE__{type: :arithemtic_op_add, value: "+", line_number: line_number - 1}
+    %__MODULE__{type: :arithmetic_op_add, value: "+", line_number: line_number - 1}
   end
 
   def new(%{current_state: :state_12, lexeme: "-", current_line_number: line_number}) do
-    %__MODULE__{type: :arithemtic_op_sub, value: "-", line_number: line_number - 1}
+    %__MODULE__{type: :arithmetic_op_sub, value: "-", line_number: line_number - 1}
   end
 
   def new(%{current_state: :state_14, lexeme: lexeme, current_line_number: line_number}) do
