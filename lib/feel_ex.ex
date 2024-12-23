@@ -1,29 +1,22 @@
 defmodule FeelEx do
   @moduledoc """
-  FeelEx. An implementation of the (Friendly Enough Expression Language) in Elixir.
+  FeelEx business oriented langauge based on (Friendly Enough Expression Language).
   """
   require Logger
-  alias FeelEx.{Helper, Lexer}
+  alias FeelEx.{Helper, Lexer, Parser, Expression}
 
   @doc """
   """
-  def execute(input_map, feel_expression) when is_map(input_map) and is_binary(feel_expression) do
-    with {{:ok, "Map is valid"}, :input_map} <- {Helper.input_map_checker(input_map), :input_map},
-         {{:ok, tokens}, :tokens} <- {Lexer.tokens(feel_expression), :tokens} do
-      tokens
-    else
-      {err, :input_map} ->
-        Logger.error("Please check the given input map #{inspect(input_map)}")
-        err
-
-      {err, :tokens} ->
-        err
-    end
+  def evaluate(context, feel_expression) when is_map(context) and is_binary(feel_expression) do
+    tokens = Lexer.tokens(feel_expression)
+    tokens = Helper.filter_out_comments(tokens)
+    expression = Parser.parse_expression(tokens)
+    Expression.evaluate(expression, context)
   end
 
   @doc """
   """
-  def execute(feel_expression) when is_binary(feel_expression) do
-    :world
+  def evaluate(feel_expression) when is_binary(feel_expression) do
+    evaluate(%{}, feel_expression)
   end
 end
