@@ -2,6 +2,10 @@ defmodule FeelEx.Parser do
   alias FeelEx.Token
   alias FeelEx.Expression
   require Logger
+  # parse negation
+  def parse_expression([%Token{type: :arithmetic_op_sub, value: "-"} | remaining_tokens]) do
+    Expression.new(:negation, parse_expression(remaining_tokens))
+  end
 
   # parse string
   def parse_expression([%Token{type: :string, value: string}, %Token{type: :eof}]) do
@@ -76,7 +80,7 @@ defmodule FeelEx.Parser do
   # handle addition
   def parse_expression([
         left_token,
-        %Token{type: :arithemtic_op_add, value: "+"} | right_expression
+        %Token{type: :arithmetic_op_add, value: "+"} | right_expression
       ]) do
     left_tree = parse_expression([left_token])
     right_tree = parse_expression(right_expression)
@@ -86,7 +90,7 @@ defmodule FeelEx.Parser do
   # handle subtraction
   def parse_expression([
         left_token,
-        %Token{type: :arithemtic_op_sub, value: "-"} | right_expression
+        %Token{type: :arithmetic_op_sub, value: "-"} | right_expression
       ]) do
     left_tree = parse_expression([left_token, %Token{type: :eof}])
     right_tree = parse_expression(right_expression)
@@ -96,7 +100,7 @@ defmodule FeelEx.Parser do
   # handle multiplication
   def parse_expression([
         left_token,
-        %Token{type: :arithemtic_op_mul, value: "*"} | right_expression
+        %Token{type: :arithmetic_op_mul, value: "*"} | right_expression
       ]) do
     left_tree = parse_expression([left_token, %Token{type: :eof}])
     right_tree = parse_expression(right_expression)
@@ -106,7 +110,7 @@ defmodule FeelEx.Parser do
   # handle division
   def parse_expression([
         left_token,
-        %Token{type: :arithemtic_op_div, value: "/"} | right_expression
+        %Token{type: :arithmetic_op_div, value: "/"} | right_expression
       ]) do
     left_tree = parse_expression([left_token, %Token{type: :eof}])
     right_tree = parse_expression(right_expression)
