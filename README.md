@@ -1,21 +1,12 @@
 # FeelEx
 
-**TODO: Add description**
+A friendly expression language helps users define decision logic without needing deep technical expertise. This language is based on the Friendly Enough Expression Language. For more information regarding FEEL, please take a look at the official OMG specification at https://www.omg.org/dmn/.
 
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `feel_ex` to your list of dependencies in `mix.exs`:
+# Example Usage
 
 ```elixir
-def deps do
-  [
-    {:feel_ex, "~> 0.1.0"}
-  ]
-end
+iex(1)> FeelEx.evaluate("if true then \"hello\" else 2")
+%FeelEx.Value{value: "hello", type: :string}
+iex(2)> FeelEx.evaluate(%{a: 1},"a+2")
+%FeelEx.Value{value: 3, type: :number}
 ```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/feel_ex>.
-
