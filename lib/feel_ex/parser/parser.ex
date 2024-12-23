@@ -3,14 +3,14 @@ defmodule FeelEx.Parser do
   alias FeelEx.Expression
   require Logger
 
-    # parse string
-    def parse_expression([%Token{type: :string, value: string}, %Token{type: :eof}]) do
-      Expression.new(:string, string)
-    end
+  # parse string
+  def parse_expression([%Token{type: :string, value: string}, %Token{type: :eof}]) do
+    Expression.new(:string, string)
+  end
 
-    def parse_expression([%Token{type: :string, value: string}]) do
-      Expression.new(:string, string)
-    end
+  def parse_expression([%Token{type: :string, value: string}]) do
+    Expression.new(:string, string)
+  end
 
   # parse boolean values
   def parse_expression([%Token{type: :boolean, value: "true"}, %Token{type: :eof}]) do
@@ -83,6 +83,7 @@ defmodule FeelEx.Parser do
     Expression.new(:op_add, left_tree, right_tree)
   end
 
+  # handle subtraction
   def parse_expression([
         left_token,
         %Token{type: :arithemtic_op_sub, value: "-"} | right_expression
@@ -92,6 +93,7 @@ defmodule FeelEx.Parser do
     Expression.new(:op_subtract, left_tree, right_tree)
   end
 
+  # handle multiplication
   def parse_expression([
         left_token,
         %Token{type: :arithemtic_op_mul, value: "*"} | right_expression
@@ -101,6 +103,7 @@ defmodule FeelEx.Parser do
     Expression.new(:op_multiply, left_tree, right_tree)
   end
 
+  # handle division
   def parse_expression([
         left_token,
         %Token{type: :arithemtic_op_div, value: "/"} | right_expression
@@ -108,6 +111,66 @@ defmodule FeelEx.Parser do
     left_tree = parse_expression([left_token, %Token{type: :eof}])
     right_tree = parse_expression(right_expression)
     Expression.new(:op_divide, left_tree, right_tree)
+  end
+
+  # handle gt
+  def parse_expression([
+        left_token,
+        %Token{type: :gt, value: ">"} | right_expression
+      ]) do
+    left_tree = parse_expression([left_token, %Token{type: :eof}])
+    right_tree = parse_expression(right_expression)
+    Expression.new(:op_gt, left_tree, right_tree)
+  end
+
+  # handle lt
+  def parse_expression([
+        left_token,
+        %Token{type: :lt, value: "<"} | right_expression
+      ]) do
+    left_tree = parse_expression([left_token, %Token{type: :eof}])
+    right_tree = parse_expression(right_expression)
+    Expression.new(:op_lt, left_tree, right_tree)
+  end
+
+  # handle geq
+  def parse_expression([
+        left_token,
+        %Token{type: :geq, value: ">="} | right_expression
+      ]) do
+    left_tree = parse_expression([left_token, %Token{type: :eof}])
+    right_tree = parse_expression(right_expression)
+    Expression.new(:op_geq, left_tree, right_tree)
+  end
+
+  # handle leq
+  def parse_expression([
+        left_token,
+        %Token{type: :leq, value: "<="} | right_expression
+      ]) do
+    left_tree = parse_expression([left_token, %Token{type: :eof}])
+    right_tree = parse_expression(right_expression)
+    Expression.new(:op_leq, left_tree, right_tree)
+  end
+
+  # handle eq
+  def parse_expression([
+        left_token,
+        %Token{type: :eq, value: "="} | right_expression
+      ]) do
+    left_tree = parse_expression([left_token, %Token{type: :eof}])
+    right_tree = parse_expression(right_expression)
+    Expression.new(:op_eq, left_tree, right_tree)
+  end
+
+  # handle neq
+  def parse_expression([
+        left_token,
+        %Token{type: :neq, value: "!="} | right_expression
+      ]) do
+    left_tree = parse_expression([left_token, %Token{type: :eof}])
+    right_tree = parse_expression(right_expression)
+    Expression.new(:op_neq, left_tree, right_tree)
   end
 
   defp tokens_contains_then_and_else!(tokens) do

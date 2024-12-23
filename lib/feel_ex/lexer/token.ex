@@ -53,6 +53,30 @@ defmodule FeelEx.Token do
     %__MODULE__{type: :string, value: unescape(lexeme), line_number: line_number - 1}
   end
 
+  def new(%{current_state: :state_15, lexeme: "<", current_line_number: line_number}) do
+    %__MODULE__{type: :lt, value: "<", line_number: line_number - 1}
+  end
+
+  def new(%{current_state: :state_15, lexeme: ">", current_line_number: line_number}) do
+    %__MODULE__{type: :gt, value: ">", line_number: line_number - 1}
+  end
+
+  def new(%{current_state: :state_16, lexeme: "<=", current_line_number: line_number}) do
+    %__MODULE__{type: :leq, value: "<=", line_number: line_number - 1}
+  end
+
+  def new(%{current_state: :state_16, lexeme: "!=", current_line_number: line_number}) do
+    %__MODULE__{type: :neq, value: "!=", line_number: line_number - 1}
+  end
+
+  def new(%{current_state: :state_16, lexeme: ">=", current_line_number: line_number}) do
+    %__MODULE__{type: :geq, value: ">=", line_number: line_number - 1}
+  end
+
+  def new(%{current_state: :state_17, lexeme: "=", current_line_number: line_number}) do
+    %__MODULE__{type: :eq, value: "=", line_number: line_number - 1}
+  end
+
   defp check_for_keywords("if"), do: :if
   defp check_for_keywords("then"), do: :then
   defp check_for_keywords("else"), do: :else
@@ -66,8 +90,9 @@ defmodule FeelEx.Token do
   defp check_for_keywords("true"), do: :boolean
   defp check_for_keywords("false"), do: :boolean
   defp check_for_keywords(_), do: :name
+
   defp unescape(string) when is_binary(string) do
     string
-    |> String.replace("\"","")
+    |> String.replace("\"", "")
   end
 end

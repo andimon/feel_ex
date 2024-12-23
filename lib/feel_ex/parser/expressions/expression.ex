@@ -8,6 +8,12 @@ defmodule FeelEx.Expression do
     OpSubtract,
     OpMultiply,
     OpDivide,
+    OpLeq,
+    OpGeq,
+    OpEq,
+    OpNeq,
+    OpLt,
+    OpGt,
     Boolean,
     String_
   }
@@ -52,6 +58,7 @@ defmodule FeelEx.Expression do
     }
   end
 
+  # arithemetic operations
   def new(:op_add, left_tree, right_tree) do
     %__MODULE__{child: %OpAdd{left_tree: left_tree, right_tree: right_tree}}
   end
@@ -68,10 +75,35 @@ defmodule FeelEx.Expression do
     %__MODULE__{child: %OpDivide{left_tree: left_tree, right_tree: right_tree}}
   end
 
+  # comparisons
+
+  def new(:op_geq, left_tree, right_tree) do
+    %__MODULE__{child: %OpGeq{left_tree: left_tree, right_tree: right_tree}}
+  end
+
+  def new(:op_leq, left_tree, right_tree) do
+    %__MODULE__{child: %OpLeq{left_tree: left_tree, right_tree: right_tree}}
+  end
+
+  def new(:op_lt, left_tree, right_tree) do
+    %__MODULE__{child: %OpLt{left_tree: left_tree, right_tree: right_tree}}
+  end
+
+  def new(:op_gt, left_tree, right_tree) do
+    %__MODULE__{child: %OpGt{left_tree: left_tree, right_tree: right_tree}}
+  end
+
+  def new(:op_eq, left_tree, right_tree) do
+    %__MODULE__{child: %OpEq{left_tree: left_tree, right_tree: right_tree}}
+  end
+
+  def new(:op_neq, left_tree, right_tree) do
+    %__MODULE__{child: %OpNeq{left_tree: left_tree, right_tree: right_tree}}
+  end
+
   def evaluate(%__MODULE__{child: %String_{value: string}}, _context) do
     Value.new(string)
   end
-
 
   def evaluate(%__MODULE__{child: %Boolean{value: bool}}, _context) do
     Value.new(bool)
@@ -113,6 +145,48 @@ defmodule FeelEx.Expression do
         context
       ) do
     do_subtract(evaluate(left_tree, context), evaluate(right_tree, context))
+  end
+
+  def evaluate(
+        %__MODULE__{child: %OpLeq{left_tree: left_tree, right_tree: right_tree}},
+        context
+      ) do
+    do_leq(evaluate(left_tree, context), evaluate(right_tree, context))
+  end
+
+  def evaluate(
+        %__MODULE__{child: %OpGt{left_tree: left_tree, right_tree: right_tree}},
+        context
+      ) do
+    do_gt(evaluate(left_tree, context), evaluate(right_tree, context))
+  end
+
+  def evaluate(
+        %__MODULE__{child: %OpGeq{left_tree: left_tree, right_tree: right_tree}},
+        context
+      ) do
+    do_geq(evaluate(left_tree, context), evaluate(right_tree, context))
+  end
+
+  def evaluate(
+        %__MODULE__{child: %OpLt{left_tree: left_tree, right_tree: right_tree}},
+        context
+      ) do
+    do_lt(evaluate(left_tree, context), evaluate(right_tree, context))
+  end
+
+  def evaluate(
+        %__MODULE__{child: %OpEq{left_tree: left_tree, right_tree: right_tree}},
+        context
+      ) do
+    do_eq(evaluate(left_tree, context), evaluate(right_tree, context))
+  end
+
+  def evaluate(
+        %__MODULE__{child: %OpNeq{left_tree: left_tree, right_tree: right_tree}},
+        context
+      ) do
+    do_neq(evaluate(left_tree, context), evaluate(right_tree, context))
   end
 
   def evaluate(
@@ -162,6 +236,48 @@ defmodule FeelEx.Expression do
          %FeelEx.Value{value: val2, type: :number}
        ) do
     Value.new(val1 / val2)
+  end
+
+  defp do_gt(
+         %FeelEx.Value{value: val1, type: :number},
+         %FeelEx.Value{value: val2, type: :number}
+       ) do
+    Value.new(val1 > val2)
+  end
+
+  defp do_lt(
+         %FeelEx.Value{value: val1, type: :number},
+         %FeelEx.Value{value: val2, type: :number}
+       ) do
+    Value.new(val1 < val2)
+  end
+
+  defp do_leq(
+         %FeelEx.Value{value: val1, type: :number},
+         %FeelEx.Value{value: val2, type: :number}
+       ) do
+    Value.new(val1 <= val2)
+  end
+
+  defp do_geq(
+         %FeelEx.Value{value: val1, type: :number},
+         %FeelEx.Value{value: val2, type: :number}
+       ) do
+    Value.new(val1 >= val2)
+  end
+
+  defp do_eq(
+         %FeelEx.Value{value: val1, type: :number},
+         %FeelEx.Value{value: val2, type: :number}
+       ) do
+    Value.new(val1 == val2)
+  end
+
+  defp do_neq(
+         %FeelEx.Value{value: val1, type: :number},
+         %FeelEx.Value{value: val2, type: :number}
+       ) do
+    Value.new(val1 != val2)
   end
 
   defp do_if(

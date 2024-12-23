@@ -19,7 +19,10 @@ defmodule FeelEx.Lexer do
     :state_11,
     :state_12,
     :state_13,
-    :state_14
+    :state_14,
+    :state_15,
+    :state_16,
+    :state_17
   ]
   @final_states [
     :state_1,
@@ -30,7 +33,10 @@ defmodule FeelEx.Lexer do
     :state_10,
     :state_11,
     :state_12,
-    :state_14
+    :state_14,
+    :state_15,
+    :state_16,
+    :state_17
   ]
   @states_excluding_error_state @states -- [@error_state]
   @transition_table %{
@@ -64,9 +70,14 @@ defmodule FeelEx.Lexer do
     space: [state_5: :state_5, state_7: :state_7, state_8: :state_7, state_13: :state_13],
     plus: [state_0: :state_12],
     minus: [state_0: :state_12],
-    quote: [state_0: :state_13, state_13: :state_14]
+    quote: [state_0: :state_13, state_13: :state_14],
+    less_than: [state_0: :state_15],
+    greater_than: [state_0: :state_15],
+    exclamation: [state_0: :state_15],
+    equal: [state_0: :state_17, state_15: :state_16]
   }
 
+  @spec tokens(binary()) :: [%FeelEx.Token{line_number: any(), type: atom(), value: any()}, ...]
   def tokens(program) do
     current_token = next_token(program, 0, 1)
     do_get_tokens(program, current_token)
@@ -271,13 +282,17 @@ defmodule FeelEx.Lexer do
     cond do
       x == 10 -> :line_feed
       x == 32 -> :space
+      x == 33 -> :exclamation
       x == 34 -> :quote
       x == 42 -> :asterisk
       x == 43 -> :plus
       x == 45 -> :minus
-      x == 45 -> :dot
+      x == 46 -> :dot
       x == 47 -> :forward_slash
       x in 48..57 -> :digit
+      x == 60 -> :less_than
+      x == 61 -> :equal
+      x == 62 -> :greater_than
       x == 63 -> :question_mark
       x in 65..90 -> :capital_a_to_z
       x == 95 -> :underscore
