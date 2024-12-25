@@ -17,6 +17,28 @@ defmodule FeelEx.Parser do
     nil
   end
 
+  def do_parse_expression(
+        [%Token{type: :left_bracket, value: "("} | remaining_tokens],
+        _precedence
+      ) do
+    right_bracket_index =
+      Enum.find_index(remaining_tokens, fn token -> token.type == :right_bracket end)
+
+    if is_nil(right_bracket_index) do
+      raise ArgumentError, message: "Expected ) after ("
+    else
+      tokens_inside_brackets = Enum.slice(remaining_tokens, 0..(right_bracket_index - 1))
+      remaining_tokens = Enum.slice(remaining_tokens, (right_bracket_index + 1)..-1//1)
+      expression = do_parse_expression(tokens_inside_brackets, -1)
+      do_parse_expression(expression, remaining_tokens, -1)
+    end
+  end
+
+  def do_parse_expression([%Token{type: type, value: value}, %Token{type: :eof}], _precedence)
+      when type in [:int, :float, :name, :string] do
+    {Expression.new(type, value), []}
+  end
+
   def do_parse_expression([%Token{type: type, value: value}, %Token{type: :eof}], _precedence)
       when type in [:int, :float, :name, :string] do
     {Expression.new(type, value), []}
@@ -105,7 +127,7 @@ defmodule FeelEx.Parser do
   end
 
   def do_parse_expression(
-        %Expression{} = left_expression,
+        {%Expression{}, []} = left_expression,
         [
           %Token{type: type} = token_type | remaining_tokens
         ],
@@ -126,7 +148,11 @@ defmodule FeelEx.Parser do
     parse_precedence_loop(left_expression, [token_type | remaining_tokens], precedence)
   end
 
-  def do_parse_expression(%Expression{} = left_expression, [%Token{type: :eof}], _precedence) do
+  def do_parse_expression(
+        {%Expression{}, []} = left_expression,
+        [%Token{type: :eof}],
+        _precedence
+      ) do
     left_expression
   end
 
@@ -212,6 +238,7 @@ defmodule FeelEx.Parser do
   end
 
   defp parse_precedence_loop(left_expression, remaining_tokens, precedence) do
+
     {node, remaining_tokens} =
       parse_increasing_precedence(left_expression, remaining_tokens, precedence)
 
