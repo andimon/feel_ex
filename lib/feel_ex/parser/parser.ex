@@ -1,180 +1,133 @@
 defmodule FeelEx.Parser do
   alias FeelEx.Token
   alias FeelEx.Expression
+  alias FeelEx.Parser.Evaluators.Precedence
   require Logger
-  # parse negation
-  def parse_expression([%Token{type: :arithmetic_op_sub, value: "-"} | remaining_tokens]) do
-    Expression.new(:negation, parse_expression(remaining_tokens))
+
+  def parse_expression(tokens) do
+    {exp, []} = do_parse_expression(tokens, -1)
+    exp
   end
 
-  # parse string
-  def parse_expression([%Token{type: :string, value: string}, %Token{type: :eof}]) do
-    Expression.new(:string, string)
+  def do_parse_expression([%Token{type: :eof}], _precedence) do
+    nil
   end
 
-  def parse_expression([%Token{type: :string, value: string}]) do
-    Expression.new(:string, string)
+  def do_parse_expression(%Token{type: :eof}, _precedence) do
+    nil
   end
 
-  # parse boolean values
-  def parse_expression([%Token{type: :boolean, value: "true"}, %Token{type: :eof}]) do
-    Expression.new(:boolean, true)
+  def do_parse_expression([%Token{type: type, value: value}, %Token{type: :eof}], _precedence)
+      when type in [:int, :float, :name, :string] do
+    {Expression.new(type, value), []}
   end
 
-  def parse_expression([%Token{type: :boolean, value: "false"}, %Token{type: :eof}]) do
-    Expression.new(:boolean, false)
+  def do_parse_expression(%Token{type: type, value: value}, _precedence)
+      when type in [:float, :int, :name, :string] do
+    {Expression.new(type, value), []}
   end
 
-  def parse_expression([%Token{type: :boolean, value: "true"}]) do
-    Expression.new(:boolean, true)
+  def do_parse_expression([%Token{type: type, value: value}], _precedence)
+      when type in [:int, :float, :name, :string] do
+    {Expression.new(type, value), []}
   end
 
-  def parse_expression([%Token{type: :boolean, value: "false"}]) do
-    Expression.new(:boolean, false)
+  def do_parse_expression([%Token{type: :boolean, value: value}], _precedence)
+      when value in ["true", "false"] do
+    {Expression.new(:boolean, String.to_atom(value)), []}
   end
 
-  # parse numbers
-  def parse_expression([%Token{type: :int, value: int}, %Token{type: :eof}]) do
-    Expression.new(:int, int)
+  def do_parse_expression(
+        [%Token{type: :boolean, value: value}, %Token{type: :eof}],
+        _precedence
+      )
+      when value in ["true", "false"] do
+    {Expression.new(:boolean, String.to_atom(value)), []}
   end
 
-  def parse_expression([%Token{type: :float, value: float}, %Token{type: :eof}]) do
-    Expression.new(:float, float)
+  def do_parse_expression(
+        [
+          %Token{type: :arithmetic_op_sub, value: "-"},
+          %Token{type: :int} = number | remaining_tokens
+        ],
+        precedence
+      ) do
+    {number, []} = do_parse_expression(number, precedence)
+
+    negated_int = Expression.new(:negation, number)
+    do_parse_expression(negated_int, remaining_tokens, precedence)
   end
 
-  def parse_expression([%Token{type: :int, value: int}]) do
-    Expression.new(:int, int)
+  def do_parse_expression([%Token{type: :string, value: string} | tl], precedence) do
+    string_expression = Expression.new(:string, string)
+    do_parse_expression(string_expression, tl, precedence)
   end
 
-  def parse_expression([%Token{type: :float, value: float}]) do
-    Expression.new(:float, float)
-  end
-
-  # parse name
-  def parse_expression([%Token{type: :name, value: name}, %Token{type: :eof}]) do
-    Expression.new(:name, name)
-  end
-
-  def parse_expression([%Token{type: :name, value: name}]) do
-    Expression.new(:name, name)
-  end
-
-  def parse_expression([%Token{type: :if} | remaining_tokens]) do
-    # check that remaning tokens have a then and else after each other
+  def do_parse_expression([%Token{type: :if} | remaining_tokens], precedence) do
     tokens_contains_then_and_else!(remaining_tokens)
-    # parse expression for condition
-    {condition_expression, remaining_tokens} = parse_expression_for_if_condition(remaining_tokens)
-    # parse expression for condition statement
+
+    {condition_expression, remaining_tokens} =
+      parse_expression_for_if_condition(remaining_tokens, precedence)
+
     {conitional_statement, remaining_tokens} =
-      parse_expression_for_if_conditional_statement(remaining_tokens)
+      parse_expression_for_if_conditional_statement(remaining_tokens, precedence)
 
-    # parse expression for else statement
-    else_condition = parse_expression(remaining_tokens)
-    Expression.new(:if, condition_expression, conitional_statement, else_condition)
+    else_condition = do_parse_expression(remaining_tokens, precedence)
+    {Expression.new(:if, condition_expression, conitional_statement, else_condition), []}
   end
 
-  def parse_expression([%Token{type: :eof}]) do
-    {:ok, nil}
+  def do_parse_expression(
+        [
+          left_token,
+          %Token{type: type, value: value} | remaining_tokens
+        ],
+        precedence
+      )
+      when type in [
+             :arithmetic_op_add,
+             :arithmetic_op_sub,
+             :arithmetic_op_mul,
+             :arithmetic_op_div,
+             :geq,
+             :leq,
+             :eq,
+             :neq,
+             :gt,
+             :lt
+           ] do
+    left_expression = do_parse_expression([left_token], precedence)
+
+    parse_precedence_loop(
+      left_expression,
+      [%Token{type: type, value: value} | remaining_tokens],
+      precedence
+    )
   end
 
-  # handle addition
-  def parse_expression([
-        left_token,
-        %Token{type: :arithmetic_op_add, value: "+"} | right_expression
-      ]) do
-    left_tree = parse_expression([left_token])
-    right_tree = parse_expression(right_expression)
-    Expression.new(:op_add, left_tree, right_tree)
+  def do_parse_expression(
+        %Expression{} = left_expression,
+        [
+          %Token{type: type} = token_type | remaining_tokens
+        ],
+        precedence
+      )
+      when type in [
+             :arithmetic_op_add,
+             :arithmetic_op_sub,
+             :arithmetic_op_mul,
+             :arithmetic_op_div,
+             :geq,
+             :leq,
+             :eq,
+             :neq,
+             :gt,
+             :lt
+           ] do
+    parse_precedence_loop(left_expression, [token_type | remaining_tokens], precedence)
   end
 
-  # handle subtraction
-  def parse_expression([
-        left_token,
-        %Token{type: :arithmetic_op_sub, value: "-"} | right_expression
-      ]) do
-    left_tree = parse_expression([left_token, %Token{type: :eof}])
-    right_tree = parse_expression(right_expression)
-    Expression.new(:op_subtract, left_tree, right_tree)
-  end
-
-  # handle multiplication
-  def parse_expression([
-        left_token,
-        %Token{type: :arithmetic_op_mul, value: "*"} | right_expression
-      ]) do
-    left_tree = parse_expression([left_token, %Token{type: :eof}])
-    right_tree = parse_expression(right_expression)
-    Expression.new(:op_multiply, left_tree, right_tree)
-  end
-
-  # handle division
-  def parse_expression([
-        left_token,
-        %Token{type: :arithmetic_op_div, value: "/"} | right_expression
-      ]) do
-    left_tree = parse_expression([left_token, %Token{type: :eof}])
-    right_tree = parse_expression(right_expression)
-    Expression.new(:op_divide, left_tree, right_tree)
-  end
-
-  # handle gt
-  def parse_expression([
-        left_token,
-        %Token{type: :gt, value: ">"} | right_expression
-      ]) do
-    left_tree = parse_expression([left_token, %Token{type: :eof}])
-    right_tree = parse_expression(right_expression)
-    Expression.new(:op_gt, left_tree, right_tree)
-  end
-
-  # handle lt
-  def parse_expression([
-        left_token,
-        %Token{type: :lt, value: "<"} | right_expression
-      ]) do
-    left_tree = parse_expression([left_token, %Token{type: :eof}])
-    right_tree = parse_expression(right_expression)
-    Expression.new(:op_lt, left_tree, right_tree)
-  end
-
-  # handle geq
-  def parse_expression([
-        left_token,
-        %Token{type: :geq, value: ">="} | right_expression
-      ]) do
-    left_tree = parse_expression([left_token, %Token{type: :eof}])
-    right_tree = parse_expression(right_expression)
-    Expression.new(:op_geq, left_tree, right_tree)
-  end
-
-  # handle leq
-  def parse_expression([
-        left_token,
-        %Token{type: :leq, value: "<="} | right_expression
-      ]) do
-    left_tree = parse_expression([left_token, %Token{type: :eof}])
-    right_tree = parse_expression(right_expression)
-    Expression.new(:op_leq, left_tree, right_tree)
-  end
-
-  # handle eq
-  def parse_expression([
-        left_token,
-        %Token{type: :eq, value: "="} | right_expression
-      ]) do
-    left_tree = parse_expression([left_token, %Token{type: :eof}])
-    right_tree = parse_expression(right_expression)
-    Expression.new(:op_eq, left_tree, right_tree)
-  end
-
-  # handle neq
-  def parse_expression([
-        left_token,
-        %Token{type: :neq, value: "!="} | right_expression
-      ]) do
-    left_tree = parse_expression([left_token, %Token{type: :eof}])
-    right_tree = parse_expression(right_expression)
-    Expression.new(:op_neq, left_tree, right_tree)
+  def do_parse_expression(%Expression{} = left_expression, [%Token{type: :eof}], _precedence) do
+    left_expression
   end
 
   defp tokens_contains_then_and_else!(tokens) do
@@ -208,21 +161,64 @@ defmodule FeelEx.Parser do
     end
   end
 
-  defp parse_expression_for_if_condition(tokens) do
+  defp parse_expression_for_if_condition(tokens, precedence) do
     {condition, remaining_tokens} =
       Enum.split_while(tokens, fn tok -> Map.get(tok, :type) != :then end)
 
-    parsed_condition = parse_expression(condition)
+    parsed_condition = do_parse_expression(condition, precedence)
     [%Token{type: :then} | remaining_tokens] = remaining_tokens
     {parsed_condition, remaining_tokens}
   end
 
-  defp parse_expression_for_if_conditional_statement(tokens) do
+  defp parse_expression_for_if_conditional_statement(tokens, precedence) do
     {conditional_statement, remaining_tokens} =
       Enum.split_while(tokens, fn tok -> Map.get(tok, :type) != :else end)
 
-    parsed_conditional_statement = parse_expression(conditional_statement)
+    parsed_conditional_statement = do_parse_expression(conditional_statement, precedence)
     [%Token{type: :else} | remaining_tokens] = remaining_tokens
     {parsed_conditional_statement, remaining_tokens}
+  end
+
+  defp parse_increasing_precedence(
+         left_expression,
+         [%Token{type: type, value: value} | remaining_tokens],
+         min_prec
+       )
+       when type in [
+              :arithmetic_op_sub,
+              :arithmetic_op_add,
+              :arithmetic_op_div,
+              :arithmetic_op_mul,
+              :geq,
+              :leq,
+              :eq,
+              :neq,
+              :gt,
+              :lt
+            ] do
+    next_prec = Precedence.precedence(type)
+
+    if next_prec <= min_prec do
+      {left_expression, [%Token{type: type, value: value} | remaining_tokens]}
+    else
+      {right_expression, remaining_tokens} =
+        do_parse_expression(
+          remaining_tokens,
+          next_prec
+        )
+
+      {Expression.new(type, left_expression, right_expression), remaining_tokens}
+    end
+  end
+
+  defp parse_precedence_loop(left_expression, remaining_tokens, precedence) do
+    {node, remaining_tokens} =
+      parse_increasing_precedence(left_expression, remaining_tokens, precedence)
+
+    if node == left_expression or remaining_tokens == [] do
+      {node, remaining_tokens}
+    else
+      parse_precedence_loop(node, remaining_tokens, precedence)
+    end
   end
 end

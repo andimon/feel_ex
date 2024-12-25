@@ -54,7 +54,7 @@ defmodule FeelEx.Expression do
     %__MODULE__{child: %Number{value: String.to_float(float)}}
   end
 
-  def new(:if, condition_tree, conditional_statement_tree, else_statement_tree) do
+  def new(:if, {condition_tree, []}, {conditional_statement_tree, []}, {else_statement_tree, []}) do
     %__MODULE__{
       child: %If{
         condition: condition_tree,
@@ -65,45 +65,93 @@ defmodule FeelEx.Expression do
   end
 
   # arithmetic operations
-  def new(:op_add, left_tree, right_tree) do
+  def new(:arithmetic_op_add, left_tree, right_tree) do
+    left_tree =
+      case left_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    right_tree =
+      case right_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
     %__MODULE__{child: %OpAdd{left_tree: left_tree, right_tree: right_tree}}
   end
 
-  def new(:op_subtract, left_tree, right_tree) do
+  def new(:arithmetic_op_sub, left_tree, right_tree) do
+    left_tree =
+      case left_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    right_tree =
+      case right_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
     %__MODULE__{child: %OpSubtract{left_tree: left_tree, right_tree: right_tree}}
   end
 
-  def new(:op_multiply, left_tree, right_tree) do
+  def new(:arithmetic_op_mul, left_tree, right_tree) do
+    left_tree =
+      case left_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    right_tree =
+      case right_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
     %__MODULE__{child: %OpMultiply{left_tree: left_tree, right_tree: right_tree}}
   end
 
-  def new(:op_divide, left_tree, right_tree) do
+  def new(:arithmetic_op_div, left_tree, right_tree) do
+    left_tree =
+      case left_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    right_tree =
+      case right_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
     %__MODULE__{child: %OpDivide{left_tree: left_tree, right_tree: right_tree}}
   end
 
   # comparisons
 
-  def new(:op_geq, left_tree, right_tree) do
+  def new(:geq, left_tree, right_tree) do
     %__MODULE__{child: %OpGeq{left_tree: left_tree, right_tree: right_tree}}
   end
 
-  def new(:op_leq, left_tree, right_tree) do
+  def new(:leq, left_tree, right_tree) do
     %__MODULE__{child: %OpLeq{left_tree: left_tree, right_tree: right_tree}}
   end
 
-  def new(:op_lt, left_tree, right_tree) do
+  def new(:lt, left_tree, right_tree) do
     %__MODULE__{child: %OpLt{left_tree: left_tree, right_tree: right_tree}}
   end
 
-  def new(:op_gt, left_tree, right_tree) do
+  def new(:gt, left_tree, right_tree) do
     %__MODULE__{child: %OpGt{left_tree: left_tree, right_tree: right_tree}}
   end
 
-  def new(:op_eq, left_tree, right_tree) do
+  def new(:eq, left_tree, right_tree) do
     %__MODULE__{child: %OpEq{left_tree: left_tree, right_tree: right_tree}}
   end
 
-  def new(:op_neq, left_tree, right_tree) do
+  def new(:neq, left_tree, right_tree) do
     %__MODULE__{child: %OpNeq{left_tree: left_tree, right_tree: right_tree}}
   end
 
