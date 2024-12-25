@@ -78,7 +78,7 @@ defmodule FeelEx.Lexer do
     exclamation: [state_0: :state_15],
     equal: [state_0: :state_17, state_15: :state_16],
     left_bracket: [state_0: :state_18],
-    right_bracket: [state_0: :state_18],
+    right_bracket: [state_0: :state_18]
   }
 
   @spec tokens(binary()) :: [%FeelEx.Token{line_number: any(), type: atom(), value: any()}, ...]

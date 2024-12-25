@@ -13,6 +13,8 @@ defmodule FeelEx.Expression do
     OpGeq,
     OpEq,
     OpNeq,
+    OpAnd,
+    OpOr,
     OpLt,
     OpGt,
     Boolean,
@@ -132,27 +134,131 @@ defmodule FeelEx.Expression do
   # comparisons
 
   def new(:geq, left_tree, right_tree) do
+    left_tree =
+      case left_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    right_tree =
+      case right_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
     %__MODULE__{child: %OpGeq{left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:leq, left_tree, right_tree) do
+    left_tree =
+      case left_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    right_tree =
+      case right_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
     %__MODULE__{child: %OpLeq{left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:lt, left_tree, right_tree) do
+    left_tree =
+      case left_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    right_tree =
+      case right_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
     %__MODULE__{child: %OpLt{left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:gt, left_tree, right_tree) do
+    left_tree =
+      case left_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    right_tree =
+      case right_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
     %__MODULE__{child: %OpGt{left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:eq, left_tree, right_tree) do
+    left_tree =
+      case left_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    right_tree =
+      case right_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
     %__MODULE__{child: %OpEq{left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:neq, left_tree, right_tree) do
+    left_tree =
+      case left_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    right_tree =
+      case right_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
     %__MODULE__{child: %OpNeq{left_tree: left_tree, right_tree: right_tree}}
+  end
+
+  def new(:and, left_tree, right_tree) do
+    left_tree =
+      case left_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    right_tree =
+      case right_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    %__MODULE__{child: %OpAnd{left_tree: left_tree, right_tree: right_tree}}
+  end
+
+  def new(:or, left_tree, right_tree) do
+    left_tree =
+      case left_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    right_tree =
+      case right_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    %__MODULE__{child: %OpOr{left_tree: left_tree, right_tree: right_tree}}
   end
 
   def evaluate(%__MODULE__{child: %String_{value: string}}, _context) do
@@ -241,6 +347,20 @@ defmodule FeelEx.Expression do
         context
       ) do
     do_neq(evaluate(left_tree, context), evaluate(right_tree, context))
+  end
+
+  def evaluate(
+        %__MODULE__{child: %OpAnd{left_tree: left_tree, right_tree: right_tree}},
+        context
+      ) do
+    do_and(evaluate(left_tree, context), right_tree, context)
+  end
+
+  def evaluate(
+        %__MODULE__{child: %OpOr{left_tree: left_tree, right_tree: right_tree}},
+        context
+      ) do
+    do_or(evaluate(left_tree, context), right_tree, context)
   end
 
   def evaluate(
@@ -339,6 +459,30 @@ defmodule FeelEx.Expression do
          %FeelEx.Value{value: val2, type: :number}
        ) do
     Value.new(val1 != val2)
+  end
+
+  defp do_and(%FeelEx.Value{value: true, type: :boolean}, right_tree, context) do
+    do_and(evaluate(right_tree, context))
+  end
+
+  defp do_and(%FeelEx.Value{value: false, type: :boolean}, _right_tree, _context) do
+    %FeelEx.Value{value: false, type: :boolean}
+  end
+
+  defp do_and(%FeelEx.Value{value: value, type: :boolean}) when is_boolean(value) do
+    %FeelEx.Value{value: value, type: :boolean}
+  end
+
+  defp do_or(%FeelEx.Value{value: true, type: :boolean}, _right_tree, _context) do
+    %FeelEx.Value{value: true, type: :boolean}
+  end
+
+  defp do_or(%FeelEx.Value{value: false, type: :boolean}, right_tree, context) do
+    do_or(evaluate(right_tree, context))
+  end
+
+  defp do_or(%FeelEx.Value{value: value, type: :boolean}) when is_boolean(value) do
+    %FeelEx.Value{value: value, type: :boolean}
   end
 
   defp do_negation(%FeelEx.Value{value: val1, type: :number}) do
