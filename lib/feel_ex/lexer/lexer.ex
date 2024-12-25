@@ -22,7 +22,8 @@ defmodule FeelEx.Lexer do
     :state_14,
     :state_15,
     :state_16,
-    :state_17
+    :state_17,
+    :state_18
   ]
   @final_states [
     :state_1,
@@ -36,7 +37,8 @@ defmodule FeelEx.Lexer do
     :state_14,
     :state_15,
     :state_16,
-    :state_17
+    :state_17,
+    :state_18
   ]
   @states_excluding_error_state @states -- [@error_state]
   @transition_table %{
@@ -74,7 +76,9 @@ defmodule FeelEx.Lexer do
     less_than: [state_0: :state_15],
     greater_than: [state_0: :state_15],
     exclamation: [state_0: :state_15],
-    equal: [state_0: :state_17, state_15: :state_16]
+    equal: [state_0: :state_17, state_15: :state_16],
+    left_bracket: [state_0: :state_18],
+    right_bracket: [state_0: :state_18],
   }
 
   @spec tokens(binary()) :: [%FeelEx.Token{line_number: any(), type: atom(), value: any()}, ...]
@@ -284,6 +288,8 @@ defmodule FeelEx.Lexer do
       x == 32 -> :space
       x == 33 -> :exclamation
       x == 34 -> :quote
+      x == 40 -> :left_bracket
+      x == 41 -> :right_bracket
       x == 42 -> :asterisk
       x == 43 -> :plus
       x == 45 -> :minus
