@@ -11,7 +11,6 @@ defmodule FeelEx do
     tokens = Lexer.tokens(feel_expression)
     tokens = Helper.filter_out_comments(tokens)
     expression = Parser.parse_expression(tokens)
-    IO.inspect(expression)
     Expression.evaluate(expression, context)
   end
 

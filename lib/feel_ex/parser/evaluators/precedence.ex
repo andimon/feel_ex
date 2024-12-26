@@ -12,7 +12,7 @@ defmodule FeelEx.Parser.Evaluators.Precedence do
 
 
 
-  # additive ops
+# additive ops
 
   def precedence(:arithmetic_op_add), do: 2
   def precedence(:arithmetic_op_sub), do: 2

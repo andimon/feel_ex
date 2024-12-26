@@ -18,17 +18,36 @@ defmodule FeelEx.Parser do
   end
 
   def do_parse_expression(
-        [%Token{type: :left_bracket, value: "("} | remaining_tokens],
+        [%Token{type: :left_square_bracket, value: "["} | remaining_tokens],
         _precedence
       ) do
-    right_bracket_index =
-      Enum.find_index(remaining_tokens, fn token -> token.type == :right_bracket end)
+    right_parenthesis_index =
+      Enum.find_index(remaining_tokens, fn token -> token.type == :right_square_bracket end)
 
-    if is_nil(right_bracket_index) do
+    if is_nil(right_parenthesis_index) do
+      raise ArgumentError, message: "Expected ] after ["
+    else
+      expression_list = get_expression_list(remaining_tokens, right_parenthesis_index)
+
+      expression = {Expression.new(:list, expression_list), []}
+      remaining_tokens = Enum.slice(remaining_tokens, (right_parenthesis_index + 1)..-1//1)
+
+      do_parse_expression(expression, remaining_tokens, -1)
+    end
+  end
+
+  def do_parse_expression(
+        [%Token{type: :left_parenthesis, value: "("} | remaining_tokens],
+        _precedence
+      ) do
+    right_parenthesis_index =
+      Enum.find_index(remaining_tokens, fn token -> token.type == :right_parenthesis end)
+
+    if is_nil(right_parenthesis_index) do
       raise ArgumentError, message: "Expected ) after ("
     else
-      tokens_inside_brackets = Enum.slice(remaining_tokens, 0..(right_bracket_index - 1))
-      remaining_tokens = Enum.slice(remaining_tokens, (right_bracket_index + 1)..-1//1)
+      tokens_inside_brackets = Enum.slice(remaining_tokens, 0..(right_parenthesis_index - 1))
+      remaining_tokens = Enum.slice(remaining_tokens, (right_parenthesis_index + 1)..-1//1)
       expression = do_parse_expression(tokens_inside_brackets, -1)
       do_parse_expression(expression, remaining_tokens, -1)
     end
@@ -252,5 +271,29 @@ defmodule FeelEx.Parser do
     else
       parse_precedence_loop(node, remaining_tokens, precedence)
     end
+  end
+
+  defp delimit_comma([], new_list, []), do: new_list
+
+  defp delimit_comma([], new_list, current_sub_list) do
+    Enum.reverse([current_sub_list | new_list])
+  end
+
+  defp delimit_comma([%Token{type: :comma} | tl], new_list, current_sub_list) do
+    new_list = [current_sub_list] ++ new_list
+    delimit_comma(tl, new_list, [])
+  end
+
+  defp delimit_comma([hd | tl], new_list, current_sub_list) do
+    current_sub_list = current_sub_list ++ [hd]
+    delimit_comma(tl, new_list, current_sub_list)
+  end
+
+  defp get_expression_list(_remaining_tokens, 0), do: []
+
+  defp get_expression_list(remaining_tokens, right_parenthesis_index) do
+    Enum.slice(remaining_tokens, 0..(right_parenthesis_index - 1))
+    |> delimit_comma([], [])
+    |> Enum.map(fn sub_tokens -> do_parse_expression(sub_tokens, -1) end)
   end
 end
