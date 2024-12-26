@@ -78,11 +78,23 @@ defmodule FeelEx.Token do
   end
 
   def new(%{current_state: :state_18, lexeme: "(", current_line_number: line_number}) do
-    %__MODULE__{type: :left_bracket, value: "(", line_number: line_number - 1}
+    %__MODULE__{type: :left_parenthesis, value: "(", line_number: line_number - 1}
   end
 
   def new(%{current_state: :state_18, lexeme: ")", current_line_number: line_number}) do
-    %__MODULE__{type: :right_bracket, value: ")", line_number: line_number - 1}
+    %__MODULE__{type: :right_parenthesis, value: ")", line_number: line_number - 1}
+  end
+
+  def new(%{current_state: :state_18, lexeme: "[", current_line_number: line_number}) do
+    %__MODULE__{type: :left_square_bracket, value: "[", line_number: line_number - 1}
+  end
+
+  def new(%{current_state: :state_18, lexeme: "]", current_line_number: line_number}) do
+    %__MODULE__{type: :right_square_bracket, value: "]", line_number: line_number - 1}
+  end
+
+  def new(%{current_state: :state_18, lexeme: ",", current_line_number: line_number}) do
+    %__MODULE__{type: :comma, value: ",", line_number: line_number - 1}
   end
 
   defp check_for_keywords("if"), do: :if

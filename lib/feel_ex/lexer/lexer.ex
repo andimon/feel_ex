@@ -77,8 +77,11 @@ defmodule FeelEx.Lexer do
     greater_than: [state_0: :state_15],
     exclamation: [state_0: :state_15],
     equal: [state_0: :state_17, state_15: :state_16],
-    left_bracket: [state_0: :state_18],
-    right_bracket: [state_0: :state_18]
+    left_parenthesis: [state_0: :state_18],
+    right_parenthesis: [state_0: :state_18],
+    left_square_bracket: [state_0: :state_18],
+    right_square_bracket: [state_0: :state_18],
+    comma: [state_0: :state_18]
   }
 
   @spec tokens(binary()) :: [%FeelEx.Token{line_number: any(), type: atom(), value: any()}, ...]
@@ -288,10 +291,11 @@ defmodule FeelEx.Lexer do
       x == 32 -> :space
       x == 33 -> :exclamation
       x == 34 -> :quote
-      x == 40 -> :left_bracket
-      x == 41 -> :right_bracket
+      x == 40 -> :left_parenthesis
+      x == 41 -> :right_parenthesis
       x == 42 -> :asterisk
       x == 43 -> :plus
+      x == 44 -> :comma
       x == 45 -> :minus
       x == 46 -> :dot
       x == 47 -> :forward_slash
@@ -301,6 +305,8 @@ defmodule FeelEx.Lexer do
       x == 62 -> :greater_than
       x == 63 -> :question_mark
       x in 65..90 -> :capital_a_to_z
+      x == 91 -> :left_square_bracket
+      x == 93 -> :right_square_bracket
       x == 95 -> :underscore
       x in 97..122 -> :small_a_to_z
     end

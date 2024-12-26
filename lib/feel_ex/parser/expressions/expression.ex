@@ -18,12 +18,26 @@ defmodule FeelEx.Expression do
     OpLt,
     OpGt,
     Boolean,
-    String_
+    String_,
+    List
   }
 
   alias FeelEx.Value
   require Logger
   defstruct [:child]
+
+  def new(:list, expression_list) do
+    expression_list =
+      Enum.map(expression_list, fn expression_list ->
+        case expression_list do
+          {exp, _tokens} -> exp
+          exp -> exp
+        end
+      end)
+
+    %__MODULE__{child: %List{elements: expression_list}}
+  end
+
   # create negation treee
   def new(:negation, operand) do
     %__MODULE__{child: %Negation{operand: operand}}
@@ -382,6 +396,17 @@ defmodule FeelEx.Expression do
       ) do
     result = evaluate(condition, context)
     do_if(result, conditional_statement, else_statement, context)
+  end
+
+  def evaluate(
+        %__MODULE__{
+          child: %List{
+            elements: elements
+          }
+        },
+        context
+      ) do
+    Enum.map(elements, fn expression -> evaluate(expression,context) end)
   end
 
   defp do_add(
