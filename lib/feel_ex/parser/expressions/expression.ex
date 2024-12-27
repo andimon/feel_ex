@@ -39,22 +39,18 @@ defmodule FeelEx.Expression do
     %__MODULE__{child: %List{elements: expression_list}}
   end
 
-  # create negation treee
   def new(:negation, operand) do
     %__MODULE__{child: %Negation{operand: operand}}
   end
 
-  # evaluate a string
   def new(:string, string) do
     %__MODULE__{child: %String_{value: string}}
   end
 
-  # evaluate a name
   def new(:name, name) do
     %__MODULE__{child: %Name{value: name}}
   end
 
-  # evaluate boolean values true and false
   def new(:boolean, true) do
     %__MODULE__{child: %Boolean{value: true}}
   end
@@ -81,7 +77,6 @@ defmodule FeelEx.Expression do
     }
   end
 
-  # arithmetic operations
   def new(:arithmetic_op_add, left_tree, right_tree) do
     left_tree =
       case left_tree do
@@ -161,8 +156,6 @@ defmodule FeelEx.Expression do
 
     %__MODULE__{child: %OpDivide{left_tree: left_tree, right_tree: right_tree}}
   end
-
-  # comparisons
 
   def new(:geq, left_tree, right_tree) do
     left_tree =
@@ -455,12 +448,11 @@ defmodule FeelEx.Expression do
   end
 
   defp do_exponentiation(
-    %FeelEx.Value{value: val1, type: :number},
-    %FeelEx.Value{value: val2, type: :number}
-  ) do
-Value.new(val1 ** val2)
-end
-
+         %FeelEx.Value{value: val1, type: :number},
+         %FeelEx.Value{value: val2, type: :number}
+       ) do
+    Value.new(val1 ** val2)
+  end
 
   defp do_subtract(
          %FeelEx.Value{value: val1, type: :number},
