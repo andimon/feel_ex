@@ -19,7 +19,8 @@ defmodule FeelEx.Expression do
     OpGt,
     Boolean,
     String_,
-    List
+    List,
+    OpExponentiation
   }
 
   alias FeelEx.Value
@@ -127,6 +128,22 @@ defmodule FeelEx.Expression do
       end
 
     %__MODULE__{child: %OpMultiply{left_tree: left_tree, right_tree: right_tree}}
+  end
+
+  def new(:exponentiation, left_tree, right_tree) do
+    left_tree =
+      case left_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    right_tree =
+      case right_tree do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    %__MODULE__{child: %OpExponentiation{left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:arithmetic_op_div, left_tree, right_tree) do
@@ -308,6 +325,13 @@ defmodule FeelEx.Expression do
   end
 
   def evaluate(
+        %__MODULE__{child: %OpExponentiation{left_tree: left_tree, right_tree: right_tree}},
+        context
+      ) do
+    do_exponentiation(evaluate(left_tree, context), evaluate(right_tree, context))
+  end
+
+  def evaluate(
         %__MODULE__{child: %OpDivide{left_tree: left_tree, right_tree: right_tree}},
         context
       ) do
@@ -406,7 +430,7 @@ defmodule FeelEx.Expression do
         },
         context
       ) do
-    Enum.map(elements, fn expression -> evaluate(expression,context) end)
+    Enum.map(elements, fn expression -> evaluate(expression, context) end)
   end
 
   defp do_add(
@@ -429,6 +453,14 @@ defmodule FeelEx.Expression do
        ) do
     Value.new(val1 * val2)
   end
+
+  defp do_exponentiation(
+    %FeelEx.Value{value: val1, type: :number},
+    %FeelEx.Value{value: val2, type: :number}
+  ) do
+Value.new(val1 ** val2)
+end
+
 
   defp do_subtract(
          %FeelEx.Value{value: val1, type: :number},

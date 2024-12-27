@@ -25,23 +25,27 @@ defmodule FeelEx.OperatorPrecedenceTest do
     assert %FeelEx.Value{value: true, type: :boolean} = FeelEx.evaluate("2+1>=3-2")
   end
 
-  test " evaluate - (2+1)+1+(3+2)" do
+  test "evaluate - (2+1)+1+(3+2)" do
     assert %FeelEx.Value{value: 9, type: :number} = FeelEx.evaluate("(2+1)+1+(3+2)")
   end
 
-  test " evaluate - (2+3)*4" do
+  test "evaluate - (2+3)*4" do
     assert %FeelEx.Value{value: 20, type: :number} = FeelEx.evaluate("(2+3)*4")
   end
 
-  test " evaluate - 10+20/5" do
+  test "evaluate - 10+20/5" do
     assert %FeelEx.Value{value: 14.0, type: :number} = FeelEx.evaluate("10+20/5")
   end
 
-  test " evaluate - 2+3*4-5" do
+  test "evaluate - 2+3*4-5" do
     assert %FeelEx.Value{value: 9, type: :number} = FeelEx.evaluate("2+3*4-5")
   end
 
-  test " evaluate - 20/5*2" do
+  test "evaluate - 20/5*2" do
     assert %FeelEx.Value{value: 8.0, type: :number} = FeelEx.evaluate("20/5*2")
+  end
+
+  test "evaluate - 2+3*4**2" do
+    assert %FeelEx.Value{value: 50, type: :number} = FeelEx.evaluate("2+3*4**2")
   end
 end

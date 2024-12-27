@@ -10,9 +10,7 @@ defmodule FeelEx.Parser.Evaluators.Precedence do
   def precedence(:lt), do: 1
   def precedence(:gt), do: 1
 
-
-
-# additive ops
+  # additive ops
 
   def precedence(:arithmetic_op_add), do: 2
   def precedence(:arithmetic_op_sub), do: 2
@@ -21,5 +19,7 @@ defmodule FeelEx.Parser.Evaluators.Precedence do
   def precedence(:arithmetic_op_div), do: 3
   def precedence(:arithmetic_op_mul), do: 3
   # others
+  def precedence(:exponentiation), do: 4
+
   # def precedene(other) when is_atom(other), do: -1
 end
