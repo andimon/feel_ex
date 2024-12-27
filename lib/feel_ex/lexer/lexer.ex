@@ -63,7 +63,7 @@ defmodule FeelEx.Lexer do
       state_11: :state_11,
       state_13: :state_13
     ],
-    underscore: [state_5: :state_5],
+    underscore: [state_5: :state_5, state_11: :state_11],
     small_a_to_z: [
       state_0: :state_10,
       state_5: :state_5,
@@ -217,9 +217,7 @@ defmodule FeelEx.Lexer do
     if is_nil(next_state), do: @error_state, else: next_state
   end
 
-  # match line feed
   defp is_char_whitespace?(<<10::utf8>>), do: true
-  # match white space
   defp is_char_whitespace?(<<32::utf8>>), do: true
   defp is_char_whitespace?(_), do: false
 
