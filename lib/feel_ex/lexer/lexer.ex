@@ -23,7 +23,8 @@ defmodule FeelEx.Lexer do
     :state_15,
     :state_16,
     :state_17,
-    :state_18
+    :state_18,
+    :state_19
   ]
   @final_states [
     :state_1,
@@ -38,7 +39,8 @@ defmodule FeelEx.Lexer do
     :state_15,
     :state_16,
     :state_17,
-    :state_18
+    :state_18,
+    :state_19
   ]
   @states_excluding_error_state @states -- [@error_state]
   @transition_table %{
@@ -51,7 +53,8 @@ defmodule FeelEx.Lexer do
       state_4: :state_7,
       state_5: :state_5,
       state_7: :state_8,
-      state_8: :state_8
+      state_8: :state_8,
+      state_12: :state_19
     ],
     question_mark: [state_5: :state_5],
     capital_a_to_z: [

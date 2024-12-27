@@ -136,7 +136,8 @@ defmodule FeelEx.Parser do
              :gt,
              :lt,
              :or,
-             :and
+             :and,
+             :exponentiation
            ] do
     left_expression = do_parse_expression([left_token], precedence)
 
@@ -166,7 +167,8 @@ defmodule FeelEx.Parser do
              :gt,
              :lt,
              :or,
-             :and
+             :and,
+             :exponentiation
            ] do
     parse_precedence_loop(left_expression, [token_type | remaining_tokens], precedence)
   end
@@ -245,7 +247,8 @@ defmodule FeelEx.Parser do
               :gt,
               :lt,
               :or,
-              :and
+              :and,
+              :exponentiation
             ] do
     next_prec = Precedence.precedence(type)
 

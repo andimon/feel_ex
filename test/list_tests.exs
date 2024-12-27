@@ -34,6 +34,9 @@ defmodule FeelEx.ListsTests do
              %FeelEx.Value{value: 5, type: :number},
              %FeelEx.Value{value: false, type: :boolean}
            ] =
-             FeelEx.evaluate(%{a: 5}, "[5+1, a, 2>3]")
+             FeelEx.evaluate(
+               %{a: 5},
+               "[5+1, a, 2>3]"
+             )
   end
 end

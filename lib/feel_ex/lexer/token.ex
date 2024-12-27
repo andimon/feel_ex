@@ -97,6 +97,10 @@ defmodule FeelEx.Token do
     %__MODULE__{type: :comma, value: ",", line_number: line_number - 1}
   end
 
+  def new(%{current_state: :state_19, lexeme: "**", current_line_number: line_number}) do
+    %__MODULE__{type: :exponentiation, value: "**", line_number: line_number - 1}
+  end
+
   defp check_for_keywords("if"), do: :if
   defp check_for_keywords("then"), do: :then
   defp check_for_keywords("else"), do: :else
