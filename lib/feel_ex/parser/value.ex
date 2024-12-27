@@ -12,4 +12,8 @@ defmodule FeelEx.Value do
   def new(string) when is_binary(string) do
     %__MODULE__{value: string, type: :string}
   end
+
+  def new(list) when is_list(list) do
+    Enum.map(list, fn elem -> new(elem) end)
+  end
 end
