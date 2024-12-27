@@ -4,9 +4,16 @@ A friendly expression language helps users define decision logic without needing
 
 # Example Usage
 
+## Resolving names
+
 ```elixir
-iex(1)> FeelEx.evaluate("if true then \"hello\" else 2")
-%FeelEx.Value{value: "hello", type: :string}
-iex(2)> FeelEx.evaluate(%{a: 1},"a+2")
-%FeelEx.Value{value: 3, type: :number}
+iex(1)> FeelEx.evaluate(%{new_var: 1}, "new_var")
+%FeelEx.Value{value: 1, type: :number}
+```
+
+## Binary Operations
+Supported binary operations: +,-,/,*,**,>,>=,<=,>=,=
+```elixir
+iex(1)> FeelEx.evaluate("2+1>=3-2+2+1")
+%FeelEx.Value{value: false, type: :boolean}
 ```
