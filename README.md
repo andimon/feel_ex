@@ -1,6 +1,6 @@
 # FeelEx
 
-A friendly expression language helps users define decision logic without needing deep technical expertise. This language is based on the Friendly Enough Expression Language. For more information regarding FEEL, please take a look at the official OMG specification at https://www.omg.org/dmn/.
+A friendly expression language helps users define decision logic without needing deep technical expertise. This language is based on the FEEL(Friendly Enough Expression Language). For more information regarding FEEL, please take a look at the official OMG specification at https://www.omg.org/dmn/.
 
 # Example Usage
 
