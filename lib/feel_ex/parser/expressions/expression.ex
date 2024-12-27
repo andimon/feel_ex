@@ -5,22 +5,10 @@ defmodule FeelEx.Expression do
     Name,
     Number,
     Negation,
-    OpAdd,
-    OpSubtract,
-    OpMultiply,
-    OpDivide,
-    OpLeq,
-    OpGeq,
-    OpEq,
-    OpNeq,
-    OpAnd,
-    OpOr,
-    OpLt,
-    OpGt,
+    BinaryOp,
     Boolean,
     String_,
-    List,
-    OpExponentiation
+    List
   }
 
   alias FeelEx.Value
@@ -90,7 +78,7 @@ defmodule FeelEx.Expression do
         exp -> exp
       end
 
-    %__MODULE__{child: %OpAdd{left_tree: left_tree, right_tree: right_tree}}
+    %__MODULE__{child: %BinaryOp{type: :add, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:arithmetic_op_sub, left_tree, right_tree) do
@@ -106,7 +94,7 @@ defmodule FeelEx.Expression do
         exp -> exp
       end
 
-    %__MODULE__{child: %OpSubtract{left_tree: left_tree, right_tree: right_tree}}
+    %__MODULE__{child: %BinaryOp{type: :subtract, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:arithmetic_op_mul, left_tree, right_tree) do
@@ -122,7 +110,7 @@ defmodule FeelEx.Expression do
         exp -> exp
       end
 
-    %__MODULE__{child: %OpMultiply{left_tree: left_tree, right_tree: right_tree}}
+    %__MODULE__{child: %BinaryOp{type: :multiply, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:exponentiation, left_tree, right_tree) do
@@ -138,7 +126,9 @@ defmodule FeelEx.Expression do
         exp -> exp
       end
 
-    %__MODULE__{child: %OpExponentiation{left_tree: left_tree, right_tree: right_tree}}
+    %__MODULE__{
+      child: %BinaryOp{type: :exponentiation, left_tree: left_tree, right_tree: right_tree}
+    }
   end
 
   def new(:arithmetic_op_div, left_tree, right_tree) do
@@ -154,7 +144,7 @@ defmodule FeelEx.Expression do
         exp -> exp
       end
 
-    %__MODULE__{child: %OpDivide{left_tree: left_tree, right_tree: right_tree}}
+    %__MODULE__{child: %BinaryOp{type: :divide, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:geq, left_tree, right_tree) do
@@ -170,7 +160,7 @@ defmodule FeelEx.Expression do
         exp -> exp
       end
 
-    %__MODULE__{child: %OpGeq{left_tree: left_tree, right_tree: right_tree}}
+    %__MODULE__{child: %BinaryOp{type: :geq, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:leq, left_tree, right_tree) do
@@ -186,7 +176,7 @@ defmodule FeelEx.Expression do
         exp -> exp
       end
 
-    %__MODULE__{child: %OpLeq{left_tree: left_tree, right_tree: right_tree}}
+    %__MODULE__{child: %BinaryOp{type: :leq, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:lt, left_tree, right_tree) do
@@ -202,7 +192,7 @@ defmodule FeelEx.Expression do
         exp -> exp
       end
 
-    %__MODULE__{child: %OpLt{left_tree: left_tree, right_tree: right_tree}}
+    %__MODULE__{child: %BinaryOp{type: :lt, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:gt, left_tree, right_tree) do
@@ -218,7 +208,7 @@ defmodule FeelEx.Expression do
         exp -> exp
       end
 
-    %__MODULE__{child: %OpGt{left_tree: left_tree, right_tree: right_tree}}
+    %__MODULE__{child: %BinaryOp{type: :gt, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:eq, left_tree, right_tree) do
@@ -234,7 +224,7 @@ defmodule FeelEx.Expression do
         exp -> exp
       end
 
-    %__MODULE__{child: %OpEq{left_tree: left_tree, right_tree: right_tree}}
+    %__MODULE__{child: %BinaryOp{type: :eq, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:neq, left_tree, right_tree) do
@@ -250,7 +240,7 @@ defmodule FeelEx.Expression do
         exp -> exp
       end
 
-    %__MODULE__{child: %OpNeq{left_tree: left_tree, right_tree: right_tree}}
+    %__MODULE__{child: %BinaryOp{type: :neq, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:and, left_tree, right_tree) do
@@ -266,7 +256,7 @@ defmodule FeelEx.Expression do
         exp -> exp
       end
 
-    %__MODULE__{child: %OpAnd{left_tree: left_tree, right_tree: right_tree}}
+    %__MODULE__{child: %BinaryOp{type: :and, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:or, left_tree, right_tree) do
@@ -282,7 +272,7 @@ defmodule FeelEx.Expression do
         exp -> exp
       end
 
-    %__MODULE__{child: %OpOr{left_tree: left_tree, right_tree: right_tree}}
+    %__MODULE__{child: %BinaryOp{type: :or, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def evaluate(%__MODULE__{child: %String_{value: string}}, _context) do
@@ -306,89 +296,100 @@ defmodule FeelEx.Expression do
     Value.new(number)
   end
 
-  def evaluate(%__MODULE__{child: %OpAdd{left_tree: left_tree, right_tree: right_tree}}, context) do
+  def evaluate(
+        %__MODULE__{child: %BinaryOp{type: :add, left_tree: left_tree, right_tree: right_tree}},
+        context
+      ) do
     do_add(evaluate(left_tree, context), evaluate(right_tree, context))
   end
 
   def evaluate(
-        %__MODULE__{child: %OpMultiply{left_tree: left_tree, right_tree: right_tree}},
+        %__MODULE__{
+          child: %BinaryOp{type: :multiply, left_tree: left_tree, right_tree: right_tree}
+        },
         context
       ) do
     do_multiply(evaluate(left_tree, context), evaluate(right_tree, context))
   end
 
   def evaluate(
-        %__MODULE__{child: %OpExponentiation{left_tree: left_tree, right_tree: right_tree}},
+        %__MODULE__{
+          child: %BinaryOp{type: :exponentiation, left_tree: left_tree, right_tree: right_tree}
+        },
         context
       ) do
     do_exponentiation(evaluate(left_tree, context), evaluate(right_tree, context))
   end
 
   def evaluate(
-        %__MODULE__{child: %OpDivide{left_tree: left_tree, right_tree: right_tree}},
+        %__MODULE__{
+          child: %BinaryOp{type: :divide, left_tree: left_tree, right_tree: right_tree}
+        },
         context
       ) do
     do_divide(evaluate(left_tree, context), evaluate(right_tree, context))
   end
 
   def evaluate(
-        %__MODULE__{child: %OpSubtract{left_tree: left_tree, right_tree: right_tree}},
+        %__MODULE__{
+          child: %BinaryOp{type: :subtract, left_tree: left_tree, right_tree: right_tree}
+        },
         context
       ) do
     do_subtract(evaluate(left_tree, context), evaluate(right_tree, context))
   end
 
   def evaluate(
-        %__MODULE__{child: %OpLeq{left_tree: left_tree, right_tree: right_tree}},
+        %__MODULE__{child: %BinaryOp{type: :leq, left_tree: left_tree, right_tree: right_tree}},
         context
       ) do
     do_leq(evaluate(left_tree, context), evaluate(right_tree, context))
   end
 
   def evaluate(
-        %__MODULE__{child: %OpGt{left_tree: left_tree, right_tree: right_tree}},
+        %__MODULE__{child: %BinaryOp{type: :gt, left_tree: left_tree, right_tree: right_tree}},
         context
       ) do
     do_gt(evaluate(left_tree, context), evaluate(right_tree, context))
   end
 
   def evaluate(
-        %__MODULE__{child: %OpGeq{left_tree: left_tree, right_tree: right_tree}},
+        %__MODULE__{child: %BinaryOp{type: :geq, left_tree: left_tree, right_tree: right_tree}},
         context
       ) do
     do_geq(evaluate(left_tree, context), evaluate(right_tree, context))
   end
 
   def evaluate(
-        %__MODULE__{child: %OpLt{left_tree: left_tree, right_tree: right_tree}},
+        %__MODULE__{child: %BinaryOp{type: :lt, left_tree: left_tree, right_tree: right_tree}},
         context
       ) do
     do_lt(evaluate(left_tree, context), evaluate(right_tree, context))
   end
 
   def evaluate(
-        %__MODULE__{child: %OpEq{left_tree: left_tree, right_tree: right_tree}},
+        %__MODULE__{child: %BinaryOp{type: :eq, left_tree: left_tree, right_tree: right_tree}},
         context
       ) do
     do_eq(evaluate(left_tree, context), evaluate(right_tree, context))
   end
 
   def evaluate(
-        %__MODULE__{child: %OpNeq{left_tree: left_tree, right_tree: right_tree}},
+        %__MODULE__{child: %BinaryOp{type: :neq, left_tree: left_tree, right_tree: right_tree}},
         context
       ) do
     do_neq(evaluate(left_tree, context), evaluate(right_tree, context))
   end
 
   def evaluate(
-        %__MODULE__{child: %OpAnd{left_tree: left_tree, right_tree: right_tree}},
+        %__MODULE__{child: %BinaryOp{type: :and, left_tree: left_tree, right_tree: right_tree}},
         context
       ) do
     do_and(evaluate(left_tree, context), right_tree, context)
   end
 
   def evaluate(
-        %__MODULE__{child: %OpOr{left_tree: left_tree, right_tree: right_tree}},
+        %__MODULE__{child: %BinaryOp{type: :or, left_tree: left_tree, right_tree: right_tree}},
         context
       ) do
     do_or(evaluate(left_tree, context), right_tree, context)
