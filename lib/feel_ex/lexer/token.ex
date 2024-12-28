@@ -1,4 +1,5 @@
 defmodule FeelEx.Token do
+  @moduledoc false
   defstruct [:type, :value, :line_number]
 
   def new(:eof) do

@@ -7,20 +7,32 @@ defmodule FeelEx do
   alias FeelEx.{Helper, Lexer, Parser, Expression}
 
   @doc """
+  Evaluates an expression against a context.
+
   ## Examples
 
-    iex> FeelEx.evaluate(%{a: 1, b: 2},"a+b")
-    %FeelEx.Value{value: 3, type: :number}
-  """
+      iex> FeelEx.evaluate(%{a: true}, "if a then 2+2 else 3+3")
+      %FeelEx.Value{value: 4, type: :number}
 
-  def evaluate(context, feel_expression) when is_map(context) and is_binary(feel_expression) do
-    tokens = Lexer.tokens(feel_expression)
+  """
+  def evaluate(context, expression) when is_map(context) and is_binary(expression) do
+    tokens = Lexer.tokens(expression)
     tokens = Helper.filter_out_comments(tokens)
     expression = Parser.parse_expression(tokens)
     Expression.evaluate(expression, context)
   end
 
-  def evaluate(feel_expression) when is_binary(feel_expression) do
-    evaluate(%{}, feel_expression)
+  @doc """
+  Evaluates an expression.
+
+
+  ## Examples
+
+      iex> FeelEx.evaluate("if true then 2+2 else 3+3")
+      %FeelEx.Value{value: 4, type: :number}
+
+  """
+  def evaluate(expression) when is_binary(expression) do
+    evaluate(%{}, expression)
   end
 end

@@ -1,4 +1,5 @@
 defmodule FeelEx.Expression do
+  @moduledoc false
   alias FeelEx.Expression.If
 
   alias FeelEx.Expression.{
@@ -498,15 +499,15 @@ defmodule FeelEx.Expression do
   end
 
   defp do_eq(
-         %FeelEx.Value{value: val1, type: :number},
-         %FeelEx.Value{value: val2, type: :number}
+         %FeelEx.Value{value: val1, type: type},
+         %FeelEx.Value{value: val2, type: type}
        ) do
     Value.new(val1 == val2)
   end
 
   defp do_neq(
-         %FeelEx.Value{value: val1, type: :number},
-         %FeelEx.Value{value: val2, type: :number}
+         %FeelEx.Value{value: val1, type: type},
+         %FeelEx.Value{value: val2, type: type}
        ) do
     Value.new(val1 != val2)
   end

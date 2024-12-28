@@ -1,4 +1,5 @@
 defmodule FeelEx.Lexer do
+  @moduledoc false
   alias FeelEx.Token
 
   @start_state :state_0
@@ -87,7 +88,6 @@ defmodule FeelEx.Lexer do
     comma: [state_0: :state_18]
   }
 
-  @spec tokens(binary()) :: [%FeelEx.Token{line_number: any(), type: atom(), value: any()}, ...]
   def tokens(program) do
     current_token = next_token(program, 0, 1)
     do_get_tokens(program, current_token)

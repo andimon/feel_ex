@@ -1,4 +1,5 @@
 defmodule FeelEx.Value do
+  @moduledoc false
   defstruct [:value, :type]
 
   def new(number) when is_number(number) do

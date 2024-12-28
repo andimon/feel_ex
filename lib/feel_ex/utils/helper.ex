@@ -1,8 +1,6 @@
 defmodule FeelEx.Helper do
-  @doc """
-    Checks if the keys of the inputted map are all atoms or are all binaries.
-    Also checks that the keys of nested maps have the same type.
-  """
+  @moduledoc false
+
   def input_map_checker(input_map) when is_map(input_map) do
     case Enum.at(input_map, 0) do
       {key, _val} when is_atom(key) ->

@@ -1,4 +1,5 @@
 defmodule FeelEx.Parser do
+  @moduledoc false
   alias FeelEx.Token
   alias FeelEx.Expression
   alias FeelEx.Parser.Evaluators.Precedence
@@ -89,18 +90,19 @@ defmodule FeelEx.Parser do
   def do_parse_expression(
         [
           %Token{type: :arithmetic_op_sub, value: "-"},
-          %Token{type: :int} = number | remaining_tokens
+          %Token{type: number_type} = number | remaining_tokens
         ],
         precedence
-      ) do
+      )
+      when number_type in [:int, :float] do
     {number, []} = do_parse_expression(number, precedence)
 
-    negated_int = Expression.new(:negation, number)
+    negated_int = {Expression.new(:negation, number), []}
     do_parse_expression(negated_int, remaining_tokens, precedence)
   end
 
   def do_parse_expression([%Token{type: :string, value: string} | tl], precedence) do
-    string_expression = Expression.new(:string, string)
+    string_expression = {Expression.new(:string, string), []}
     do_parse_expression(string_expression, tl, precedence)
   end
 
