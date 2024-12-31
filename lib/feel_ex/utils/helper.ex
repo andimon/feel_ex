@@ -1,5 +1,37 @@
 defmodule FeelEx.Helper do
   @moduledoc false
+  def cartesian([]), do: []
+
+  def cartesian(list) when is_list(list) do
+    cartesian(list, [])
+  end
+
+  def cartesian([list], []) when is_list(list) do
+    Enum.map(list, fn element -> [element] end)
+  end
+
+  def cartesian([list | tl], []) when is_list(list) do
+    current_list = Enum.map(list, fn element -> [element] end)
+    cartesian(tl, current_list)
+  end
+
+  def cartesian([list | tl], current_list) when is_list(list) do
+    new_list =
+      Enum.reduce(current_list, [], fn element, acc ->
+        acc ++
+          Enum.map(list, fn element_to_append ->
+            [element_to_append | element]
+          end)
+      end)
+
+    cartesian(tl, new_list)
+  end
+
+  def cartesian([], current_list) do
+    Enum.map(current_list, fn list ->
+      Enum.reverse(list)
+    end)
+  end
 
   def input_map_checker(input_map) when is_map(input_map) do
     case Enum.at(input_map, 0) do

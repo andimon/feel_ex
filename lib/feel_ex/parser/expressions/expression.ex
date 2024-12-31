@@ -1,5 +1,6 @@
 defmodule FeelEx.Expression do
   @moduledoc false
+  alias FeelEx.Helper
   alias FeelEx.Expression.If
 
   alias FeelEx.Expression.{
@@ -9,7 +10,8 @@ defmodule FeelEx.Expression do
     BinaryOp,
     Boolean,
     String_,
-    List
+    List,
+    For
   }
 
   alias FeelEx.Value
@@ -62,6 +64,21 @@ defmodule FeelEx.Expression do
         condition: condition_tree,
         conditional_statetement: conditional_statement_tree,
         else_statement: else_statement_tree
+      }
+    }
+  end
+
+  def new(:for, iteration_context, return_expression) do
+    return_expression =
+      case return_expression do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    %__MODULE__{
+      child: %For{
+        iteration_contexts: iteration_context,
+        return_expression: return_expression
       }
     }
   end
@@ -415,6 +432,35 @@ defmodule FeelEx.Expression do
       ) do
     result = evaluate(condition, context)
     do_if(result, conditional_statement, else_statement, context)
+  end
+
+  def evaluate(
+        %__MODULE__{
+          child: %For{
+            iteration_contexts: iteration_contexts,
+            return_expression: return_expression
+          }
+        },
+        context
+      ) do
+    iteration_contexts
+    |> Enum.map(fn {%FeelEx.Expression{child: %FeelEx.Expression.Name{value: name}},
+                    list_expression} ->
+      Enum.map(evaluate(list_expression, context), fn %Value{value: value} ->
+        {String.to_atom(name), value}
+      end)
+    end)
+    |> Helper.cartesian()
+    |> Enum.map(fn new_assignments ->
+      new_context = Enum.into(new_assignments, context)
+      evaluate(return_expression, new_context)
+    end)
+  end
+
+  def filter_iteration_context(list) when is_list(list) do
+    Enum.map(list, fn %Value{value: value} ->
+      value
+    end)
   end
 
   def evaluate(
