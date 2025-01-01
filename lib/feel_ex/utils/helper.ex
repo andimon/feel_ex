@@ -1,5 +1,39 @@
 defmodule FeelEx.Helper do
   @moduledoc false
+
+  def gen_list_from_range(first_bound, second_bound)
+      when is_number(first_bound) and is_number(second_bound) do
+    Enum.reverse(do_gen_list_from_range(first_bound, second_bound, []))
+  end
+
+  # if first bound is equal to second bound
+  def do_gen_list_from_range(limit, limit, []), do: [limit]
+
+  # include first bound in list when is empty
+  def do_gen_list_from_range(first_bound, second_bound, []) do
+    do_gen_list_from_range(first_bound, second_bound, [first_bound])
+  end
+
+  def do_gen_list_from_range(first_bound, second_bound, [hd | _] = list)
+      when first_bound < second_bound and hd + 1 > second_bound do
+    list
+  end
+
+  def do_gen_list_from_range(first_bound, second_bound, [hd | _] = list)
+      when first_bound < second_bound and hd + 1 <= second_bound do
+    do_gen_list_from_range(first_bound, second_bound, [hd + 1 | list])
+  end
+
+  def do_gen_list_from_range(first_bound, second_bound, [hd | _] = list)
+      when first_bound > second_bound and hd - 1 < second_bound do
+    list
+  end
+
+  def do_gen_list_from_range(first_bound, second_bound, [hd | _] = list)
+      when first_bound > second_bound and hd - 1 >= second_bound do
+    do_gen_list_from_range(first_bound, second_bound, [hd - 1 | list])
+  end
+
   def cartesian([]), do: []
 
   def cartesian(list) when is_list(list) do

@@ -14,7 +14,7 @@ defmodule FeelEx.Token do
     %__MODULE__{type: :dot, value: ".", line_number: line_number}
   end
 
-  def new(%{current_state: :state_3, lexeme: lexeme, current_line_number: line_number}) do
+  def new(%{current_state: :state_2, lexeme: lexeme, current_line_number: line_number}) do
     %__MODULE__{type: :float, value: lexeme, line_number: line_number}
   end
 
@@ -100,6 +100,10 @@ defmodule FeelEx.Token do
 
   def new(%{current_state: :state_19, lexeme: "**", current_line_number: line_number}) do
     %__MODULE__{type: :exponentiation, value: "**", line_number: line_number - 1}
+  end
+
+  def new(%{current_state: :state_20, lexeme: "..", current_line_number: line_number}) do
+    %__MODULE__{type: :double_dot, value: "..", line_number: line_number - 1}
   end
 
   defp check_for_keywords("if"), do: :if

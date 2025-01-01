@@ -25,11 +25,13 @@ defmodule FeelEx.Lexer do
     :state_16,
     :state_17,
     :state_18,
-    :state_19
+    :state_19,
+    :state_20,
+    :state_21
   ]
   @final_states [
     :state_1,
-    :state_3,
+    :state_2,
     :state_4,
     :state_6,
     :state_9,
@@ -41,12 +43,13 @@ defmodule FeelEx.Lexer do
     :state_16,
     :state_17,
     :state_18,
-    :state_19
+    :state_19,
+    :state_20
   ]
   @states_excluding_error_state @states -- [@error_state]
   @transition_table %{
-    dot: [state_0: :state_3, state_1: :state_2, state_5: :state_5],
-    digit: [state_0: :state_1, state_1: :state_1, state_2: :state_3, state_3: :state_3],
+    dot: [state_0: :state_3, state_3: :state_20, state_1: :state_21, state_5: :state_5],
+    digit: [state_0: :state_1, state_1: :state_1, state_21: :state_2, state_2: :state_2, state_3: :state_2],
     forward_slash: [state_0: :state_4, state_4: :state_5, state_5: :state_5, state_8: :state_9],
     line_feed: [state_5: :state_6],
     asterisk: [

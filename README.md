@@ -236,3 +236,45 @@ iex(3)> FeelEx.evaluate(%{a: 1, b: 0.5}, "if a<b then 1 else \"one\"")
 iex(4)> FeelEx.evaluate("if 1=2-1 then 1 else 2")
 %FeelEx.Value{value: 1, type: :number}
 ```
+
+### For Statement
+
+`"for", name, "in", iteration context {",", name, "in", iteration context}, "return", expression`
+
+If multiple lists are given in the for loop, it will loop through all possible combinations of elements from those lists.
+
+#### Examples 
+
+Instead of a list, the for loop can also loop through a specified range.
+
+#### Examples
+
+```elixir
+iex(1)> FeelEx.evaluate(%{y: 1}, "for x in 8..-1 return x+y")
+[
+  %FeelEx.Value{value: 9, type: :number},
+  %FeelEx.Value{value: 8, type: :number},
+  %FeelEx.Value{value: 7, type: :number},
+  %FeelEx.Value{value: 6, type: :number},
+  %FeelEx.Value{value: 5, type: :number},
+  %FeelEx.Value{value: 4, type: :number},
+  %FeelEx.Value{value: 3, type: :number},
+  %FeelEx.Value{value: 2, type: :number},
+  %FeelEx.Value{value: 1, type: :number},
+  %FeelEx.Value{value: 0, type: :number}
+]
+
+iex(2)> FeelEx.evaluate("for x in 1..5, y in [3,4] return x+y")
+[
+  %FeelEx.Value{value: 4, type: :number},
+  %FeelEx.Value{value: 5, type: :number},
+  %FeelEx.Value{value: 5, type: :number},
+  %FeelEx.Value{value: 6, type: :number},
+  %FeelEx.Value{value: 6, type: :number},
+  %FeelEx.Value{value: 7, type: :number},
+  %FeelEx.Value{value: 7, type: :number},
+  %FeelEx.Value{value: 8, type: :number},
+  %FeelEx.Value{value: 8, type: :number},
+  %FeelEx.Value{value: 9, type: :number}
+]
+```
