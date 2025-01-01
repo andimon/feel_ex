@@ -49,7 +49,13 @@ defmodule FeelEx.Lexer do
   @states_excluding_error_state @states -- [@error_state]
   @transition_table %{
     dot: [state_0: :state_3, state_3: :state_20, state_1: :state_21, state_5: :state_5],
-    digit: [state_0: :state_1, state_1: :state_1, state_21: :state_2, state_2: :state_2, state_3: :state_2],
+    digit: [
+      state_0: :state_1,
+      state_1: :state_1,
+      state_21: :state_2,
+      state_2: :state_2,
+      state_3: :state_2
+    ],
     forward_slash: [state_0: :state_4, state_4: :state_5, state_5: :state_5, state_8: :state_9],
     line_feed: [state_5: :state_6],
     asterisk: [

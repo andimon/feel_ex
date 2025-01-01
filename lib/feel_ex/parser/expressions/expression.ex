@@ -1,7 +1,6 @@
 defmodule FeelEx.Expression do
   @moduledoc false
-  alias FeelEx.Helper
-  alias FeelEx.Expression.If
+  alias FeelEx.{Helper, Value}
 
   alias FeelEx.Expression.{
     Name,
@@ -12,11 +11,12 @@ defmodule FeelEx.Expression do
     String_,
     List,
     For,
-    Range
+    Range,
+    If
   }
 
-  alias FeelEx.Value
   require Logger
+
   defstruct [:child]
 
   def new(:list, expression_list) do
