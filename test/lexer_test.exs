@@ -45,13 +45,11 @@ defmodule FeelEx.LexerTest do
     assert FeelEx.Lexer.tokens("1.2 11//wow\n 11") == expected
   end
 
-  test "lexer - \".\"" do
-    expected = [
-      %FeelEx.Token{type: :dot, value: ".", line_number: 1},
-      %FeelEx.Token{type: :eof, value: nil, line_number: nil}
-    ]
-
-    assert FeelEx.Lexer.tokens(".") == expected
+  test "lexer - \"..\"" do
+    assert [
+             %FeelEx.Token{type: :double_dot, value: ".."},
+             %FeelEx.Token{type: :eof, value: nil}
+           ] = FeelEx.Lexer.tokens("..")
   end
 
   test "lexer - \"//.\n\"" do

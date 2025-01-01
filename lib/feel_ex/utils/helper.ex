@@ -1,6 +1,72 @@
 defmodule FeelEx.Helper do
   @moduledoc false
 
+  def gen_list_from_range(first_bound, second_bound)
+      when is_number(first_bound) and is_number(second_bound) do
+    Enum.reverse(do_gen_list_from_range(first_bound, second_bound, []))
+  end
+
+  # if first bound is equal to second bound
+  def do_gen_list_from_range(limit, limit, []), do: [limit]
+
+  # include first bound in list when is empty
+  def do_gen_list_from_range(first_bound, second_bound, []) do
+    do_gen_list_from_range(first_bound, second_bound, [first_bound])
+  end
+
+  def do_gen_list_from_range(first_bound, second_bound, [hd | _] = list)
+      when first_bound < second_bound and hd + 1 > second_bound do
+    list
+  end
+
+  def do_gen_list_from_range(first_bound, second_bound, [hd | _] = list)
+      when first_bound < second_bound and hd + 1 <= second_bound do
+    do_gen_list_from_range(first_bound, second_bound, [hd + 1 | list])
+  end
+
+  def do_gen_list_from_range(first_bound, second_bound, [hd | _] = list)
+      when first_bound > second_bound and hd - 1 < second_bound do
+    list
+  end
+
+  def do_gen_list_from_range(first_bound, second_bound, [hd | _] = list)
+      when first_bound > second_bound and hd - 1 >= second_bound do
+    do_gen_list_from_range(first_bound, second_bound, [hd - 1 | list])
+  end
+
+  def cartesian([]), do: []
+
+  def cartesian(list) when is_list(list) do
+    cartesian(list, [])
+  end
+
+  def cartesian([list], []) when is_list(list) do
+    Enum.map(list, fn element -> [element] end)
+  end
+
+  def cartesian([list | tl], []) when is_list(list) do
+    current_list = Enum.map(list, fn element -> [element] end)
+    cartesian(tl, current_list)
+  end
+
+  def cartesian([list | tl], current_list) when is_list(list) do
+    new_list =
+      Enum.reduce(current_list, [], fn element, acc ->
+        acc ++
+          Enum.map(list, fn element_to_append ->
+            [element_to_append | element]
+          end)
+      end)
+
+    cartesian(tl, new_list)
+  end
+
+  def cartesian([], current_list) do
+    Enum.map(current_list, fn list ->
+      Enum.reverse(list)
+    end)
+  end
+
   def input_map_checker(input_map) when is_map(input_map) do
     case Enum.at(input_map, 0) do
       {key, _val} when is_atom(key) ->

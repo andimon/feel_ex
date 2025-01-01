@@ -1,5 +1,6 @@
 defmodule FeelEx.Expression do
   @moduledoc false
+  alias FeelEx.Helper
   alias FeelEx.Expression.If
 
   alias FeelEx.Expression.{
@@ -9,7 +10,9 @@ defmodule FeelEx.Expression do
     BinaryOp,
     Boolean,
     String_,
-    List
+    List,
+    For,
+    Range
   }
 
   alias FeelEx.Value
@@ -62,6 +65,25 @@ defmodule FeelEx.Expression do
         condition: condition_tree,
         conditional_statetement: conditional_statement_tree,
         else_statement: else_statement_tree
+      }
+    }
+  end
+
+  def new(:range, first_bound, second_bound) do
+    %__MODULE__{child: %Range{first_bound: first_bound, second_bound: second_bound}}
+  end
+
+  def new(:for, iteration_context, return_expression) do
+    return_expression =
+      case return_expression do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    %__MODULE__{
+      child: %For{
+        iteration_contexts: iteration_context,
+        return_expression: return_expression
       }
     }
   end
@@ -419,6 +441,35 @@ defmodule FeelEx.Expression do
 
   def evaluate(
         %__MODULE__{
+          child: %For{
+            iteration_contexts: iteration_contexts,
+            return_expression: return_expression
+          }
+        },
+        context
+      ) do
+    iteration_contexts
+    |> Enum.map(fn {%FeelEx.Expression{child: %FeelEx.Expression.Name{value: name}},
+                    list_expression} ->
+      list_expression =
+        case list_expression do
+          {exp, _tokens} -> exp
+          exp -> exp
+        end
+
+      Enum.map(evaluate(list_expression, context), fn %Value{value: value} ->
+        {String.to_atom(name), value}
+      end)
+    end)
+    |> Helper.cartesian()
+    |> Enum.map(fn new_assignments ->
+      new_context = Enum.into(new_assignments, context)
+      evaluate(return_expression, new_context)
+    end)
+  end
+
+  def evaluate(
+        %__MODULE__{
           child: %List{
             elements: elements
           }
@@ -426,6 +477,24 @@ defmodule FeelEx.Expression do
         context
       ) do
     Enum.map(elements, fn expression -> evaluate(expression, context) end)
+  end
+
+  def evaluate(
+        %__MODULE__{
+          child: %Range{
+            first_bound: first_bound,
+            second_bound: second_bound
+          }
+        },
+        context
+      ) do
+    get_range_list(evaluate(first_bound, context), evaluate(second_bound, context))
+  end
+
+  def filter_iteration_context(list) when is_list(list) do
+    Enum.map(list, fn %Value{value: value} ->
+      value
+    end)
   end
 
   defp do_add(
@@ -556,5 +625,13 @@ defmodule FeelEx.Expression do
          context
        ) do
     evaluate(else_statement, context)
+  end
+
+  defp get_range_list(
+         %FeelEx.Value{value: first_bound, type: :number},
+         %FeelEx.Value{value: second_bound, type: :number}
+       ) do
+    Helper.gen_list_from_range(first_bound, second_bound)
+    |> Enum.map(fn x -> Value.new(x) end)
   end
 end
