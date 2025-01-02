@@ -1,6 +1,34 @@
 defmodule FeelEx.Helper do
   @moduledoc false
 
+  def get_offset(offset_or_zone_id) when is_binary(offset_or_zone_id) do
+    offset_regex = ~r/^(?:(?:[+-](?:1[0-4]|0[1-9]):[0-5][0-9])|[+-]00:00)$/
+
+    if Regex.match?(offset_regex, offset_or_zone_id) do
+      offset_or_zone_id
+    else
+      get_offset_from_zone_id(offset_or_zone_id)
+    end
+  end
+
+  defp get_offset_from_zone_id(zone_id) when is_binary(zone_id) do
+    {:ok, datetime} = DateTime.now(zone_id, Tzdata.TimeZoneDatabase)
+
+    offset_seconds = datetime.utc_offset
+
+    hours = div(offset_seconds, 3600)
+    minutes = div(rem(offset_seconds, 3600), 60)
+
+    "#{sign(hours)}#{format_hours_and_minutes(abs(hours))}:#{format_hours_and_minutes(minutes)}"
+  end
+
+  defp sign(n) when n < 0, do: "-"
+  defp sign(_n), do: "+"
+
+  defp format_hours_and_minutes(minutes) do
+    if minutes < 10, do: "0#{abs(minutes)}", else: "#{abs(minutes)}"
+  end
+
   def gen_list_from_range(first_bound, second_bound)
       when is_number(first_bound) and is_number(second_bound) do
     Enum.reverse(do_gen_list_from_range(first_bound, second_bound, []))
