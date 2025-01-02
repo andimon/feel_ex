@@ -1,4 +1,5 @@
 import Config
+
 config :logger, :console,
   level: :debug,
   metadata: [:mfa, :line],
