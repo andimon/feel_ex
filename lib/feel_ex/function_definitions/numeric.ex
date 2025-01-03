@@ -76,7 +76,7 @@ defmodule FeelEx.FunctionDefinitions.Numeric do
         value: divisor,
         type: :number
       }) do
-    value = divedend - Float.floor(divedend / divisor) * divisor
+    value = :math.fmod(divedend, divisor)
     value = if value - trunc(value) == 0, do: trunc(value), else: value
 
     %FeelEx.Value{value: value, type: :number}
