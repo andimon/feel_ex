@@ -1,8 +1,8 @@
 defmodule FeelEx.NumericFunctionTests do
   use ExUnit.Case
 
-  test "ceil(1+1+0.5)" do
-    %FeelEx.Value{value: 3, type: :number} = FeelEx.evaluate("ceil(1+1+0.5)")
+  test "ceiling(1+1+0.5)" do
+    %FeelEx.Value{value: 3, type: :number} = FeelEx.evaluate("ceiling(1+1+0.5)")
   end
 
   test "floor(1+1+0.5)" do
