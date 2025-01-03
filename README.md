@@ -1,6 +1,6 @@
 # FeelEx
 
-[![Build Status](https://github.com/ExSemantic/feel_ex/actions/workflows/elixir.yml/badge.svg)](https://github.com/ExSemantic/feel_ex/actions)  [![Hex.pm](https://img.shields.io/hexpm/v/feel_ex.svg)](https://hex.pm/packages/feel_ex) [![Documentation](https://img.shields.io/badge/documentation-gray)](https://hexdocs.pm/feel_ex/)
+[![Build Status](https://github.com/ExSemantic/feel_ex/actions/workflows/tests.yml/badge.svg)](https://github.com/ExSemantic/feel_ex/actions)  [![Hex.pm](https://img.shields.io/hexpm/v/feel_ex.svg)](https://hex.pm/packages/feel_ex) [![Documentation](https://img.shields.io/badge/documentation-gray)](https://hexdocs.pm/feel_ex/)
 
 A friendly expression language helps users define decision logic without needing deep technical expertise. This language is based on the FEEL(Friendly Enough Expression Language). For more information regarding FEEL, please take a look at the official OMG specification at https://www.omg.org/dmn/.
 
