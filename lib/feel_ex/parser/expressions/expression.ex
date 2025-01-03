@@ -32,18 +32,6 @@ defmodule FeelEx.Expression do
     %__MODULE__{child: %List{elements: expression_list}}
   end
 
-  def new(:function, name, expression_list) do
-    arguments =
-      Enum.map(expression_list, fn expression_list ->
-        case expression_list do
-          {exp, _tokens} -> exp
-          exp -> exp
-        end
-      end)
-
-    %__MODULE__{child: %Function{name: name, arguments: arguments}}
-  end
-
   def new(:negation, operand) do
     %__MODULE__{child: %Negation{operand: operand}}
   end
@@ -80,6 +68,18 @@ defmodule FeelEx.Expression do
         else_statement: else_statement_tree
       }
     }
+  end
+
+  def new(:function, name, expression_list) do
+    arguments =
+      Enum.map(expression_list, fn expression_list ->
+        case expression_list do
+          {exp, _tokens} -> exp
+          exp -> exp
+        end
+      end)
+
+    %__MODULE__{child: %Function{name: name, arguments: arguments}}
   end
 
   def new(:range, first_bound, second_bound) do
