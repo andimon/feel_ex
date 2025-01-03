@@ -8,6 +8,10 @@ defmodule FeelEx.Value do
     %__MODULE__{value: number, type: :number}
   end
 
+  def new(list) when is_list(list) do
+    Enum.map(list, fn item -> new(item) end)
+  end
+
   def new(boolean) when is_boolean(boolean) do
     %__MODULE__{value: boolean, type: :boolean}
   end

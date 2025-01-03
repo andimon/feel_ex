@@ -12,7 +12,8 @@ defmodule FeelEx.Expression do
     List,
     For,
     Range,
-    If
+    If,
+    Function
   }
 
   require Logger
@@ -29,6 +30,18 @@ defmodule FeelEx.Expression do
       end)
 
     %__MODULE__{child: %List{elements: expression_list}}
+  end
+
+  def new(:function, name, expression_list) do
+    arguments =
+      Enum.map(expression_list, fn expression_list ->
+        case expression_list do
+          {exp, _tokens} -> exp
+          exp -> exp
+        end
+      end)
+
+    %__MODULE__{child: %Function{name: name, arguments: arguments}}
   end
 
   def new(:negation, operand) do
@@ -477,6 +490,19 @@ defmodule FeelEx.Expression do
         context
       ) do
     Enum.map(elements, fn expression -> evaluate(expression, context) end)
+  end
+
+  def evaluate(
+        %__MODULE__{
+          child: %Function{
+            name: %__MODULE__{child: %Name{value: name}},
+            arguments: arguments
+          }
+        },
+        context
+      ) do
+    arguments = Enum.map(arguments, fn expression -> evaluate(expression, context) end)
+    apply(FeelEx.FunctionDefinitions, String.to_atom(name), arguments)
   end
 
   def evaluate(
