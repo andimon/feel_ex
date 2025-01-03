@@ -1,4 +1,4 @@
 defmodule FeelEx.Expression.Number do
-@moduledoc false
+  @moduledoc false
   defstruct [:value]
 end
