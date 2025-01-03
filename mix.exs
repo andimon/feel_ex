@@ -7,6 +7,7 @@ defmodule FeelEx.MixProject do
       version: "0.1.0-dev",
       elixir: "~> 1.15",
       erlc_paths: ["priv"],
+      test_coverage: [tool: ExCoveralls],
       description: description(),
       compilers: [:yecc, :leex] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
@@ -26,7 +27,8 @@ defmodule FeelEx.MixProject do
   defp deps do
     [
       {:tzdata, "~> 1.1"},
-      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+      {:excoveralls, "~> 0.18.3", only: :test}
     ]
   end
 
