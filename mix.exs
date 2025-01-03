@@ -4,7 +4,7 @@ defmodule FeelEx.MixProject do
   def project do
     [
       app: :feel_ex,
-      version: "0.1.1-dev",
+      version: "0.1.0-dev",
       elixir: "~> 1.15",
       erlc_paths: ["priv"],
       description: description(),
