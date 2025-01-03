@@ -11,7 +11,7 @@ Add `:feel_ex` to the list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:feel_ex, "~> 0.1.0"}
+    {:feel_ex, "~> 0.0.1"}
   ]
 end
 ```
