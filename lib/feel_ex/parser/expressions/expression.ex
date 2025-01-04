@@ -644,8 +644,9 @@ defmodule FeelEx.Expression do
     evaluate(conditional_statement, context)
   end
 
+  # on false or anything else
   defp do_if(
-         %FeelEx.Value{value: false, type: :boolean},
+         _,
          _conditional_statement,
          else_statement,
          context
