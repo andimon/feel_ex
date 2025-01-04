@@ -1,55 +1,78 @@
 defmodule FeelEx.FunctionDefinitions do
-  alias FeelEx.FunctionDefinitions.Numeric
+  alias FeelEx.FunctionDefinitions.{Numeric, String}
+  alias FeelEx.Value
 
-  def floor(%FeelEx.Value{value: number, type: :number}) do
-    Numeric.floor(%FeelEx.Value{value: number, type: :number})
+  def floor(%Value{value: number, type: :number}) do
+    Numeric.floor(%Value{value: number, type: :number})
   end
 
-  def ceiling(%FeelEx.Value{value: number, type: :number}) do
-    Numeric.ceiling(%FeelEx.Value{value: number, type: :number})
+  def ceiling(%Value{value: number, type: :number}) do
+    Numeric.ceiling(%Value{value: number, type: :number})
   end
 
-  def decimal(%FeelEx.Value{value: number, type: :number}, %FeelEx.Value{
+  def decimal(%Value{value: number, type: :number}, %Value{
         value: precision,
         type: :number
       }) do
-    Numeric.decimal(%FeelEx.Value{value: number, type: :number}, %FeelEx.Value{
+    Numeric.decimal(%Value{value: number, type: :number}, %Value{
       value: precision,
       type: :number
     })
   end
 
-  def abs(%FeelEx.Value{value: number, type: :number}) do
-    Numeric.abs(%FeelEx.Value{value: number, type: :number})
+  def abs(%Value{value: number, type: :number}) do
+    Numeric.abs(%Value{value: number, type: :number})
   end
 
-  def modulo(%FeelEx.Value{value: divedend, type: :number}, %FeelEx.Value{
+  def modulo(%Value{value: divedend, type: :number}, %Value{
         value: divisor,
         type: :number
       }) do
-    Numeric.modulo(%FeelEx.Value{value: divedend, type: :number}, %FeelEx.Value{
+    Numeric.modulo(%Value{value: divedend, type: :number}, %Value{
       value: divisor,
       type: :number
     })
   end
 
-  def sqrt(%FeelEx.Value{value: number, type: :number}) do
-    Numeric.sqrt(%FeelEx.Value{value: number, type: :number})
+  def sqrt(%Value{value: number, type: :number}) do
+    Numeric.sqrt(%Value{value: number, type: :number})
   end
 
-  def log(%FeelEx.Value{value: number, type: :number}) do
-    Numeric.log(%FeelEx.Value{value: number, type: :number})
+  def log(%Value{value: number, type: :number}) do
+    Numeric.log(%Value{value: number, type: :number})
   end
 
-  def exp(%FeelEx.Value{value: number, type: :number}) do
-    Numeric.exp(%FeelEx.Value{value: number, type: :number})
+  def exp(%Value{value: number, type: :number}) do
+    Numeric.exp(%Value{value: number, type: :number})
   end
 
-  def odd(%FeelEx.Value{value: number, type: :number}) do
-    Numeric.odd(%FeelEx.Value{value: number, type: :number})
+  def odd(%Value{value: number, type: :number}) do
+    Numeric.odd(%Value{value: number, type: :number})
   end
 
-  def even(%FeelEx.Value{value: number, type: :number}) do
-    Numeric.even(%FeelEx.Value{value: number, type: :number})
+  def even(%Value{value: number, type: :number}) do
+    Numeric.even(%Value{value: number, type: :number})
+  end
+
+  def substring(%Value{type: :string, value: string}, %Value{type: :number, value: number}) do
+    String.substring(%Value{type: :string, value: string}, %Value{type: :number, value: number})
+  end
+
+  def substring(%Value{type: :string, value: string}, %Value{type: :number, value: index}, %Value{
+        type: :number,
+        value: length
+      }) do
+    String.substring(
+      %Value{type: :string, value: string},
+      %Value{type: :number, value: index},
+      %Value{
+        type: :number,
+        value: length
+      }
+    )
+  end
+
+  def length(%Value{type: :string, value: string}) do
+    String.length(%Value{type: :string, value: string})
   end
 end
