@@ -30,4 +30,17 @@ defmodule FeelEx.FunctionDefinitions.String do
   def length(%Value{type: :string, value: string}) do
     Value.new(Elixir.String.length(string))
   end
+
+  def transformation(%Value{type: :string, value: string}) do
+    cond do
+      is_date?(string) -> Value.new(Date.from_iso8601!(string))
+    end
+  end
+
+  defp is_date?(date) do
+    case Date.from_iso8601(date) do
+      {:ok, _} -> true
+      _ -> false
+    end
+  end
 end
