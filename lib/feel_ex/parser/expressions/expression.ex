@@ -13,7 +13,8 @@ defmodule FeelEx.Expression do
     For,
     Range,
     If,
-    Function
+    Function,
+    FilterList
   }
 
   require Logger
@@ -68,6 +69,22 @@ defmodule FeelEx.Expression do
         else_statement: else_statement_tree
       }
     }
+  end
+
+  def new(:filter_list, expression_list, expression) do
+    expression_list =
+      case expression_list do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    expression =
+      case expression do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    %__MODULE__{child: %FilterList{list: expression_list, filter: expression}}
   end
 
   def new(:function, name, expression_list) do
@@ -494,6 +511,52 @@ defmodule FeelEx.Expression do
 
   def evaluate(
         %__MODULE__{
+          child: %FilterList{
+            list: list,
+            filter: %FeelEx.Expression{child: %FeelEx.Expression.Number{}} = number
+          }
+        },
+        context
+      ) do
+    list = evaluate(list, context)
+    filter = evaluate(number, context)
+    get_elem(list, filter)
+  end
+
+  def evaluate(
+        %__MODULE__{
+          child: %FilterList{
+            list: list,
+            filter:
+              %FeelEx.Expression{
+                child: %FeelEx.Expression.Negation{
+                  operand: %FeelEx.Expression{child: %FeelEx.Expression.Number{}}
+                }
+              } = number
+          }
+        },
+        context
+      ) do
+    list = evaluate(list, context)
+    filter = evaluate(number, context)
+    get_elem(list, filter)
+  end
+
+  def evaluate(
+        %__MODULE__{
+          child: %FilterList{
+            list: list,
+            filter: filter
+          }
+        },
+        context
+      ) do
+    list = evaluate(list, context)
+    apply_filter(list, filter, context)
+  end
+
+  def evaluate(
+        %__MODULE__{
           child: %Function{
             name: %__MODULE__{child: %Name{value: name}},
             arguments: arguments
@@ -660,5 +723,29 @@ defmodule FeelEx.Expression do
        ) do
     Helper.gen_list_from_range(first_bound, second_bound)
     |> Enum.map(fn x -> Value.new(x) end)
+  end
+
+  defp get_elem(list, %Value{value: 0})
+       when is_list(list) do
+    Value.new(nil)
+  end
+
+  defp get_elem(list, %Value{value: number})
+       when is_list(list) and number > 0 do
+    value = Enum.at(list, number - 1)
+    if is_nil(value), do: Value.new(nil), else: value
+  end
+
+  defp get_elem(list, %Value{value: number})
+       when is_list(list) and number < 0 do
+    value = Enum.at(list, number)
+    if is_nil(value), do: Value.new(nil), else: value
+  end
+
+  defp apply_filter(list, filter, context) do
+    Enum.filter(list, fn %Value{value: value} ->
+      new_context = Map.put(context, :item, value)
+      evaluate(filter, new_context) == %Value{value: true, type: :boolean}
+    end)
   end
 end

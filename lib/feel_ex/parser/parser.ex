@@ -54,7 +54,13 @@ defmodule FeelEx.Parser do
       expression = {Expression.new(:list, expression_list), []}
       remaining_tokens = Enum.slice(remaining_tokens, (right_square_bracket_index + 1)..-1//1)
 
-      do_parse_expression(expression, remaining_tokens, -1)
+      case remaining_tokens do
+        [%Token{type: :left_square_bracket, value: "["} | _tl] ->
+          filter_list_expression(expression, remaining_tokens)
+
+        _ ->
+          do_parse_expression(expression, remaining_tokens, -1)
+      end
     end
   end
 
@@ -228,6 +234,36 @@ defmodule FeelEx.Parser do
          _precedence
        ) do
     left_expression
+  end
+
+  # defp filter_list_expression(list_expression, [
+  #        %Token{type: :left_square_bracket, value: "["},
+  #        %Token{type: type} = number,
+  #        %Token{type: :right_square_bracket, value: "]"} | remaining_tokens
+  #      ])
+  #      when type in [:int, :float] do
+  #   filter_expression = parse_expression(number)
+  #   expression = {Expression.new(:filter_list, list_expression, filter_expression), []}
+  #   do_parse_expression(expression, remaining_tokens, -1)
+  # end
+
+  defp filter_list_expression(list_expression, [
+         %Token{type: :left_square_bracket, value: "["} | remaining_tokens
+       ]) do
+    right_square_bracket_index =
+      Enum.find_index(remaining_tokens, fn token -> token.type == :right_square_bracket end)
+
+    if is_nil(right_square_bracket_index) do
+      raise ArgumentError, message: "Expected ] after ["
+    else
+      filter_tokens = Enum.slice(remaining_tokens, 0..(right_square_bracket_index - 1))
+      filter_list_expression = parse_expression(filter_tokens)
+
+      expression = {Expression.new(:filter_list, list_expression, filter_list_expression), []}
+      remaining_tokens = Enum.slice(remaining_tokens, (right_square_bracket_index + 1)..-1//1)
+
+      do_parse_expression(expression, remaining_tokens, -1)
+    end
   end
 
   defp tokens_contains_then_and_else!(tokens) do
