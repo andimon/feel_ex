@@ -39,4 +39,29 @@ defmodule FeelEx.ListsTests do
                "[5+1, a, 2>3]"
              )
   end
+
+  test "evaluate [1,\"a\",3][-2]" do
+    assert %FeelEx.Value{value: 2, type: :number} = FeelEx.evaluate("[1, \"a\", 3][1]+1")
+  end
+
+  test "evaluate [1,\"a\",3][1]+1" do
+    assert %FeelEx.Value{value: 2, type: number} = FeelEx.evaluate("[1, \"a\", 3][1]+1")
+  end
+
+  test "evaluate [1,2,3,4][item > 2]" do
+    assert [
+             %FeelEx.Value{value: 3, type: :number},
+             %FeelEx.Value{value: 4, type: :number}
+           ] = FeelEx.evaluate("[1,2,3,4][item > 2]")
+  end
+
+  test "evaluate [1,2,3,4][item > 10]" do
+    assert [] = FeelEx.evaluate("[1,2,3,4][item > 10]")
+  end
+
+  test "evaluate [1,2,3,4][even(item)]" do
+    assert [
+             %FeelEx.Value{value: 4, type: :number}
+           ] = FeelEx.evaluate("[2,4][item > 2]")
+  end
 end
