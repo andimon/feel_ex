@@ -54,7 +54,8 @@ defmodule FeelEx.Lexer do
       state_1: :state_1,
       state_21: :state_2,
       state_2: :state_2,
-      state_3: :state_2
+      state_3: :state_2,
+      state_13: :state_13
     ],
     forward_slash: [state_0: :state_4, state_4: :state_5, state_5: :state_5, state_8: :state_9],
     line_feed: [state_5: :state_6],
@@ -83,8 +84,9 @@ defmodule FeelEx.Lexer do
       state_13: :state_13
     ],
     space: [state_5: :state_5, state_7: :state_7, state_8: :state_7, state_13: :state_13],
-    plus: [state_0: :state_12],
-    minus: [state_0: :state_12],
+    plus: [state_0: :state_12, state_13: :state_13],
+    at: [state_0: :state_12],
+    minus: [state_0: :state_12, state_13: :state_13],
     quote: [state_0: :state_13, state_13: :state_14],
     less_than: [state_0: :state_15],
     greater_than: [state_0: :state_15],
@@ -314,6 +316,7 @@ defmodule FeelEx.Lexer do
       x == 61 -> :equal
       x == 62 -> :greater_than
       x == 63 -> :question_mark
+      x == 64 -> :at
       x in 65..90 -> :capital_a_to_z
       x == 91 -> :left_square_bracket
       x == 93 -> :right_square_bracket

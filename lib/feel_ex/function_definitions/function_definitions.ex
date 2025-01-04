@@ -1,5 +1,5 @@
 defmodule FeelEx.FunctionDefinitions do
-  alias FeelEx.FunctionDefinitions.{Numeric, String}
+  alias FeelEx.FunctionDefinitions.{Numeric, String, Date}
   alias FeelEx.Value
 
   def floor(%Value{value: number, type: :number}) do
@@ -74,5 +74,13 @@ defmodule FeelEx.FunctionDefinitions do
 
   def length(%Value{type: :string, value: string}) do
     String.length(%Value{type: :string, value: string})
+  end
+
+  def string_transformation(%Value{type: :string, value: string}) do
+    String.transformation(%Value{type: :string, value: string})
+  end
+
+  def date(%Value{type: :string, value: string}) do
+    Date.date(%Value{type: :string, value: string})
   end
 end

@@ -65,6 +65,24 @@ defmodule FeelEx.Parser do
   end
 
   defp do_parse_expression(
+         [%Token{type: :at, value: "@"}, %Token{type: :string} = string | remaining_tokens],
+         _precedence
+       ) do
+    expression =
+      do_parse_expression(
+        [
+          %Token{type: :name, value: "string_transformation"},
+          %Token{type: :left_parenthesis, value: "("},
+          string,
+          %Token{type: :right_parenthesis, value: ")"}
+        ],
+        -1
+      )
+
+    do_parse_expression(expression, remaining_tokens, -1)
+  end
+
+  defp do_parse_expression(
          [%Token{type: :left_parenthesis, value: "("} | remaining_tokens],
          _precedence
        ) do

@@ -38,6 +38,10 @@ defmodule FeelEx.Token do
     %__MODULE__{type: check_for_keywords(lexeme), value: lexeme, line_number: line_number}
   end
 
+  def new(%{current_state: :state_12, lexeme: "@", current_line_number: line_number}) do
+    %__MODULE__{type: :at, value: "@", line_number: line_number - 1}
+  end
+
   def new(%{current_state: :state_12, lexeme: "*", current_line_number: line_number}) do
     %__MODULE__{type: :arithmetic_op_mul, value: "*", line_number: line_number - 1}
   end
