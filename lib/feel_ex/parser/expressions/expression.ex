@@ -1,5 +1,7 @@
 defmodule FeelEx.Expression do
   @moduledoc false
+  require Logger
+
   alias FeelEx.{Helper, Value}
 
   alias FeelEx.Expression.{
@@ -14,12 +16,29 @@ defmodule FeelEx.Expression do
     Range,
     If,
     Function,
-    FilterList
+    FilterList,
+    Context,
+    Access
   }
 
   require Logger
 
   defstruct [:child]
+
+  def new(:context, expression_list) do
+    expression_list =
+      Enum.map(expression_list, fn {key, value} ->
+        value =
+          case value do
+            {exp, _tokens} -> exp
+            exp -> exp
+          end
+
+        {key, value}
+      end)
+
+    %__MODULE__{child: %Context{keys_with_values: expression_list}}
+  end
 
   def new(:list, expression_list) do
     expression_list =
@@ -69,6 +88,22 @@ defmodule FeelEx.Expression do
         else_statement: else_statement_tree
       }
     }
+  end
+
+  def new(:access, name, operand) do
+    name =
+      case name do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    operand =
+      case operand do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    %__MODULE__{child: %Access{name: name, operand: operand}}
   end
 
   def new(:filter_list, expression_list, expression) do
@@ -511,6 +546,41 @@ defmodule FeelEx.Expression do
 
   def evaluate(
         %__MODULE__{
+          child: %Context{
+            keys_with_values: keys_with_values
+          }
+        },
+        context
+      ) do
+    {result, _current_context} =
+      Enum.map_reduce(keys_with_values, context, fn {name, expression}, current_context ->
+        value = evaluate(expression, current_context)
+        new_context = Map.put_new(current_context, name, value)
+        {{name, value}, new_context}
+      end)
+
+    result
+    |> Enum.into(%{})
+    |> Value.new()
+  end
+
+  def evaluate(
+        %__MODULE__{
+          child: %Access{
+            name: name,
+            operand: operand
+          }
+        },
+        context
+      ) do
+    case evaluate(operand, context) do
+      %Value{value: value, type: type} -> do_access(name, value, type, context)
+      list when is_list(list) -> do_access(name, list, :list, context)
+    end
+  end
+
+  def evaluate(
+        %__MODULE__{
           child: %FilterList{
             list: list,
             filter: %FeelEx.Expression{child: %FeelEx.Expression.Number{}} = number
@@ -743,9 +813,36 @@ defmodule FeelEx.Expression do
   end
 
   defp apply_filter(list, filter, context) do
-    Enum.filter(list, fn %Value{value: value} ->
+    Enum.filter(list, fn %Value{value: operand, type: type} = value ->
       new_context = Map.put(context, :item, value)
+
+      new_context =
+        if type == :context do
+          Map.merge(new_context, operand)
+        else
+          new_context
+        end
+
       evaluate(filter, new_context) == %Value{value: true, type: :boolean}
     end)
+  end
+
+  defp do_access(name, operand, :context, _context) do
+    value = Map.get(operand, name)
+    if is_nil(value), do: Value.new(nil), else: value
+  end
+
+  defp do_access(name, operand, :list, context) do
+    Enum.map(operand, fn elem ->
+      case elem do
+        %Value{value: value, type: type} -> do_access(name, value, type, context)
+        list when is_list(list) -> do_access(name, list, :list, context)
+      end
+    end)
+  end
+
+  defp do_access(name, operand, _type, _context) do
+    Logger.warning("No property found with name #{inspect(name)} of value #{inspect(operand)}.")
+    Value.new(nil)
   end
 end
