@@ -32,6 +32,7 @@ defmodule FeelEx.Lexer do
   @final_states [
     :state_1,
     :state_2,
+    :state_3,
     :state_4,
     :state_6,
     :state_9,
@@ -86,6 +87,9 @@ defmodule FeelEx.Lexer do
     space: [state_5: :state_5, state_7: :state_7, state_8: :state_7, state_13: :state_13],
     plus: [state_0: :state_12, state_13: :state_13],
     at: [state_0: :state_12],
+    opening_brace: [state_0: :state_12],
+    colon: [state_0: :state_12],
+    closing_brace: [state_0: :state_12],
     minus: [state_0: :state_12, state_13: :state_13],
     quote: [state_0: :state_13, state_13: :state_14],
     less_than: [state_0: :state_15],
@@ -312,6 +316,7 @@ defmodule FeelEx.Lexer do
       x == 46 -> :dot
       x == 47 -> :forward_slash
       x in 48..57 -> :digit
+      x == 58 -> :colon
       x == 60 -> :less_than
       x == 61 -> :equal
       x == 62 -> :greater_than
@@ -322,6 +327,8 @@ defmodule FeelEx.Lexer do
       x == 93 -> :right_square_bracket
       x == 95 -> :underscore
       x in 97..122 -> :small_a_to_z
+      x == 123 -> :opening_brace
+      x == 125 -> :closing_brace
     end
   end
 end

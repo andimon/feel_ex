@@ -4,6 +4,8 @@ defmodule FeelEx.Value do
 
   defstruct [:value, :type]
 
+  def new(%__MODULE__{} = value), do: value
+
   def new(number) when is_number(number) do
     %__MODULE__{value: number, type: :number}
   end

@@ -1,5 +1,195 @@
 defmodule FeelEx.Helper do
   @moduledoc false
+  alias FeelEx.Token
+
+  def get_list([%Token{type: :left_square_bracket} = left_square_bracket | remaining_tokens]) do
+    accumulator = {1, left_square_bracket, [left_square_bracket], remaining_tokens}
+
+    result =
+      Enum.reduce_while(remaining_tokens, accumulator, fn token, state ->
+        case state do
+          {0, _, _, _} ->
+            {:halt, state}
+
+          {left_square_bracket_count, left_square_bracket_token, context_tokens, [hd | tl]} ->
+            cond do
+              hd.type == :left_square_bracket ->
+                {:cont, {left_square_bracket_count + 1, hd, [hd | context_tokens], tl}}
+
+              token.type == :right_square_bracket ->
+                {:cont,
+                 {left_square_bracket_count - 1, left_square_bracket_token, [hd | context_tokens],
+                  tl}}
+
+              true ->
+                {:cont,
+                 {left_square_bracket_count, left_square_bracket_token, [hd | context_tokens], tl}}
+            end
+        end
+      end)
+
+    case result do
+      {0, _, context_tokens, remaining_tokens} ->
+        context_tokens =
+          Enum.reverse(context_tokens)
+
+        {context_tokens, remaining_tokens}
+
+      {_, %FeelEx.Token{type: :opening_brace, value: "[", line_number: line_number}, _} ->
+        raise ArgumentError, message: "Expected ] after [ in line #{line_number}"
+    end
+  end
+
+  def get_context([%Token{type: :opening_brace} = opening_brace | remaining_tokens]) do
+    accumulator = {1, opening_brace, [opening_brace], remaining_tokens}
+
+    result =
+      Enum.reduce_while(remaining_tokens, accumulator, fn token, state ->
+        case state do
+          {0, _, _, _} ->
+            {:halt, state}
+
+          {opening_brace_count, opening_brace_token, context_tokens, [hd | tl]} ->
+            cond do
+              hd.type == :opening_brace ->
+                {:cont, {opening_brace_count + 1, hd, [hd | context_tokens], tl}}
+
+              token.type == :closing_brace ->
+                {:cont, {opening_brace_count - 1, opening_brace_token, [hd | context_tokens], tl}}
+
+              true ->
+                {:cont, {opening_brace_count, opening_brace_token, [hd | context_tokens], tl}}
+            end
+        end
+      end)
+
+    case result do
+      {0, _, context_tokens, remaining_tokens} ->
+        context_tokens =
+          Enum.reverse(context_tokens)
+
+        {context_tokens, remaining_tokens}
+
+      {_, %FeelEx.Token{type: :opening_brace, value: "{", line_number: line_number}, _} ->
+        raise ArgumentError, message: "Expected } after { in line #{line_number}"
+    end
+  end
+
+  def get_context(tokens), do: {[], tokens}
+
+  def break_key_values(tokens) do
+    Enum.reverse(do_break_key_values(tokens, []))
+  end
+
+  defp do_break_key_values([], new_list), do: new_list
+  defp do_break_key_values([%Token{type: :closing_brace}], new_list), do: new_list
+
+  defp do_break_key_values([%Token{type: type} | tl], new_list)
+       when type in [:comma, :opening_brace],
+       do: do_break_key_values(tl, new_list)
+
+  defp do_break_key_values(
+         [
+           %Token{type: type} = type_token,
+           %Token{type: :colon} = colon,
+           %Token{type: :opening_brace} = opening_brace | tl
+         ],
+         new_list
+       )
+       when type in [:name, :string] do
+    {context, remaining_tokens} = get_context([opening_brace | tl])
+    new_list = [[type_token, colon | context] | new_list]
+
+    do_break_key_values(remaining_tokens, new_list)
+  end
+
+  defp do_break_key_values(
+         [
+           %Token{type: type} = type_token,
+           %Token{type: :colon} = colon,
+           %Token{type: :left_square_bracket} = left_square_bracket | tl
+         ],
+         new_list
+       )
+       when type in [:name, :string] do
+    IO.puts("jesus")
+
+    {list, remaining_tokens} =
+      get_list([left_square_bracket | tl])
+      |> IO.inspect()
+
+    new_list =
+      [[type_token, colon | list] | new_list]
+      |> IO.inspect()
+
+    IO.puts("pufs")
+    do_break_key_values(remaining_tokens, new_list)
+  end
+
+  defp do_break_key_values(
+         [
+           %Token{type: type} = name_token,
+           %Token{type: :colon} = colon
+           | tl
+         ],
+         new_list
+       )
+       when type in [:name, :string] do
+    comma_index = Enum.find_index(tl, fn token -> Map.get(token, :type) == :comma end)
+
+    if is_nil(comma_index) do
+      [%Token{type: :closing_brace} | tl] = Enum.reverse(tl)
+
+      [[name_token, colon | Enum.reverse(tl)] | new_list]
+    else
+      value_tokens = Enum.slice(tl, 0..(comma_index - 1))
+      remaining_tokens = Enum.slice(tl, (comma_index + 1)..-1//1)
+
+      do_break_key_values(
+        remaining_tokens,
+        [[name_token, colon | value_tokens] | new_list]
+      )
+    end
+  end
+
+  def get_list_values([%Token{type: :left_square_bracket} | list]) do
+    list = Enum.reverse(tl(Enum.reverse(list)))
+
+    Enum.reverse(do_get_list_values(list, []))
+  end
+
+  defp do_get_list_values([], new_list), do: new_list
+
+  defp do_get_list_values([%Token{type: :comma} | tl], new_list) do
+    do_get_list_values(tl, new_list)
+  end
+
+  defp do_get_list_values([%Token{type: :opening_brace} | _] = list, new_list) do
+    {context_tokens, remaining_tokens} = get_context(list)
+    do_get_list_values(remaining_tokens, [context_tokens | new_list])
+  end
+
+  defp do_get_list_values([%Token{type: :left_square_bracket} | _] = list, new_list) do
+    {context_tokens, remaining_tokens} = get_list(list)
+    do_get_list_values(remaining_tokens, [context_tokens | new_list])
+  end
+
+  defp do_get_list_values([%Token{type: type} | _] = list, new_list)
+       when type != :opening_brace do
+    comma_index = Enum.find_index(list, fn token -> Map.get(token, :type) == :comma end)
+
+    if is_nil(comma_index) do
+      [list | new_list]
+    else
+      value_tokens = Enum.slice(list, 0..(comma_index - 1))
+      remaining_tokens = Enum.slice(list, (comma_index + 1)..-1//1)
+
+      do_get_list_values(
+        remaining_tokens,
+        [value_tokens | new_list]
+      )
+    end
+  end
 
   def get_offset(offset_or_zone_id) when is_binary(offset_or_zone_id) do
     offset_regex = ~r/^(?:(?:[+-](?:1[0-4]|0[1-9]):[0-5][0-9])|[+-]00:00)$/

@@ -39,7 +39,19 @@ defmodule FeelEx.Token do
   end
 
   def new(%{current_state: :state_12, lexeme: "@", current_line_number: line_number}) do
-    %__MODULE__{type: :at, value: "@", line_number: line_number - 1}
+    %__MODULE__{type: :at, value: "@", line_number: line_number}
+  end
+
+  def new(%{current_state: :state_12, lexeme: "{", current_line_number: line_number}) do
+    %__MODULE__{type: :opening_brace, value: "{", line_number: line_number}
+  end
+
+  def new(%{current_state: :state_12, lexeme: "}", current_line_number: line_number}) do
+    %__MODULE__{type: :closing_brace, value: "}", line_number: line_number}
+  end
+
+  def new(%{current_state: :state_12, lexeme: ":", current_line_number: line_number}) do
+    %__MODULE__{type: :colon, value: ":", line_number: line_number}
   end
 
   def new(%{current_state: :state_12, lexeme: "*", current_line_number: line_number}) do
