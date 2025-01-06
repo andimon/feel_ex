@@ -130,6 +130,7 @@ defmodule FeelEx.Token do
   defp check_for_keywords("return"), do: :return
   defp check_for_keywords("some"), do: :some
   defp check_for_keywords("every"), do: :every
+  defp check_for_keywords("satisfies"), do: :satisfies
   defp check_for_keywords("or"), do: :or
   defp check_for_keywords("and"), do: :and
   defp check_for_keywords("true"), do: :boolean

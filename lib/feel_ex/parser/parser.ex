@@ -188,6 +188,24 @@ defmodule FeelEx.Parser do
     do_parse_expression(string_expression, tl, precedence)
   end
 
+  defp do_parse_expression(
+         [
+           %Token{type: quantifier},
+           %Token{type: :name, value: name},
+           %Token{type: :in},
+           %Token{type: :left_square_bracket} = left_square_bracket_token | tl
+         ],
+         precedence
+       )
+       when quantifier in [:some, :every] do
+    {list_tokens, [%Token{type: :satisfies} | condition_tokens]} =
+      Helper.get_list([left_square_bracket_token | tl])
+
+    list = do_parse_expression(list_tokens, precedence)
+    condition = do_parse_expression(condition_tokens, precedence)
+    {Expression.new(:quantifier, quantifier, name, list, condition),[]}
+  end
+
   defp do_parse_expression([%Token{type: :if} | remaining_tokens], precedence) do
     tokens_contains_then_and_else!(remaining_tokens)
 

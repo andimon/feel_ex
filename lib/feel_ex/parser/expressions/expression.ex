@@ -18,12 +18,36 @@ defmodule FeelEx.Expression do
     Function,
     FilterList,
     Context,
-    Access
+    Access,
+    Quantified
   }
 
   require Logger
 
   defstruct [:child]
+
+  def new(:quantifier, quantifier, name, list, condition) do
+    list =
+      case list do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    condition =
+      case condition do
+        {exp, _tokens} -> exp
+        exp -> exp
+      end
+
+    %__MODULE__{
+      child: %Quantified{
+        quantifier: quantifier,
+        name: String.to_atom(name),
+        list: list,
+        condition: condition
+      }
+    }
+  end
 
   def new(:context, expression_list) do
     expression_list =
@@ -78,16 +102,6 @@ defmodule FeelEx.Expression do
 
   def new(:float, float) do
     %__MODULE__{child: %Number{value: String.to_float(float)}}
-  end
-
-  def new(:if, {condition_tree, []}, {conditional_statement_tree, []}, {else_statement_tree, []}) do
-    %__MODULE__{
-      child: %If{
-        condition: condition_tree,
-        conditional_statetement: conditional_statement_tree,
-        else_statement: else_statement_tree
-      }
-    }
   end
 
   def new(:access, name, operand) do
@@ -361,6 +375,30 @@ defmodule FeelEx.Expression do
       end
 
     %__MODULE__{child: %BinaryOp{type: :or, left_tree: left_tree, right_tree: right_tree}}
+  end
+
+  def new(:if, {condition_tree, []}, {conditional_statement_tree, []}, {else_statement_tree, []}) do
+    %__MODULE__{
+      child: %If{
+        condition: condition_tree,
+        conditional_statetement: conditional_statement_tree,
+        else_statement: else_statement_tree
+      }
+    }
+  end
+
+  def evaluate(
+        %FeelEx.Expression{
+          child: %FeelEx.Expression.Quantified{
+            quantifier: quantifier,
+            name: name,
+            list: list,
+            condition: condition
+          }
+        },
+        context
+      ) do
+    do_apply_quantifier(quantifier, name, evaluate(list, context), condition, context)
   end
 
   def evaluate(%__MODULE__{child: %String_{value: string}}, _context) do
@@ -844,5 +882,23 @@ defmodule FeelEx.Expression do
   defp do_access(name, operand, _type, _context) do
     Logger.warning("No property found with name #{inspect(name)} of value #{inspect(operand)}.")
     Value.new(nil)
+  end
+
+  defp do_apply_quantifier(:some, name, list, condition, context) do
+    Value.new(
+      Enum.any?(list, fn elem ->
+        new_context = Map.put(context, name, elem)
+        %Value{value: true, type: :boolean} == evaluate(condition, new_context)
+      end)
+    )
+  end
+
+  defp do_apply_quantifier(:every, name, list, condition, context) do
+    Value.new(
+      Enum.all?(list, fn elem ->
+        new_context = Map.put(context, name, elem)
+        %Value{value: true, type: :boolean} == evaluate(condition, new_context)
+      end)
+    )
   end
 end
