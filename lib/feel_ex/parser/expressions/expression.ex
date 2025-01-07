@@ -410,12 +410,7 @@ defmodule FeelEx.Expression do
   end
 
   def evaluate(%__MODULE__{child: %Name{value: name}}, context) do
-    result = context[String.to_atom(name)]
-
-    if is_nil(result) do
-    else
-      Value.new(result)
-    end
+    Value.new(context[String.to_atom(name)])
   end
 
   def evaluate(%__MODULE__{child: %Number{value: number}}, _context) do
@@ -551,6 +546,8 @@ defmodule FeelEx.Expression do
         },
         context
       ) do
+    context = Map.put(context, :partial, [])
+
     iteration_contexts
     |> Enum.map(fn {%FeelEx.Expression{child: %FeelEx.Expression.Name{value: name}},
                     list_expression} ->
@@ -565,10 +562,15 @@ defmodule FeelEx.Expression do
       end)
     end)
     |> Helper.cartesian()
-    |> Enum.map(fn new_assignments ->
+    |> Enum.map_reduce(context, fn new_assignments, context ->
       new_context = Enum.into(new_assignments, context)
-      evaluate(return_expression, new_context)
+      evaluation = evaluate(return_expression, new_context)
+      current_partial = Map.get(context, :partial)
+      list = [evaluation | Enum.reverse(current_partial)]
+      new_partial = Enum.reverse(list)
+      {evaluation, Map.put(context, :partial, new_partial)}
     end)
+    |> elem(0)
   end
 
   def evaluate(
