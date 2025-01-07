@@ -203,7 +203,7 @@ defmodule FeelEx.Parser do
 
     list = do_parse_expression(list_tokens, precedence)
     condition = do_parse_expression(condition_tokens, precedence)
-    {Expression.new(:quantifier, quantifier, name, list, condition),[]}
+    {Expression.new(:quantifier, quantifier, name, list, condition), []}
   end
 
   defp do_parse_expression([%Token{type: :if} | remaining_tokens], precedence) do
@@ -248,6 +248,47 @@ defmodule FeelEx.Parser do
       [%Token{type: type, value: value} | remaining_tokens],
       precedence
     )
+  end
+
+  defp do_parse_expression(
+         [
+           %Token{type: :name} = name_token,
+           %Token{type: :left_square_bracket, value: "["},
+           %Token{type: type} = number,
+           %Token{type: :right_square_bracket, value: "]"} | remaining_tokens
+         ],
+         _precedence
+       )
+       when type in [:int, :float] do
+    filter_expression = parse_expression(number)
+    name_expresion = parse_expression(name_token)
+    expression = {Expression.new(:filter_list, name_expresion, filter_expression), []}
+    do_parse_expression(expression, remaining_tokens, -1)
+  end
+
+  defp do_parse_expression(
+         [
+           %Token{type: :name} = name_token,
+           %Token{type: :left_square_bracket, value: "["} | remaining_tokens
+         ],
+         _precedence
+       ) do
+    right_square_bracket_index =
+      Enum.find_index(remaining_tokens, fn token -> token.type == :right_square_bracket end)
+
+    if is_nil(right_square_bracket_index) do
+      raise ArgumentError, message: "Expected ] after ["
+    else
+      filter_tokens = Enum.slice(remaining_tokens, 0..(right_square_bracket_index - 1))
+      filter_list_expression = parse_expression(filter_tokens)
+
+      expression =
+        {Expression.new(:filter_list, parse_expression(name_token), filter_list_expression), []}
+
+      remaining_tokens = Enum.slice(remaining_tokens, (right_square_bracket_index + 1)..-1//1)
+
+      do_parse_expression(expression, remaining_tokens, -1)
+    end
   end
 
   defp do_parse_expression({%Expression{}, []} = left_expression, [], _precedence) do
