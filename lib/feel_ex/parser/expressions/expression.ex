@@ -101,6 +101,7 @@ defmodule FeelEx.Expression do
   end
 
   def new(:float, float) do
+    float = if String.starts_with?(float, "."), do: "0" <> float, else: float
     %__MODULE__{child: %Number{value: String.to_float(float)}}
   end
 
@@ -668,12 +669,21 @@ defmodule FeelEx.Expression do
   def evaluate(
         %__MODULE__{
           child: %Function{
-            name: %__MODULE__{child: %Name{value: name}},
+            name: name,
             arguments: arguments
           }
         },
         context
       ) do
+    name =
+      case name do
+        %__MODULE__{child: %Name{value: name}} ->
+          name
+
+        list when is_list(list) ->
+          Enum.map_join(list, "_", fn %__MODULE__{child: %Name{value: name}} -> name end)
+      end
+
     arguments = Enum.map(arguments, fn expression -> evaluate(expression, context) end)
     apply(FeelEx.FunctionDefinitions, String.to_atom(name), arguments)
   end

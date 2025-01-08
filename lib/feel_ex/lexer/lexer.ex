@@ -58,7 +58,7 @@ defmodule FeelEx.Lexer do
       state_3: :state_2,
       state_13: :state_13
     ],
-    forward_slash: [state_0: :state_4, state_4: :state_5, state_5: :state_5, state_8: :state_9],
+    forward_slash: [state_0: :state_4, state_4: :state_5, state_5: :state_5, state_8: :state_9, state_13: :state_13],
     line_feed: [state_5: :state_6],
     asterisk: [
       state_0: :state_12,
@@ -86,9 +86,9 @@ defmodule FeelEx.Lexer do
     ],
     space: [state_5: :state_5, state_7: :state_7, state_8: :state_7, state_13: :state_13],
     plus: [state_0: :state_12, state_13: :state_13],
-    at: [state_0: :state_12],
+    at: [state_0: :state_12, state_13: :state_13],
     opening_brace: [state_0: :state_12],
-    colon: [state_0: :state_12],
+    colon: [state_0: :state_12, state_13: :state_13],
     closing_brace: [state_0: :state_12],
     minus: [state_0: :state_12, state_13: :state_13],
     quote: [state_0: :state_13, state_13: :state_14],
