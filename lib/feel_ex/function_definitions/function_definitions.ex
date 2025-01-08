@@ -1,5 +1,5 @@
 defmodule FeelEx.FunctionDefinitions do
-  alias FeelEx.FunctionDefinitions.{Numeric, String, Date}
+  alias FeelEx.FunctionDefinitions.{Numeric, String, Temporal}
   alias FeelEx.Value
 
   def floor(%Value{value: number, type: :number}) do
@@ -81,6 +81,18 @@ defmodule FeelEx.FunctionDefinitions do
   end
 
   def date(%Value{type: :string, value: string}) do
-    Date.date(%Value{type: :string, value: string})
+    Temporal.date(%Value{type: :string, value: string})
+  end
+
+  def date_and_time(%Value{type: :string, value: string}) do
+    Temporal.date_and_time(%Value{type: :string, value: string})
+  end
+
+  def time(%Value{type: :string, value: string}) do
+    Temporal.time(%Value{type: :string, value: string})
+  end
+
+  def duration(%Value{type: :string, value: string}) do
+    Temporal.duration(%Value{type: :string, value: string})
   end
 end

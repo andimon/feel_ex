@@ -1,6 +1,7 @@
 defmodule FeelEx.FunctionDefinitions.String do
   @moduledoc false
   require Integer
+  alias FeelEx.FunctionDefinitions.Temporal
   alias FeelEx.Value
 
   def substring(%Value{type: :string, value: string}, %Value{type: :number, value: index}) do
@@ -31,16 +32,23 @@ defmodule FeelEx.FunctionDefinitions.String do
     Value.new(Elixir.String.length(string))
   end
 
-  def transformation(%Value{type: :string, value: string}) do
-    cond do
-      is_date?(string) -> Value.new(Date.from_iso8601!(string))
-    end
-  end
+  def transformation(%Value{type: :string} = value) do
+    functions = [
+      &Temporal.date/1,
+      &Temporal.time/1,
+      &Temporal.date_and_time/1,
+      &Temporal.duration/1
+    ]
 
-  defp is_date?(date) do
-    case Date.from_iso8601(date) do
-      {:ok, _} -> true
-      _ -> false
-    end
+    result =
+      Enum.find_value(functions, fn func ->
+        try do
+          func.(value)
+        rescue
+          _e -> nil
+        end
+      end)
+
+    if is_nil(result), do: Value.new(nil), else: result
   end
 end

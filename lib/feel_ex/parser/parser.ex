@@ -136,6 +136,34 @@ defmodule FeelEx.Parser do
     end
   end
 
+  defp do_parse_expression(
+         [
+           %Token{type: :name, value: _} = name1,
+           %Token{type: type, value: _} = name2,
+           %Token{type: :name, value: _} = name3,
+           %Token{type: :left_parenthesis, value: "("} | remaining_tokens
+         ],
+         _precedence
+       )
+       when type in [:name, :and] do
+    right_parenthesis_index =
+      Enum.find_index(remaining_tokens, fn token -> token.type == :right_parenthesis end)
+
+    if is_nil(right_parenthesis_index) do
+      raise ArgumentError, message: "Expected ) after ("
+    else
+      name1 = parse_expression(name1)
+      name2 = parse_expression(%{name2 | :type => :name})
+      name3 = parse_expression(name3)
+
+      expression_list = get_expression_list(remaining_tokens, right_parenthesis_index)
+      function = {Expression.new(:function, [name1, name2, name3], expression_list), []}
+      remaining_tokens = Enum.slice(remaining_tokens, (right_parenthesis_index + 1)..-1//1)
+
+      do_parse_expression(function, remaining_tokens, -1)
+    end
+  end
+
   defp do_parse_expression([%Token{type: type, value: value}, %Token{type: :eof}], _precedence)
        when type in [:int, :float, :name, :string] do
     {Expression.new(type, value), []}
