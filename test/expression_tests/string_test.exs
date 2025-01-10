@@ -198,7 +198,7 @@ defmodule FeelEx.StringTest do
   end
 
   test "string() - list" do
-        assert FeelEx.evaluate("string([1,2+4])") == %FeelEx.Value{
+    assert FeelEx.evaluate("string([1,2+4])") == %FeelEx.Value{
              value: "[1, 6]",
              type: :string
            }
@@ -219,5 +219,10 @@ defmodule FeelEx.StringTest do
     #          value: "{a:1, b:2021-01-01T01:00:00, c: P2Y}",
     #          type: :string
     #        }
+  end
+
+  test "concatenation" do
+    assert FeelEx.evaluate("\"You are number \"+string(1)") ==
+             %FeelEx.Value{value: "You are number 1", type: :string}
   end
 end

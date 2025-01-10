@@ -1,37 +1,5 @@
 # FeelEx
 
-# Table of Contents
-* Introduction
-* Data types
-  * Null
-  * Number
-  * Strings
-  * Boolean
-  * Date
-  * Time
-  * Date-time
-  * Days-time-duration
-  * Years-months-duration
-  * List
-  * Context
-* Strings
-  * Creating a new string value.
-  * String concatenation
-  * string()
-    * Examples
-      * null
-      * string (idempotent)
-      * number
-      * boolean
-      * date
-      * time
-      * date-time
-      * days-time duration
-      * years-month-duration
-      * context
-      * list
-    Note!
-
 # Introduction
 A friendly expression language helps users define decision logic without needing deep technical expertise. This language is based on the FEEL(Friendly Enough Expression Language). For more information regarding FEEL, please take a look at the official OMG specification at [https://www.omg.org/dmn/](https://www.omg.org/dmn/).
 # Data types
@@ -399,5 +367,42 @@ iex(1)< FeelEx.evaluate("string([1,2+4])")
 ### Note!
 Please note that string concatenation is only available for string values. However one may use the `string()` function to convert a value in some datatype to string and use the 
 
-
+```elixir
+iex(1)> FeelEx.evaluate("\"You are number \"+string(1)")
+%FeelEx.Value{value: "You are number 1", type: :string}
+```
 Take a look at these tests: https://github.com/ExSemantic/feel_ex/blob/master/test/expression_tests/string_test.exs  for more examples.
+
+# Numbers
+
+## Leading 0's are valid
+
+```elixir
+iex(1)> FeelEx.evaluate("-000002")
+%FeelEx.Value{value: -2, type: :number}
+iex(2)> FeelEx.evaluate("0001.5")
+%FeelEx.Value{value: 1.5, type: :number}
+```
+## Addition, Subtraction, Multiplication, Division, Exponentiation
+
+We can carry out the usual arithmetic operators with exponentiation having the highest precedence, division and multiplication the second highest and addition and subtraction the least precedence.
+
+### Examples:
+`
+`2+3*2` is not `10` but `8` since the multiplicative operator `*` has more precedence than `+`
+
+```elixir
+iex(1)> FeelEx.evaluate("2+3*2")
+%FeelEx.Value{value: 8, type: :number}
+iex(2)> FeelEx.evaluate("2/3")
+%FeelEx.Value{value: 0.6666666666666666, type: :number}
+```
+`16/4**2` is not `16` but `1` since the multiplicative operator `**` has more precedence than `/`
+
+```elixir
+iex(1)> FeelEx.evaluate("2+3*2")
+%FeelEx.Value{value: 1.0, type: :number}
+```
+
+
+Take a look at these tests: https://github.com/ExSemantic/feel_ex/blob/master/test/expression_tests/number_test.exs  for more examples.
