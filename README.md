@@ -388,7 +388,7 @@ iex(2)> FeelEx.evaluate("0001.5")
 We can carry out the usual arithmetic operators with exponentiation having the highest precedence, division and multiplication the second highest and addition and subtraction the least precedence.
 
 ### Examples:
-`
+
 `2+3*2` is not `10` but `8` since the multiplicative operator `*` has more precedence than `+`
 
 ```elixir
