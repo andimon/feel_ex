@@ -406,3 +406,74 @@ iex(1)> FeelEx.evaluate("2+3*2")
 
 
 Take a look at these tests: https://github.com/ExSemantic/feel_ex/blob/master/test/expression_tests/number_test.exs  for more examples.
+
+# Lists
+
+## Getting element `list[i]`
+
+Access element using **1-based indexing**. When index is out of bounds, null is returned.
+
+```elixir
+iex(1)> FeelEx.evaluate("[1, \"a\", 3][1]")
+%FeelEx.Value{value: 1, type: :number}
+iex(2)> FeelEx.evaluate("[1, \"a\", 3][2]")
+%FeelEx.Value{value: "a", type: :string}
+iex(3)> FeelEx.evaluate("[1, \"a\", 3][3]")
+%FeelEx.Value{value: 3, type: :number}
+iex(4)> FeelEx.evaluate("[1, \"a\", 3][4]")
+%FeelEx.Value{value: nil, type: :null}
+iex(5)> FeelEx.evaluate("[1, \"a\", 3][5]")
+%FeelEx.Value{value: nil, type: :null}
+```
+Using negative indexing we can access elements from the back of the list. The last element of the list is at index `-1`.
+
+```elixir
+iex(1)> FeelEx.evaluate("[1, \"a\", 3][-1]")
+%FeelEx.Value{value: 3, type: :number}
+iex(2)> FeelEx.evaluate("[1, \"a\", 3][-2]")
+%FeelEx.Value{value: "a", type: :string}
+iex(3)> FeelEx.evaluate("[1, \"a\", 3][-3]")
+%FeelEx.Value{value: 1, type: :number}
+iex(4)> FeelEx.evaluate("[1, \"a\", 3][-4]")
+%FeelEx.Value{value: nil, type: :null}
+```
+## Filtering
+
+We can filter a list by a condition. The current element of the list is assigned to variable `item`.
+
+```elixir
+iex(1)> FeelEx.evaluate("[1,2,4, 3][even(item)]")
+[%FeelEx.Value{value: 2, type: :number}, %FeelEx.Value{value: 4, type: :number}]
+
+iex(2)> FeelEx.evaluate("[1,2,4, 3][item>2]")
+[%FeelEx.Value{value: 4, type: :number}, %FeelEx.Value{value: 3, type: :number}]
+```
+
+## Quantified expression
+`some a in b satisfies c`: iterates over list `b`, assigning current element in list to `a`, and evaluating `c`. If some of the elements evaluates to `true` then the statement is `true` else it is false.
+
+`every a in b satisfies c`: iterates over list `b`, assigning current element in list to `a`, and evaluating `c`. If all of the elements evaluates to `true` then the statement is `true` else it is false.
+
+```elixir
+iex(1)> FeelEx.evaluate("some x in [1,2,3] satisfies x > 2")
+%FeelEx.Value{value: true, type: :boolean}
+iex(2)> FeelEx.evaluate("some x in [1,2,3] satisfies x > 5")
+%FeelEx.Value{value: false, type: :boolean}
+iex(3)> FeelEx.evaluate("some x in [1,2,3] satisfies even(x)")
+%FeelEx.Value{value: true, type: :boolean}
+iex(4)> FeelEx.evaluate("every x in [1,2,3] satisfies x >= 1")
+%FeelEx.Value{value: true, type: :boolean}
+iex(5)> FeelEx.evaluate("every x in [1,2,3] satisfies x >= 2")
+%FeelEx.Value{value: false, type: :boolean}
+```
+
+We can also apply this statement to cartesian product of more than one lists.
+
+```elixir
+iex(6)> FeelEx.evaluate("every x in [1,2], y in [2,3] satisfies x < y")
+%FeelEx.Value{value: false, type: :boolean}
+iex(7)> FeelEx.evaluate("some x in [1,2], y in [2,3] satisfies x < y")
+%FeelEx.Value{value: true, type: :boolean}
+```
+
+Take a look at these tests: https://github.com/ExSemantic/feel_ex/blob/master/test/expression_tests/list_test.exs  for more examples.
