@@ -2,6 +2,50 @@ defmodule FeelEx.Helper do
   @moduledoc false
   alias FeelEx.Token
 
+  def filter_expression(exp) do
+    case exp do
+      {exp, _tokens} -> exp
+      exp -> exp
+    end
+  end
+
+  def get_parenthesis([%Token{type: :left_parenthesis} = left_parenthesis | remaining_tokens]) do
+    accumulator = {1, left_parenthesis, [left_parenthesis], remaining_tokens}
+
+    result =
+      Enum.reduce_while(remaining_tokens, accumulator, fn token, state ->
+        case state do
+          {0, _, _, _} ->
+            {:halt, state}
+
+          {left_parenthesis_count, left_parenthesis_token, context_tokens, [hd | tl]} ->
+            cond do
+              hd.type == :left_parenthesis ->
+                {:cont, {left_parenthesis_count + 1, hd, [hd | context_tokens], tl}}
+
+              token.type == :right_parenthesis ->
+                {:cont,
+                 {left_parenthesis_count - 1, left_parenthesis_token, [hd | context_tokens], tl}}
+
+              true ->
+                {:cont,
+                 {left_parenthesis_count, left_parenthesis_token, [hd | context_tokens], tl}}
+            end
+        end
+      end)
+
+    case result do
+      {0, _, context_tokens, remaining_tokens} ->
+        context_tokens =
+          Enum.reverse(context_tokens)
+
+        {context_tokens, remaining_tokens}
+
+      {_, %FeelEx.Token{type: :opening_brace, value: "[", line_number: line_number}, _} ->
+        raise ArgumentError, message: "Expected ] after [ in line #{line_number}"
+    end
+  end
+
   def get_list([%Token{type: :left_square_bracket} = left_square_bracket | remaining_tokens]) do
     accumulator = {1, left_square_bracket, [left_square_bracket], remaining_tokens}
 
@@ -112,17 +156,12 @@ defmodule FeelEx.Helper do
          new_list
        )
        when type in [:name, :string] do
-    IO.puts("jesus")
-
     {list, remaining_tokens} =
       get_list([left_square_bracket | tl])
-      |> IO.inspect()
 
     new_list =
-      [[type_token, colon | list] | new_list]
-      |> IO.inspect()
+    [[type_token, colon | list] | new_list]
 
-    IO.puts("pufs")
     do_break_key_values(remaining_tokens, new_list)
   end
 
@@ -168,6 +207,18 @@ defmodule FeelEx.Helper do
     {context_tokens, remaining_tokens} = get_context(list)
     do_get_list_values(remaining_tokens, [context_tokens | new_list])
   end
+
+  defp do_get_list_values([%Token{type: :name} = name, %Token{type: :left_parenthesis} | _] = list, new_list) do
+    parenthesis = tl(list)
+    {context_tokens, remaining_tokens} = get_parenthesis(parenthesis)
+    do_get_list_values(remaining_tokens, [[name|context_tokens] | new_list])
+  end
+
+  defp do_get_list_values([%Token{type: :left_parenthesis} | _] = list, new_list) do
+    {context_tokens, remaining_tokens} = get_parenthesis(list)
+    do_get_list_values(remaining_tokens, [context_tokens | new_list])
+  end
+
 
   defp do_get_list_values([%Token{type: :left_square_bracket} | _] = list, new_list) do
     {context_tokens, remaining_tokens} = get_list(list)
@@ -285,45 +336,7 @@ defmodule FeelEx.Helper do
     end)
   end
 
-  def input_map_checker(input_map) when is_map(input_map) do
-    case Enum.at(input_map, 0) do
-      {key, _val} when is_atom(key) ->
-        handle_result(are_all_keys_atoms?(input_map), input_map)
-
-      {key, _val} when is_binary(key) ->
-        handle_result(are_all_keys_binaries?(input_map), input_map)
-        true
-
-      nil ->
-        map_valid_message()
-    end
-  end
-
   def filter_out_comments(list) when is_list(list) do
     Enum.reject(list, fn x -> Map.get(x, :type) == :comment end)
   end
-
-  defp are_all_keys_atoms?(map) when is_map(map) do
-    Enum.all?(map, fn {key, value} ->
-      is_atom(key) and
-        (is_map(value) == false or are_all_keys_atoms?(value))
-    end)
-  end
-
-  defp are_all_keys_binaries?(map) when is_map(map) do
-    Enum.all?(map, fn {key, value} ->
-      is_binary(key) and
-        (is_map(value) == false or are_all_keys_binaries?(value))
-    end)
-  end
-
-  defp handle_result(true, _map), do: map_valid_message()
-  defp handle_result(false, map), do: map_error_key_mismatch_message(map)
-
-  defp map_valid_message(), do: {:ok, "Map is valid"}
-
-  defp map_error_key_mismatch_message(map) when is_map(map),
-    do:
-      {:error,
-       "Map #{inspect(map)} is invalid. Please ensure that all keys are atoms or that all keys are binaries."}
 end

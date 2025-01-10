@@ -8,22 +8,37 @@ defmodule FeelEx.FunctionDefinitions.Temporal do
 
   def time(%Value{value: time, type: :string}) do
     cond do
-      String.contains?(time, "+") -> temporal_with_offset(time, "+", Time)
-      String.contains?(time, "-") -> temporal_with_offset(time, "-", Time)
-      String.contains?(time, "@") -> temporal_with_zone_id(time, Time)
-      Regex.match?(~r/^\d{2}:\d{2}$/,time) ->
+      String.contains?(time, "@") ->
+        temporal_with_zone_id(time, Time)
+
+      String.contains?(time, "+") ->
+        temporal_with_offset(time, "+", Time)
+
+      String.contains?(time, "-") ->
+        temporal_with_offset(time, "-", Time)
+
+      Regex.match?(~r/^\d{2}:\d{2}$/, time) ->
         time = time <> ":00"
         Value.new(Time.from_iso8601!(time))
-      true -> Value.new(Time.from_iso8601!(time))
+
+      true ->
+        Value.new(Time.from_iso8601!(time))
     end
   end
 
   def date_and_time(%Value{value: time, type: :string}) do
     cond do
-      String.contains?(time, "@") -> temporal_with_zone_id(time, NaiveDateTime)
-      String.contains?(time, "+") -> temporal_with_offset(time, "+", NaiveDateTime)
-      String.contains?(time, "-") -> temporal_with_offset(time, "-", NaiveDateTime)
-      true -> Value.new(NaiveDateTime.from_iso8601!(time))
+      Regex.match?(~r/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/, time) ->
+        Value.new(NaiveDateTime.from_iso8601!(time))
+
+      String.contains?(time, "@") ->
+        temporal_with_zone_id(time, NaiveDateTime)
+
+      String.contains?(time, "+") ->
+        temporal_with_offset(time, "+", NaiveDateTime)
+
+      String.contains?(time, "-") ->
+        temporal_with_offset(time, "-", NaiveDateTime)
     end
   end
 

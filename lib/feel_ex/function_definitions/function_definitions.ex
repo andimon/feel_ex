@@ -54,6 +54,14 @@ defmodule FeelEx.FunctionDefinitions do
     Numeric.even(%Value{value: number, type: :number})
   end
 
+  def string(%Value{} = value) do
+    String.string(value)
+  end
+
+  def string(list) when is_list(list) do
+    String.string(list)
+  end
+
   def substring(%Value{type: :string, value: string}, %Value{type: :number, value: number}) do
     String.substring(%Value{type: :string, value: string}, %Value{type: :number, value: number})
   end

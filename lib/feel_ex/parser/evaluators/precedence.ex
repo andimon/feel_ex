@@ -2,6 +2,7 @@ defmodule FeelEx.Parser.Evaluators.Precedence do
   @moduledoc false
   def precedence(:or), do: 0
   def precedence(:and), do: 0
+  def precedence(:between), do: 0
   def precedence(:eq), do: 1
   def precedence(:neq), do: 1
   def precedence(:geq), do: 1

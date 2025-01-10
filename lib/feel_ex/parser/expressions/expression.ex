@@ -19,45 +19,18 @@ defmodule FeelEx.Expression do
     FilterList,
     Context,
     Access,
-    Quantified
+    Quantified,
+    Between
   }
 
   require Logger
 
   defstruct [:child]
 
-  def new(:quantifier, quantifier, name, list, condition) do
-    list =
-      case list do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
-
-    condition =
-      case condition do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
-
-    %__MODULE__{
-      child: %Quantified{
-        quantifier: quantifier,
-        name: String.to_atom(name),
-        list: list,
-        condition: condition
-      }
-    }
-  end
-
   def new(:context, expression_list) do
     expression_list =
       Enum.map(expression_list, fn {key, value} ->
-        value =
-          case value do
-            {exp, _tokens} -> exp
-            exp -> exp
-          end
-
+        value = Helper.filter_expression(value)
         {key, value}
       end)
 
@@ -67,10 +40,7 @@ defmodule FeelEx.Expression do
   def new(:list, expression_list) do
     expression_list =
       Enum.map(expression_list, fn expression_list ->
-        case expression_list do
-          {exp, _tokens} -> exp
-          exp -> exp
-        end
+        Helper.filter_expression(expression_list)
       end)
 
     %__MODULE__{child: %List{elements: expression_list}}
@@ -106,33 +76,15 @@ defmodule FeelEx.Expression do
   end
 
   def new(:access, name, operand) do
-    name =
-      case name do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
-
-    operand =
-      case operand do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
-
+    name = Helper.filter_expression(name)
+    operand = Helper.filter_expression(operand)
     %__MODULE__{child: %Access{name: name, operand: operand}}
   end
 
   def new(:filter_list, expression_list, expression) do
-    expression_list =
-      case expression_list do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    expression_list = Helper.filter_expression(expression_list)
 
-    expression =
-      case expression do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    expression = Helper.filter_expression(expression)
 
     %__MODULE__{child: %FilterList{list: expression_list, filter: expression}}
   end
@@ -140,10 +92,7 @@ defmodule FeelEx.Expression do
   def new(:function, name, expression_list) do
     arguments =
       Enum.map(expression_list, fn expression_list ->
-        case expression_list do
-          {exp, _tokens} -> exp
-          exp -> exp
-        end
+        Helper.filter_expression(expression_list)
       end)
 
     %__MODULE__{child: %Function{name: name, arguments: arguments}}
@@ -154,11 +103,7 @@ defmodule FeelEx.Expression do
   end
 
   def new(:for, iteration_context, return_expression) do
-    return_expression =
-      case return_expression do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    return_expression = Helper.filter_expression(return_expression)
 
     %__MODULE__{
       child: %For{
@@ -169,65 +114,30 @@ defmodule FeelEx.Expression do
   end
 
   def new(:arithmetic_op_add, left_tree, right_tree) do
-    left_tree =
-      case left_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
-
-    right_tree =
-      case right_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    left_tree = Helper.filter_expression(left_tree)
+    right_tree = Helper.filter_expression(right_tree)
 
     %__MODULE__{child: %BinaryOp{type: :add, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:arithmetic_op_sub, left_tree, right_tree) do
-    left_tree =
-      case left_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
-
-    right_tree =
-      case right_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    left_tree = Helper.filter_expression(left_tree)
+    right_tree = Helper.filter_expression(right_tree)
 
     %__MODULE__{child: %BinaryOp{type: :subtract, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:arithmetic_op_mul, left_tree, right_tree) do
-    left_tree =
-      case left_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    left_tree = Helper.filter_expression(left_tree)
 
-    right_tree =
-      case right_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    right_tree = Helper.filter_expression(right_tree)
 
     %__MODULE__{child: %BinaryOp{type: :multiply, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:exponentiation, left_tree, right_tree) do
-    left_tree =
-      case left_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
-
-    right_tree =
-      case right_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    left_tree = Helper.filter_expression(left_tree)
+    right_tree = Helper.filter_expression(right_tree)
 
     %__MODULE__{
       child: %BinaryOp{type: :exponentiation, left_tree: left_tree, right_tree: right_tree}
@@ -235,147 +145,88 @@ defmodule FeelEx.Expression do
   end
 
   def new(:arithmetic_op_div, left_tree, right_tree) do
-    left_tree =
-      case left_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    left_tree = Helper.filter_expression(left_tree)
 
-    right_tree =
-      case right_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    right_tree = Helper.filter_expression(right_tree)
 
     %__MODULE__{child: %BinaryOp{type: :divide, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:geq, left_tree, right_tree) do
-    left_tree =
-      case left_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    left_tree = Helper.filter_expression(left_tree)
 
-    right_tree =
-      case right_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    right_tree = Helper.filter_expression(right_tree)
 
     %__MODULE__{child: %BinaryOp{type: :geq, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:leq, left_tree, right_tree) do
-    left_tree =
-      case left_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    left_tree = Helper.filter_expression(left_tree)
 
-    right_tree =
-      case right_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    right_tree = Helper.filter_expression(right_tree)
 
     %__MODULE__{child: %BinaryOp{type: :leq, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:lt, left_tree, right_tree) do
-    left_tree =
-      case left_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    left_tree = Helper.filter_expression(left_tree)
 
-    right_tree =
-      case right_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    right_tree = Helper.filter_expression(right_tree)
 
     %__MODULE__{child: %BinaryOp{type: :lt, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:gt, left_tree, right_tree) do
-    left_tree =
-      case left_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    left_tree = Helper.filter_expression(left_tree)
 
-    right_tree =
-      case right_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    right_tree = Helper.filter_expression(right_tree)
 
     %__MODULE__{child: %BinaryOp{type: :gt, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:eq, left_tree, right_tree) do
-    left_tree =
-      case left_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    left_tree = Helper.filter_expression(left_tree)
 
-    right_tree =
-      case right_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    right_tree = Helper.filter_expression(right_tree)
 
     %__MODULE__{child: %BinaryOp{type: :eq, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:neq, left_tree, right_tree) do
-    left_tree =
-      case left_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    left_tree = Helper.filter_expression(left_tree)
 
-    right_tree =
-      case right_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    right_tree = Helper.filter_expression(right_tree)
 
     %__MODULE__{child: %BinaryOp{type: :neq, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:and, left_tree, right_tree) do
-    left_tree =
-      case left_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    left_tree = Helper.filter_expression(left_tree)
 
-    right_tree =
-      case right_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    right_tree = Helper.filter_expression(right_tree)
 
     %__MODULE__{child: %BinaryOp{type: :and, left_tree: left_tree, right_tree: right_tree}}
   end
 
   def new(:or, left_tree, right_tree) do
-    left_tree =
-      case left_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    left_tree = Helper.filter_expression(left_tree)
 
-    right_tree =
-      case right_tree do
-        {exp, _tokens} -> exp
-        exp -> exp
-      end
+    right_tree = Helper.filter_expression(right_tree)
 
     %__MODULE__{child: %BinaryOp{type: :or, left_tree: left_tree, right_tree: right_tree}}
+  end
+
+  def new(:quantifier, quantifier, iteration_contexts, condition) do
+    iteration_contexts = Helper.filter_expression(iteration_contexts)
+    condition = Helper.filter_expression(condition)
+
+    %__MODULE__{
+      child: %Quantified{
+        quantifier: quantifier,
+        list: iteration_contexts,
+        condition: condition
+      }
+    }
   end
 
   def new(:if, {condition_tree, []}, {conditional_statement_tree, []}, {else_statement_tree, []}) do
@@ -388,18 +239,46 @@ defmodule FeelEx.Expression do
     }
   end
 
+  def new(:between, operand, min, max) do
+    operand = Helper.filter_expression(operand)
+    min = Helper.filter_expression(min)
+    max = Helper.filter_expression(max)
+
+    %__MODULE__{
+      child: %Between{
+        operand: operand,
+        min: min,
+        max: max
+      }
+    }
+  end
+
   def evaluate(
-        %FeelEx.Expression{
-          child: %FeelEx.Expression.Quantified{
+        %__MODULE__{
+          child: %__MODULE__.Between{
+            operand: operand,
+            min: min,
+            max: max
+          }
+        },
+        context
+      ) do
+    left = new(:geq, operand, min)
+    right = new(:leq, operand, max)
+    evaluate(new(:and, left, right), context)
+  end
+
+  def evaluate(
+        %__MODULE__{
+          child: %Quantified{
             quantifier: quantifier,
-            name: name,
             list: list,
             condition: condition
           }
         },
         context
       ) do
-    do_apply_quantifier(quantifier, name, evaluate(list, context), condition, context)
+    do_apply_quantifier(quantifier, list, condition, context)
   end
 
   def evaluate(%__MODULE__{child: %String_{value: string}}, _context) do
@@ -675,13 +554,15 @@ defmodule FeelEx.Expression do
         },
         context
       ) do
+    name = Helper.filter_expression(name)
+
     name =
       case name do
         %__MODULE__{child: %Name{value: name}} ->
           name
 
         list when is_list(list) ->
-          Enum.map_join(list, "_", fn %__MODULE__{child: %Name{value: name}} -> name end)
+          Enum.map_join(list, "_", fn val -> Helper.filter_expression(val).child.value end)
       end
 
     arguments = Enum.map(arguments, fn expression -> evaluate(expression, context) end)
@@ -749,31 +630,93 @@ defmodule FeelEx.Expression do
   end
 
   defp do_gt(
-         %FeelEx.Value{value: val1, type: :number},
-         %FeelEx.Value{value: val2, type: :number}
+         %FeelEx.Value{value: val1, type: type1},
+         %FeelEx.Value{value: val2, type: type2}
+       )
+       when type1 in [:days_time_duration, :years_months_duration] and
+              type2 in [:days_time_duration, :years_months_duration] do
+    Value.new(to_timeout(val1) > to_timeout(val2))
+  end
+
+  defp do_gt(
+         %FeelEx.Value{value: val1, type: type},
+         %FeelEx.Value{value: val2, type: type}
        ) do
     Value.new(val1 > val2)
   end
 
   defp do_lt(
-         %FeelEx.Value{value: val1, type: :number},
-         %FeelEx.Value{value: val2, type: :number}
+         %FeelEx.Value{value: val1, type: type1},
+         %FeelEx.Value{value: val2, type: type2}
+       )
+       when type1 in [:days_time_duration, :years_months_duration] and
+              type2 in [:days_time_duration, :years_months_duration] do
+    Value.new(to_timeout(val1) < to_timeout(val2))
+  end
+
+  defp do_lt(
+         %FeelEx.Value{value: val1, type: type},
+         %FeelEx.Value{value: val2, type: type}
        ) do
     Value.new(val1 < val2)
   end
 
   defp do_leq(
-         %FeelEx.Value{value: val1, type: :number},
-         %FeelEx.Value{value: val2, type: :number}
+         %FeelEx.Value{value: val1, type: type1},
+         %FeelEx.Value{value: val2, type: type2}
+       )
+       when type1 in [:days_time_duration, :years_months_duration] and
+              type2 in [:days_time_duration, :years_months_duration] do
+    Value.new(to_timeout(val1) <= to_timeout(val2))
+  end
+
+  defp do_leq(
+         %FeelEx.Value{value: val1, type: type},
+         %FeelEx.Value{value: val2, type: type}
        ) do
     Value.new(val1 <= val2)
   end
 
   defp do_geq(
-         %FeelEx.Value{value: val1, type: :number},
-         %FeelEx.Value{value: val2, type: :number}
+         %FeelEx.Value{value: val1, type: type},
+         %FeelEx.Value{value: val2, type: type}
        ) do
     Value.new(val1 >= val2)
+  end
+
+  defp do_eq(
+         %FeelEx.Value{value: val1, type: :time},
+         %FeelEx.Value{value: val2, type: :time}
+       )
+       when is_struct(val1) and is_tuple(val2) do
+    Logger.warning("Cannot compare #{inspect(val1)} with #{inspect(val2)}")
+    Value.new(nil)
+  end
+
+  defp do_eq(
+         %FeelEx.Value{value: val1, type: :time},
+         %FeelEx.Value{value: val2, type: :time}
+       )
+       when is_struct(val2) and is_tuple(val1) do
+    Logger.warning("Cannot compare #{inspect(val1)} with #{inspect(val2)}")
+    Value.new(nil)
+  end
+
+  defp do_eq(
+         %FeelEx.Value{value: val1, type: type1},
+         %FeelEx.Value{value: val2, type: type2}
+       )
+       when type1 == :null or type2 == :null do
+    Value.new(val1 == val2)
+  end
+
+  defp do_eq(
+         %FeelEx.Value{value: val1, type: type1},
+         %FeelEx.Value{value: val2, type: type2}
+       )
+       when type1 in [:days_time_duration, :years_months_duration] and
+              type2 in [:days_time_duration, :years_months_duration] do
+    Value.new(to_timeout(val1) == to_timeout(val2))
   end
 
   defp do_eq(
@@ -783,11 +726,18 @@ defmodule FeelEx.Expression do
     Value.new(val1 == val2)
   end
 
-  defp do_neq(
-         %FeelEx.Value{value: val1, type: type},
-         %FeelEx.Value{value: val2, type: type}
-       ) do
-    Value.new(val1 != val2)
+  defp do_eq(l1, l2) when is_list(l1) and is_list(l2) do
+    Value.new(l1 == l2)
+  end
+
+  defp do_neq(val1, val2) do
+    case do_eq(val1, val2) do
+      %FeelEx.Value{value: value, type: :boolean} ->
+        %FeelEx.Value{value: not value, type: :boolean}
+
+      val ->
+        val
+    end
   end
 
   defp do_and(%FeelEx.Value{value: true, type: :boolean}, right_tree, context) do
@@ -896,21 +846,63 @@ defmodule FeelEx.Expression do
     Value.new(nil)
   end
 
-  defp do_apply_quantifier(:some, name, list, condition, context) do
-    Value.new(
-      Enum.any?(list, fn elem ->
-        new_context = Map.put(context, name, elem)
-        %Value{value: true, type: :boolean} == evaluate(condition, new_context)
+  defp do_apply_quantifier(:some, list, condition, context) do
+    context = Map.put(context, :partial, [])
+
+    list
+    |> Enum.map(fn {%FeelEx.Expression{child: %FeelEx.Expression.Name{value: name}},
+                    list_expression} ->
+      list_expression =
+        case list_expression do
+          {exp, _tokens} -> exp
+          exp -> exp
+        end
+
+      Enum.map(evaluate(list_expression, context), fn %Value{value: value} ->
+        {String.to_atom(name), value}
       end)
-    )
+    end)
+    |> Helper.cartesian()
+    |> Enum.map_reduce(context, fn new_assignments, context ->
+      new_context = Enum.into(new_assignments, context)
+      evaluation = evaluate(condition, new_context)
+      current_partial = Map.get(context, :partial)
+      list = [evaluation | Enum.reverse(current_partial)]
+      new_partial = Enum.reverse(list)
+      {evaluation, Map.put(context, :partial, new_partial)}
+    end)
+    |> elem(0)
+    |> Enum.any?(fn x -> x.value == true end)
+    |> Value.new()
   end
 
-  defp do_apply_quantifier(:every, name, list, condition, context) do
-    Value.new(
-      Enum.all?(list, fn elem ->
-        new_context = Map.put(context, name, elem)
-        %Value{value: true, type: :boolean} == evaluate(condition, new_context)
+  defp do_apply_quantifier(:every, list, condition, context) do
+    context = Map.put(context, :partial, [])
+
+    list
+    |> Enum.map(fn {%FeelEx.Expression{child: %FeelEx.Expression.Name{value: name}},
+                    list_expression} ->
+      list_expression =
+        case list_expression do
+          {exp, _tokens} -> exp
+          exp -> exp
+        end
+
+      Enum.map(evaluate(list_expression, context), fn %Value{value: value} ->
+        {String.to_atom(name), value}
       end)
-    )
+    end)
+    |> Helper.cartesian()
+    |> Enum.map_reduce(context, fn new_assignments, context ->
+      new_context = Enum.into(new_assignments, context)
+      evaluation = evaluate(condition, new_context)
+      current_partial = Map.get(context, :partial)
+      list = [evaluation | Enum.reverse(current_partial)]
+      new_partial = Enum.reverse(list)
+      {evaluation, Map.put(context, :partial, new_partial)}
+    end)
+    |> elem(0)
+    |> Enum.all?(fn x -> x.value == true end)
+    |> Value.new()
   end
 end

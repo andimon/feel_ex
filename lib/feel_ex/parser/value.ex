@@ -11,7 +11,13 @@ defmodule FeelEx.Value do
   end
 
   def new(list) when is_list(list) do
-    Enum.map(list, fn item -> new(item) end)
+    cond do
+      Keyword.keyword?(list) ->
+        %__MODULE__{value: list, type: :context}
+
+      true ->
+        Enum.map(list, fn item -> new(item) end)
+    end
   end
 
   def new(boolean) when is_boolean(boolean) do
@@ -38,6 +44,10 @@ defmodule FeelEx.Value do
     %__MODULE__{value: context, type: :context}
   end
 
+  def new(context) when not is_struct(context) do
+    %__MODULE__{value: context, type: :context}
+  end
+
   def new(%Time{} = time) do
     %__MODULE__{value: time, type: :time}
   end
@@ -56,10 +66,24 @@ defmodule FeelEx.Value do
   end
 
   def new(%NaiveDateTime{} = date, offset_or_zone_id) do
-    %__MODULE__{value: {date, Helper.get_offset(offset_or_zone_id)}, type: :date_time}
+    if String.starts_with?(offset_or_zone_id, "+") or String.starts_with?(offset_or_zone_id, "-") do
+      %__MODULE__{value: {date, Helper.get_offset(offset_or_zone_id)}, type: :date_time}
+    else
+      %__MODULE__{
+        value: {date, Helper.get_offset(offset_or_zone_id), offset_or_zone_id},
+        type: :date_time
+      }
+    end
   end
 
   def new(%Time{} = time, offset_or_zone_id) do
-    %__MODULE__{value: {time, Helper.get_offset(offset_or_zone_id)}, type: :time}
+    if String.starts_with?(offset_or_zone_id, "+") or String.starts_with?(offset_or_zone_id, "-") do
+      %__MODULE__{value: {time, Helper.get_offset(offset_or_zone_id)}, type: :time}
+    else
+      %__MODULE__{
+        value: {time, Helper.get_offset(offset_or_zone_id), offset_or_zone_id},
+        type: :time
+      }
+    end
   end
 end

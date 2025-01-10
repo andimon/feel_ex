@@ -26,6 +26,7 @@ defmodule FeelEx.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:jason, "~> 1.4"},
       {:tzdata, "~> 1.1"},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:excoveralls, "~> 0.18.3", only: :test}

@@ -59,9 +59,29 @@ defmodule FeelEx.ListsTests do
     assert [] = FeelEx.evaluate("[1,2,3,4][item > 10]")
   end
 
-  test "evaluate [1,2,3,4][even(item)]" do
-    assert [
-             %FeelEx.Value{value: 4, type: :number}
-           ] = FeelEx.evaluate("[2,4][item > 2]")
+  test "quantified expressions" do
+    assert %FeelEx.Value{value: true, type: :boolean} =
+             FeelEx.evaluate("some x in [1,2,3] satisfies x > 2")
+
+    assert %FeelEx.Value{value: false, type: :boolean} =
+             FeelEx.evaluate("some x in [1,2,3] satisfies x > 5")
+
+    assert %FeelEx.Value{value: true, type: :boolean} =
+             FeelEx.evaluate("some x in [1,2,3] satisfies even(x)")
+
+    assert %FeelEx.Value{value: true, type: :boolean} =
+             FeelEx.evaluate("some x in [1,2], y in [2,3] satisfies x < y")
+
+    assert %FeelEx.Value{value: true, type: :boolean} =
+             FeelEx.evaluate("every x in [1,2,3] satisfies x >= 1")
+
+    assert %FeelEx.Value{value: false, type: :boolean} =
+             FeelEx.evaluate("every x in [1,2,3] satisfies x >= 2")
+
+    assert %FeelEx.Value{value: false, type: :boolean} =
+             FeelEx.evaluate("every x in [1,2,3] satisfies even(x)")
+
+    assert %FeelEx.Value{value: false, type: :boolean} =
+             FeelEx.evaluate("every x in [1,2], y in [2,3] satisfies x < y")
   end
 end
