@@ -2,6 +2,13 @@ defmodule FeelEx.Helper do
   @moduledoc false
   alias FeelEx.Token
 
+  def duration_from_seconds(diff_seconds) when is_integer(diff_seconds) do
+    hours = div(diff_seconds, 3600)
+    minutes = div(rem(diff_seconds, 3600), 60)
+    seconds = rem(diff_seconds, 60)
+    %Duration{hour: hours, minute: minutes, second: seconds}
+  end
+
   def filter_expression(exp) do
     case exp do
       {exp, _tokens} -> exp
@@ -160,7 +167,7 @@ defmodule FeelEx.Helper do
       get_list([left_square_bracket | tl])
 
     new_list =
-    [[type_token, colon | list] | new_list]
+      [[type_token, colon | list] | new_list]
 
     do_break_key_values(remaining_tokens, new_list)
   end
@@ -208,17 +215,19 @@ defmodule FeelEx.Helper do
     do_get_list_values(remaining_tokens, [context_tokens | new_list])
   end
 
-  defp do_get_list_values([%Token{type: :name} = name, %Token{type: :left_parenthesis} | _] = list, new_list) do
+  defp do_get_list_values(
+         [%Token{type: :name} = name, %Token{type: :left_parenthesis} | _] = list,
+         new_list
+       ) do
     parenthesis = tl(list)
     {context_tokens, remaining_tokens} = get_parenthesis(parenthesis)
-    do_get_list_values(remaining_tokens, [[name|context_tokens] | new_list])
+    do_get_list_values(remaining_tokens, [[name | context_tokens] | new_list])
   end
 
   defp do_get_list_values([%Token{type: :left_parenthesis} | _] = list, new_list) do
     {context_tokens, remaining_tokens} = get_parenthesis(list)
     do_get_list_values(remaining_tokens, [context_tokens | new_list])
   end
-
 
   defp do_get_list_values([%Token{type: :left_square_bracket} | _] = list, new_list) do
     {context_tokens, remaining_tokens} = get_list(list)

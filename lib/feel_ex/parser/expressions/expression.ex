@@ -587,6 +587,79 @@ defmodule FeelEx.Expression do
     end)
   end
 
+  defp do_add(%FeelEx.Value{value: d1, type: dt1}, %FeelEx.Value{
+         value: d2,
+         type: dt2
+       })
+       when dt1 in [:days_time_duration, :years_months_duration] and
+              dt2 in [:days_time_duration, :years_months_duration] do
+    Value.new(Duration.add(d1, d2))
+  end
+
+  defp do_add(%FeelEx.Value{value: datetime, type: :date_time}, %FeelEx.Value{
+         value: duration,
+         type: duration_type
+       })
+       when duration_type in [:days_time_duration, :years_months_duration] do
+    case datetime do
+      %NaiveDateTime{} -> Value.new(NaiveDateTime.shift(datetime, duration))
+      {datetime, offset} -> Value.new(NaiveDateTime.shift(datetime, duration), offset)
+      {datetime, _offset, zone_id} -> Value.new(NaiveDateTime.shift(datetime, duration), zone_id)
+    end
+  end
+
+  defp do_add(
+         %FeelEx.Value{value: duration, type: duration_type},
+         %FeelEx.Value{value: datetime, type: :date_time}
+       )
+       when duration_type in [:days_time_duration, :years_months_duration] do
+    case datetime do
+      %NaiveDateTime{} -> Value.new(NaiveDateTime.shift(datetime, duration))
+      {datetime, offset} -> Value.new(NaiveDateTime.shift(datetime, duration), offset)
+      {datetime, _offset, zone_id} -> Value.new(NaiveDateTime.shift(datetime, duration), zone_id)
+    end
+  end
+
+  defp do_add(
+         %FeelEx.Value{value: time, type: :time},
+         %FeelEx.Value{value: duration, type: duration_type}
+       )
+       when duration_type in [:days_time_duration, :years_months_duration] do
+    case time do
+      %Time{} -> Value.new(Time.shift(time, duration))
+      {time, offset} -> Value.new(Time.shift(time, duration), offset)
+      {time, _offset, zone_id} -> Value.new({Time.shift(time, duration), zone_id})
+    end
+  end
+
+  defp do_add(
+         %FeelEx.Value{value: duration, type: duration_type},
+         %FeelEx.Value{value: time, type: :time}
+       )
+       when duration_type in [:days_time_duration, :years_months_duration] do
+    case time do
+      %Time{} -> Value.new(Time.shift(time, duration))
+      {time, offset} -> Value.new(Time.shift(time, duration), offset)
+      {time, _offset, zone_id} -> Value.new({Time.shift(time, duration), zone_id})
+    end
+  end
+
+  defp do_add(
+         %FeelEx.Value{value: date, type: :date},
+         %FeelEx.Value{value: duration, type: duration_type}
+       )
+       when duration_type in [:days_time_duration, :years_months_duration] do
+    Value.new(Date.shift(date, duration))
+  end
+
+  defp do_add(
+         %FeelEx.Value{value: duration, type: duration_type},
+         %FeelEx.Value{value: date, type: :date}
+       )
+       when duration_type in [:days_time_duration, :years_months_duration] do
+    Value.new(Date.shift(date, duration))
+  end
+
   defp do_add(
          %FeelEx.Value{value: val1, type: :number},
          %FeelEx.Value{value: val2, type: :number}
@@ -616,16 +689,157 @@ defmodule FeelEx.Expression do
   end
 
   defp do_subtract(
-         %FeelEx.Value{value: val1, type: :number},
-         %FeelEx.Value{value: val2, type: :number}
+         %FeelEx.Value{value: %Time{} = t1, type: :time},
+         %FeelEx.Value{value: %Time{} = t2, type: :time}
        ) do
-    Value.new(val1 - val2)
+    diff_seconds = Time.diff(t1, t2)
+
+    hours = div(diff_seconds, 3600)
+    minutes = div(rem(diff_seconds, 3600), 60)
+    seconds = rem(diff_seconds, 60)
+    Value.new(%Duration{hour: hours, minute: minutes, second: seconds})
   end
 
-  defp do_divide(
-         %FeelEx.Value{value: val1, type: :number},
-         %FeelEx.Value{value: val2, type: :number}
+  defp do_subtract(
+         %FeelEx.Value{value: {%Time{} = t1, offset}, type: :time},
+         %FeelEx.Value{value: {%Time{} = t2, offset}, type: :time}
        ) do
+    diff_seconds = Time.diff(t1, t2)
+
+    hours = div(diff_seconds, 3600)
+    minutes = div(rem(diff_seconds, 3600), 60)
+    seconds = rem(diff_seconds, 60)
+    Value.new(%Duration{hour: hours, minute: minutes, second: seconds})
+  end
+
+  defp do_subtract(
+         %FeelEx.Value{value: {%Time{} = t1, offset, zoneid}, type: :time},
+         %FeelEx.Value{value: {%Time{} = t2, offset, zoneid}, type: :time}
+       ) do
+    Time.diff(t1, t2)
+    |> Helper.duration_from_seconds()
+    |> Value.new()
+  end
+
+  defp do_subtract(
+         %FeelEx.Value{value: d1, type: :date},
+         %FeelEx.Value{value: d2, type: duration_type}
+       )
+       when duration_type in [:days_time_duration, :years_months_duration] do
+    Value.new(Date.shift(d1, Duration.multiply(d2, -1)))
+  end
+
+  defp do_subtract(%Value{value: d1, type: :date}, %Value{value: d2, type: :date}) do
+    Value.new(%Duration{day: Date.diff(d1, d2)})
+  end
+
+  defp do_subtract(%Value{value: %NaiveDateTime{} = d1, type: :date_time}, %Value{
+         value:
+           %NaiveDateTime{} =
+             d2,
+         type: :date_time
+       }) do
+    NaiveDateTime.diff(d1, d2)
+    |> Helper.duration_from_seconds()
+    |> Value.new()
+  end
+
+  defp do_subtract(%Value{value: {%NaiveDateTime{} = d1, offset}, type: :date_time}, %Value{
+         value:
+           {%NaiveDateTime{} =
+              d2, offset},
+         type: :date_time
+       }) do
+    NaiveDateTime.diff(d1, d2)
+    |> Helper.duration_from_seconds()
+    |> Value.new()
+  end
+
+  defp do_subtract(
+         %Value{value: {%NaiveDateTime{} = d1, offset, zoneid}, type: :date_time},
+         %Value{
+           value:
+             {%NaiveDateTime{} =
+                d2, offset, zoneid},
+           type: :date_time
+         }
+       ) do
+    NaiveDateTime.diff(d1, d2)
+    |> Helper.duration_from_seconds()
+    |> Value.new()
+  end
+
+  defp do_subtract(
+         %Value{value: %NaiveDateTime{} = dt, type: :date_time},
+         %Value{
+           value: %Duration{} = dur,
+           type: dtt
+         }
+       )
+       when dtt in [:days_time_duration, :years_months_duration] do
+    dur = trunc(to_timeout(dur) / 1000)
+
+    NaiveDateTime.add(dt, -dur)
+    |> Value.new()
+  end
+
+  defp do_subtract(
+         %Value{value: {%NaiveDateTime{} = dt, offset}, type: :date_time},
+         %Value{
+           value: %Duration{} = dur,
+           type: dtt
+         }
+       )
+       when dtt in [:days_time_duration, :years_months_duration] do
+    dur = trunc(to_timeout(dur) / 1000)
+
+    NaiveDateTime.add(dt, -dur)
+    |> Value.new(offset)
+  end
+
+  defp do_subtract(
+         %Value{value: {%NaiveDateTime{} = dt, _offset, zoneid}, type: :date_time},
+         %Value{
+           value: %Duration{} = dur,
+           type: dtt
+         }
+       )
+       when dtt in [:days_time_duration, :years_months_duration] do
+    dur = trunc(to_timeout(dur) / 1000)
+
+    NaiveDateTime.add(dt, -dur)
+    |> Value.new(zoneid)
+  end
+
+  defp do_subtract(
+         %Value{value: %Duration{} = dur1, type: :days_time_duration},
+         %Value{value: %Duration{} = dur2, type: :days_time_duration}
+       ) do
+    (trunc(to_timeout(dur1) / 1000) - trunc(to_timeout(dur2) / 1000))
+    |> Helper.duration_from_seconds()
+    |> Value.new()
+  end
+
+  defp do_subtract(
+         %Value{value: %Duration{} = dur1, type: :years_months_duration},
+         %Value{value: %Duration{} = dur2, type: :years_months_duration}
+       ) do
+    m1 = dur1.month + dur1.year * 12
+    m2 = dur2.month + dur2.year * 12
+
+    case {div(m1 - m2, 12), rem(m1 - m2, 12)} do
+      {0, m} -> Value.new(%Duration{month: m})
+      {y, 0} -> Value.new(%Duration{year: y})
+      {y, m} -> Value.new(%Duration{year: y, month: m})
+    end
+  end
+
+  defp do_subtract(v1, v2) do
+    Logger.warning("Cannot subtract #{inspect(v1)} with #{inspect(v2)}.")
+    Value.new(nil)
+  end
+
+  defp do_divide(%Value{value: val1, type: :number}, %Value{value: val2, type: :number}) do
     Value.new(val1 / val2)
   end
 
@@ -839,6 +1053,23 @@ defmodule FeelEx.Expression do
         list when is_list(list) -> do_access(name, list, :list, context)
       end
     end)
+  end
+
+  defp do_access(name, operand, :date, _context) when name in [:year, :month, :day] do
+    Value.new(Map.get(operand, name))
+  end
+
+  defp do_access(name, %NaiveDateTime{} = dt, :date_time, _context)
+       when name in [:year, :month, :day] do
+    Value.new(Map.get(dt, name))
+  end
+
+  defp do_access(:weekday, operand, :date, _context) do
+    Value.new(Date.day_of_week(operand))
+  end
+
+  defp do_access(:weekday, %NaiveDateTime{} = dt, :date_time, _context) do
+    Value.new(Date.day_of_week(dt))
   end
 
   defp do_access(name, operand, _type, _context) do

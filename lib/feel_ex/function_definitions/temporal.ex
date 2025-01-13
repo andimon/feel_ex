@@ -42,6 +42,14 @@ defmodule FeelEx.FunctionDefinitions.Temporal do
     end
   end
 
+  defp temporal_with_offset(datetime, _offset, NaiveDateTime) do
+    {new_time, offset_val} =
+      String.split_at(datetime, 19)
+
+    datetime = NaiveDateTime.from_iso8601!(new_time)
+    Value.new(datetime, offset_val)
+  end
+
   defp temporal_with_offset(time, offset, temporal_type) do
     [new_time, offset_val] = String.split(time, offset, parts: 2)
     time = temporal_type.from_iso8601!(new_time)

@@ -1,4 +1,4 @@
-defmodule FeelEx.ContextTest do
+  defmodule FeelEx.ContextTest do
   use ExUnit.Case
   alias FeelEx.Value
 

@@ -1,4 +1,4 @@
-# FeelEx
+# FeelEx [![Build Status](https://github.com/ExSemantic/feel_ex/actions/workflows/tests.yml/badge.svg)](https://github.com/ExSemantic/feel_ex/actions)  [![Coverage Status](https://coveralls.io/repos/github/ExSemantic/feel_ex/badge.svg?branch=master)](https://coveralls.io/github/ExSemantic/feel_ex?branch=master) [![Hex.pm](https://img.shields.io/hexpm/v/feel_ex.svg)](https://hex.pm/packages/feel_ex) [![Documentation](https://img.shields.io/badge/documentation-gray)](https://hexdocs.pm/feel_ex/)
 
 # Introduction
 A friendly expression language helps users define decision logic without needing deep technical expertise. This language is based on the FEEL(Friendly Enough Expression Language). For more information regarding FEEL, please take a look at the official OMG specification at [https://www.omg.org/dmn/](https://www.omg.org/dmn/).
@@ -477,3 +477,375 @@ iex(7)> FeelEx.evaluate("some x in [1,2], y in [2,3] satisfies x < y")
 ```
 
 Take a look at these tests: https://github.com/ExSemantic/feel_ex/blob/master/test/expression_tests/list_test.exs  for more examples.
+
+
+# Contexts
+
+## Allows for previous element access
+
+```elixir
+iex(1)> FeelEx.evaluate("{a: 2, b: a*2}.a")
+%FeelEx.Value{
+  value: %{
+    a: %FeelEx.Value{value: 2, type: :number},
+    b: %FeelEx.Value{value: 4, type: :number}
+  },
+  type: :context
+}
+```
+## Nested contexts
+
+Values of contexts can be contexts themselves.
+
+```elixir
+iex(1)> program = """
+...(2)> {
+...(2)>   a: 1,
+...(2)>   b: {
+...(2)>     c: 2
+...(2)>   }
+...(2)> }
+...(2)> """
+"{\n  a: 1,\n  b: {\n    c: 2\n  }\n}\n"
+iex(3)> FeelEx.evaluate(program)
+%FeelEx.Value{
+  value: %{
+    a: %FeelEx.Value{value: 1, type: :number},
+    b: %FeelEx.Value{
+      value: %{c: %FeelEx.Value{value: 2, type: :number}},
+      type: :context
+    }
+  },
+  type: :context
+}
+```
+## Get entry path `a.b`
+We may use dot notation to access elements of a context.
+```elixir
+iex(1)> FeelEx.evaluate("{a: 2}.a")
+%FeelEx.Value{value: 2, type: :number}
+iex(2)> FeelEx.evaluate("{a: 2, b: {b: 3}}.b")
+%FeelEx.Value{
+  value: %{b: %FeelEx.Value{value: 3, type: :number}},
+  type: :context
+}
+```
+
+If the name we are accessing does not exist in the context than we simply return null.
+
+```elixir
+iex(1)> FeelEx.evaluate("{}.a")
+%FeelEx.Value{value: nil, type: :null}
+iex(2)> FeelEx.evaluate("{b: 1}.a")
+%FeelEx.Value{value: nil, type: :null}
+iex(3)> FeelEx.evaluate("{a: {c: 2}}.a.b")
+%FeelEx.Value{value: nil, type: :null}
+```
+
+## Filter `a[c]`
+
+Given a list of context element `a` we may filter elements using a filter `c`.
+
+Examples:
+
+```elixir
+iex(1)> program = 
+...(1)> """
+...(1)> [
+...(1)>   {
+...(1)>     a: "p1",
+...(1)>     b: 5
+...(1)>   },
+...(1)>   {
+...(1)>     a: "p2",
+...(1)>     b: 10
+...(1)>   }
+...(1)> ][b > 7]
+...(1)> """
+"[\n  {\n    a: \"p1\",\n    b: 5\n  },\n  {\n    a: \"p2\",\n    b: 10\n  }\n][b > 7]\n"
+iex(2)> FeelEx.evaluate(program)
+[
+  %FeelEx.Value{
+    value: %{
+      b: %FeelEx.Value{value: 10, type: :number},
+      a: %FeelEx.Value{value: "p2", type: :string}
+    },
+    type: :context
+  }
+]
+```
+
+## Projection
+The dot notation may be used over a list to access multiple context at once.
+
+Example:
+
+```elixir
+iex(1)> program1 =
+...(1)> """
+...(1)> [
+...(1)>   {
+...(1)>     a: "p1",
+...(1)>     b: 5
+...(1)>   },
+...(1)>   {
+...(1)>     a: "p2",
+...(1)>     b: 10
+...(1)>   }
+...(1)> ].a
+...(1)> """
+"[\n  {\n    a: \"p1\",\n    b: 5\n  },\n  {\n    a: \"p2\",\n    b: 10\n  }\n].a\n"
+iex(2)> FeelEx.evaluate(program1)
+[
+  %FeelEx.Value{value: "p1", type: :string},
+  %FeelEx.Value{value: "p2", type: :string}
+]
+iex(3)> program2 =
+...(3)> """
+...(3)> [
+...(3)>   {
+...(3)>     a: "p1",
+...(3)>     b: 5
+...(3)>   },
+...(3)>   {
+...(3)>     a: "p2",
+...(3)>     c: 20
+...(3)>   }
+...(3)> ].b
+...(3)> """
+"[\n  {\n    a: \"p1\",\n    b: 5\n  },\n  {\n    a: \"p2\",\n    c: 20\n  }\n].b\n"
+iex(4)> FeelEx.evaluate(program2)
+[%FeelEx.Value{value: 5, type: :number}, %FeelEx.Value{value: nil, type: :null}]
+```
+
+Take a look at these tests: https://github.com/ExSemantic/feel_ex/blob/master/test/expression_tests/context_test.exs  for more examples.
+
+# Temporal Expressions
+## Addition
+### `<date>+<duration>=<duration>`
+```elixir
+iex(1)> FeelEx.evaluate("date(\"2020-04-06\") + duration(\"P1D\")")
+%FeelEx.Value{value: ~D[2020-04-07], type: :date}
+```
+
+### `<duration>+<date>=<duration>`
+```elixir
+iex(1)> FeelEx.evaluate("duration(\"P1D\")+ date(\"2020-04-06\")")
+```
+### `<time>+<duration>=<time>`
+```elixir
+iex(1)> FeelEx.evaluate("time(\"08:00:00\") + duration(\"PT1H\")")
+%FeelEx.Value{value: ~T[09:00:00], type: :time}
+iex(2)> FeelEx.evaluate("time(\"08:00:00@Europe/Paris\") + duration(\"PT1H\")")
+%FeelEx.Value{value: {~T[09:00:00], "Europe/Paris"}, type: :context}
+iex(3)> FeelEx.evaluate("time(\"08:00:00+01:00\") + duration(\"PT1H\")")
+%FeelEx.Value{value: {~T[09:00:00], "+01:00"}, type: :time}
+```
+
+### `<duration>+<time>=<time>`
+```elixir
+iex(1)> FeelEx.evaluate("duration(\"PT1H\") + time(\"08:00:00\")")
+%FeelEx.Value{value: ~T[09:00:00], type: :time}
+iex(2)> FeelEx.evaluate("duration(\"PT1H\") + time(\"08:00:00@Europe/Paris\")")
+%FeelEx.Value{value: {~T[09:00:00], "Europe/Paris"}, type: :context}
+iex(3)> FeelEx.evaluate("duration(\"PT1H\") + time(\"08:00:00+01:00\")")
+%FeelEx.Value{value: {~T[09:00:00], "+01:00"}, type: :time}
+```
+
+### `<date-time>+<duration>=<duration>`
+
+```elixir
+iex(1)> FeelEx.evaluate("date and time(\"2020-04-06T08:00:00\") + duration(\"P7D\")")
+%FeelEx.Value{value: ~N[2020-04-13 08:00:00], type: :date_time}
+iex(2)> FeelEx.evaluate("date and time(\"2020-04-06T08:00:00+01:00\") + duration(\"P7D\")")
+%FeelEx.Value{value: {~N[2020-04-13 08:00:00], "+01:00"}, type: :date_time}
+iex(3)> FeelEx.evaluate("date and time(\"2020-04-06T08:00:00@Europe/Malta\") + duration(\"P7D\")")
+%FeelEx.Value{
+  value: {~N[2020-04-13 08:00:00], "+01:00", "Europe/Malta"},
+  type: :date_time
+}
+```
+
+### `<duration>+<date-time>=<duration>`
+
+```elixir
+iex(1)> FeelEx.evaluate("duration(\"P7D\")+date and time(\"2020-04-06T08:00:00\")")
+%FeelEx.Value{value: ~N[2020-04-13 08:00:00], type: :date_time}
+iex(2)> FeelEx.evaluate("duration(\"P7D\") + date and time(\"2020-04-06T08:00:00+01:00\")")
+%FeelEx.Value{value: {~N[2020-04-13 08:00:00], "+01:00"}, type: :date_time}
+iex(3)> FeelEx.evaluate("duration(\"P7D\")+date and time(\"2020-04-06T08:00:00@Europe/Malta\")")
+%FeelEx.Value{
+  value: {~N[2020-04-13 08:00:00], "+01:00", "Europe/Malta"},
+  type: :date_time
+}
+```
+
+### `<duration>+<duration>=<duration>`
+
+```elixir
+iex(1)> FeelEx.evaluate("duration(\"P1D\") + duration(\"PT1H\")")
+%FeelEx.Value{value: %Duration{day: 1, hour: 1}, type: :days_time_duration}
+iex(2)> FeelEx.evaluate("duration(\"P1DT2H\") + duration(\"P1DT3H\")")
+%FeelEx.Value{value: %Duration{day: 2, hour: 5}, type: :days_time_duration}
+```
+Take a look at these tests: https://github.com/ExSemantic/feel_ex/blob/master/test/expression_tests/temporal_expressions_test.exs  for more examples.
+
+
+## Subtraction
+
+### `<date>-<date>=<duration>`
+
+```elixir
+iex(1)> FeelEx.evaluate("date(\"2020-04-06\") - date(\"2020-04-01\")")
+%FeelEx.Value{value: %Duration{day: 5}, type: :days_time_duration}
+iex(2)> FeelEx.evaluate("date(\"2023-10-01\") - date(\"2023-07-01\")")
+%FeelEx.Value{value: %Duration{day: 92}, type: :days_time_duration}
+iex(3)> FeelEx.evaluate("date(\"2023-01-01\") - date(\"2022-12-31\")")
+%FeelEx.Value{value: %Duration{day: 1}, type: :days_time_duration}
+```
+### `<date>-<duration>=<date>`
+
+```elixir
+iex(1)> FeelEx.evaluate("date(\"2020-04-06\") - duration(\"P5D\")")
+%FeelEx.Value{value: ~D[2020-04-01], type: :date}
+iex(2)> FeelEx.evaluate("date(\"2021-08-15\") - duration(\"P5D\")")
+%FeelEx.Value{value: ~D[2021-08-10], type: :date}
+iex(3)> FeelEx.evaluate("date(\"2020-04-06\") - duration(\"P-5D\")")
+%FeelEx.Value{value: ~D[2020-04-11], type: :date} 
+```
+### `<time>-<time>=<days-time-duration>`
+ 
+ ```elixir
+ iex(1)> FeelEx.evaluate("time(\"08:00:00\") - time(\"06:00:01\")")
+%FeelEx.Value{
+  value: %Duration{hour: 1, minute: 59, second: 59},
+  type: :days_time_duration
+}
+iex(2)> FeelEx.evaluate("time(\"08:00:00+01:00\") - time(\"06:00:01+01:00\")")
+%FeelEx.Value{
+  value: %Duration{hour: 1, minute: 59, second: 59},
+  type: :days_time_duration
+}
+iex(3)> FeelEx.evaluate("time(\"08:00:00+01:00\") - time(\"06:00:01-01:00\")")
+[warning] [Elixir.FeelEx.Expression][do_subtract/2] Cannot subtract %FeelEx.Value{value: {~T[08:00:00], "+01:00"}, type: :time} with %FeelEx.Value{value: {~T[06:00:01], "-01:00"}, type: :time}.
+%FeelEx.Value{value: nil, type: :null}
+iex(4)> FeelEx.evaluate("time(\"08:00:00@Europe/Malta\") - time(\"06:00:01@Europe/Malta\")")
+%FeelEx.Value{
+  value: %Duration{hour: 1, minute: 59, second: 59},
+  type: :days_time_duration
+}
+iex(5)> FeelEx.evaluate("time(\"08:00:00@Europe/Malta\") - time(\"06:00:01@Europe/Paris\")") 
+[warning] [Elixir.FeelEx.Expression][do_subtract/2] Cannot subtract %FeelEx.Value{value: {~T[08:00:00], "+01:00", "Europe/Malta"}, type: :time} with %FeelEx.Value{value: {~T[06:00:01], "+01:00", "Europe/Paris"}, type: :time}.
+%FeelEx.Value{value: nil, type: :null}
+```
+
+**Note!**: Time difference for times with different time zones and offsets is currently not supported.
+
+### `<date-time>-<date-time>=<days-time-duration>
+
+```elixir
+iex(1)> FeelEx.evaluate("date and time(\"2025-01-01T08:00:00\") - date and time(\"2024-01-01T06:00:01\")")
+%FeelEx.Value{
+  value: %Duration{hour: 8785, minute: 59, second: 59},
+  type: :days_time_duration
+}
+iex(2)> FeelEx.evaluate("date and time(\"2025-01-01T08:00:00+01:00\") - date and time(\"2024-01-01T06:00:01+01:00\")")
+%FeelEx.Value{
+  value: %Duration{hour: 8785, minute: 59, second: 59},
+  type: :days_time_duration
+}
+iex(3)> FeelEx.evaluate("date and time(\"2025-01-01T08:00:00+01:00\") - date and time(\"2024-01-01T06:00:01-01:00\")")
+[warning] [Elixir.FeelEx.Expression][do_subtract/2] Cannot subtract %FeelEx.Value{value: {~N[2025-01-01 08:00:00], "+01:00"}, type: :date_time} with %FeelEx.Value{value: {~N[2024-01-01 06:00:01], "-01:00"}, type: :date_time}.
+%FeelEx.Value{value: nil, type: :null}
+iex(4)> FeelEx.evaluate("date and time(\"2025-01-01T08:00:00@Europe/Malta\") - date and time(\"2024-01-01T06:00:01@Europe/Malta\")")
+%FeelEx.Value{
+  value: %Duration{hour: 8785, minute: 59, second: 59},
+  type: :days_time_duration
+}
+iex(5)> FeelEx.evaluate("date and time(\"2025-01-01T08:00:00@Europe/Malta\") - date and time(\"2024-01-01T06:00:01@Europe/Paris\")")
+[warning] [Elixir.FeelEx.Expression][do_subtract/2] Cannot subtract %FeelEx.Value{value: {~N[2025-01-01 08:00:00], "+01:00", "Europe/Malta"}, type: :date_time} with %FeelEx.Value{value: {~N[2024-01-01 06:00:01], "+01:00", "Europe/Paris"}, type: :date_time}.
+%FeelEx.Value{value: nil, type: :null}
+```
+**Note!**: DateTime difference for times with different time zones and offsets is currently not supported.
+
+### `<date-time>-<duration>=<date-time>
+
+```elixir
+iex(1)> FeelEx.evaluate("date and time(\"2021-01-01T08:00:00\") - duration(\"PT2H\")")
+%FeelEx.Value{value: ~N[2021-01-01 06:00:00], type: :date_time}
+iex(2)> FeelEx.evaluate("date and time(\"2021-01-01T08:00:00+01:00\") - duration(\"PT2H\")")
+%FeelEx.Value{value: {~N[2021-01-01 06:00:00], "+01:00"}, type: :date_time}
+iex(3)> FeelEx.evaluate("date and time(\"2021-01-01T08:00:00@Europe/Malta\") - duration(\"PT2H\")")
+%FeelEx.Value{
+  value: {~N[2021-01-01 06:00:00], "+01:00", "Europe/Malta"},
+  type: :date_time
+}
+```
+
+### `<days-time-duration>-<days-time-duration>=<days-time-duration>
+
+```iex
+iex(1)> FeelEx.evaluate("duration(\"P7D\") - duration(\"P2D\")")
+%FeelEx.Value{value: %Duration{hour: 120}, type: :days_time_duration}
+iex(2)> FeelEx.evaluate("duration(\"P7D\") - duration(\"P8DT1S\")")
+%FeelEx.Value{
+  value: %Duration{hour: -24, second: -1},
+  type: :days_time_duration
+}
+```
+### `<years-months-duration>-<years-months-duration>=<years-months-duration>
+
+```elixir
+iex(1)> FeelEx.evaluate("duration(\"P1Y\") - duration(\"P3M\")") 
+%FeelEx.Value{value: %Duration{month: 9}, type: :years_months_duration}
+iex(2)> FeelEx.evaluate("duration(\"P3Y1M\") - duration(\"P1Y12M\")")
+%FeelEx.Value{value: %Duration{year: 1, month: 1}, type: :years_months_duration}
+```
+
+## Temporal Properties
+
+### Accessing `year` 
+```elixir
+Interactive Elixir (1.17.3) - press Ctrl+C to exit (type h() ENTER for help)
+iex(1)> FeelEx.evaluate("@\"2021-01-01\".year")
+%FeelEx.Value{value: 2021, type: :number}
+iex(2)> FeelEx.evaluate("date(\"2021-01-01\").year")
+%FeelEx.Value{value: 2021, type: :number}
+iex(3)> FeelEx.evaluate("date and time(\"2021-01-01T08:01:05\").year")
+%FeelEx.Value{value: 2021, type: :number}
+iex(3)> FeelEx.evaluate("@\"2021-01-01T08:01:05\".year")
+%FeelEx.Value{value: 2021, type: :number}
+```
+### Accessing `month` in `[1-7]` where 1 is January.
+```elixir
+iex(1)> FeelEx.evaluate("@\"2021-01-01\".month")
+%FeelEx.Value{value: 1, type: :number}
+iex(2)> FeelEx.evaluate("date(\"2021-01-01\").month")
+%FeelEx.Value{value: 1, type: :number}
+iex(3)> FeelEx.evaluate("date and time(\"2021-01-01T08:01:05\").month")
+%FeelEx.Value{value: 1, type: :number}
+iex(4)> FeelEx.evaluate("@\"2021-01-01T08:01:05\".month")
+%FeelEx.Value{value: 1, type: :number}
+```
+### Accessing `day` in `[1-31]`.
+```elixir
+iex(1)> FeelEx.evaluate("@\"2021-01-01\".day")
+%FeelEx.Value{value: 1, type: :number}
+iex(2)> FeelEx.evaluate("date(\"2021-01-01\").day")
+%FeelEx.Value{value: 1, type: :number}
+iex(3)> FeelEx.evaluate("date and time(\"2021-01-01T08:01:05\").day")
+%FeelEx.Value{value: 1, type: :number}
+iex(4)> FeelEx.evaluate("@\"2021-01-01T08:01:05\".day")
+%FeelEx.Value{value: 1, type: :number}
+```
+### Accessing `weekday` in `[1-7]` where 1 is Monday.
+```elixir
+iex(1)> FeelEx.evaluate("@\"2021-01-01\".weekday")
+%FeelEx.Value{value: 5, type: :number}
+iex(2)> FeelEx.evaluate("date(\"2021-01-01\").weekday")
+%FeelEx.Value{value: 5, type: :number}
+iex(3)> FeelEx.evaluate("date and time(\"2021-01-01T08:01:05\").weekday")
+%FeelEx.Value{value: 5, type: :number}
+iex(4)> FeelEx.evaluate("@\"2021-01-01T08:01:05\".weekday")
+%FeelEx.Value{value: 5, type: :number}
+```

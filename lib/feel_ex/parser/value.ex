@@ -56,13 +56,18 @@ defmodule FeelEx.Value do
         %Duration{year: 0, month: 0, day: day, hour: hour, minute: minute, second: second} =
           duration
       )
-      when not (day == 0) or not (hour == 0) or not (minute == 0) or not (second == 0) do
+      when (not (day == 0) or not (hour == 0) or not (minute == 0) or
+              not (second == 0)) and hour < 24 and minute < 60 and second < 60 do
     %__MODULE__{value: duration, type: :days_time_duration}
   end
 
   def new(%Duration{year: year, month: month, day: 0, hour: 0, minute: 0, second: 0} = duration)
-      when not (year == 0) or not (month == 0) do
+      when (year in 1..12 or not (month == 0)) and month < 12 do
     %__MODULE__{value: duration, type: :years_months_duration}
+  end
+
+  def new(%Duration{year: 0, month: 0, day: 0, hour: 0, minute: 0, second: 0} = d) do
+    %__MODULE__{value: d, type: :years_months_duration}
   end
 
   def new(%NaiveDateTime{} = date, offset_or_zone_id) do
