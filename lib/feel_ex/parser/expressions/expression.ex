@@ -689,6 +689,13 @@ defmodule FeelEx.Expression do
   end
 
   defp do_subtract(
+         %FeelEx.Value{value: val1, type: :number},
+         %FeelEx.Value{value: val2, type: :number}
+       ) do
+    Value.new(val1 - val2)
+  end
+
+  defp do_subtract(
          %FeelEx.Value{value: %Time{} = t1, type: :time},
          %FeelEx.Value{value: %Time{} = t2, type: :time}
        ) do
@@ -837,6 +844,14 @@ defmodule FeelEx.Expression do
   defp do_subtract(v1, v2) do
     Logger.warning("Cannot subtract #{inspect(v1)} with #{inspect(v2)}.")
     Value.new(nil)
+  end
+
+  defp do_divide(%Value{value: val1, type: :days_time_duration}, %Value{
+         value: val2,
+         type: :days_time_duration
+       }) do
+
+    Value.new(to_timeout(val1) / to_timeout(val2))
   end
 
   defp do_divide(%Value{value: val1, type: :number}, %Value{value: val2, type: :number}) do
@@ -1041,6 +1056,30 @@ defmodule FeelEx.Expression do
     end)
   end
 
+  defp do_access(name, %Duration{} = d, :days_time_duration, _context)
+       when name in [:days, :hours, :minutes, :seconds] do
+    {day, hour, minute, second} = Helper.normalise(d.day, d.hour, d.minute, d.second)
+
+    case name do
+      :days -> day
+      :hours -> hour
+      :minutes -> minute
+      :seconds -> second
+    end
+    |> Value.new()
+  end
+
+  defp do_access(name, %Duration{} = d, :years_months_duration, _context)
+       when name in [:years, :months] do
+    {years, months} = Helper.normalise(d.year, d.month)
+
+    case name do
+      :years -> years
+      :months -> months
+    end
+    |> Value.new()
+  end
+
   defp do_access(name, operand, :context, _context) do
     value = Map.get(operand, name)
     if is_nil(value), do: Value.new(nil), else: value
@@ -1059,9 +1098,63 @@ defmodule FeelEx.Expression do
     Value.new(Map.get(operand, name))
   end
 
+  defp do_access(name, {operand, _}, :date_time, _context)
+       when name in [:year, :month, :day] do
+    Value.new(Map.get(operand, name))
+  end
+
+  defp do_access(name, {operand, _, _}, :date_time, _context)
+       when name in [:year, :month, :day] do
+    Value.new(Map.get(operand, name))
+  end
+
   defp do_access(name, %NaiveDateTime{} = dt, :date_time, _context)
        when name in [:year, :month, :day] do
     Value.new(Map.get(dt, name))
+  end
+
+  defp do_access(name, {%NaiveDateTime{} = dt, _}, :date_time, _context)
+       when name in [:year, :month, :day] do
+    Value.new(Map.get(dt, name))
+  end
+
+  defp do_access(name, {%NaiveDateTime{} = dt, _, _}, :date_time, _context)
+       when name in [:year, :month, :day] do
+    Value.new(Map.get(dt, name))
+  end
+
+  defp do_access(name, %NaiveDateTime{} = dt, :date_time, _context)
+       when name in [:hour, :minute, :second] do
+    Value.new(Map.get(dt, name))
+  end
+
+  defp do_access(name, {%NaiveDateTime{} = dt, _}, :date_time, _context)
+       when name in [:hour, :minute, :second] do
+    Value.new(Map.get(dt, name))
+  end
+
+  defp do_access(name, {%NaiveDateTime{} = dt, _, _}, :date_time, _context)
+       when name in [:hour, :minute, :second] do
+    Value.new(Map.get(dt, name))
+  end
+
+  defp do_access(name, %Time{} = dt, :time, _context)
+       when name in [:hour, :minute, :second] do
+    Value.new(Map.get(dt, name))
+  end
+
+  defp do_access(name, {%Time{} = dt, _}, :time, _context)
+       when name in [:hour, :minute, :second] do
+    Value.new(Map.get(dt, name))
+  end
+
+  defp do_access(name, {%Time{} = dt, _, _}, :time, _context)
+       when name in [:hour, :minute, :second] do
+    Value.new(Map.get(dt, name))
+  end
+
+  defp do_access(:timezone, {_, _, zoneid}, type, _context) when type in [:time, :date_time] do
+    Value.new(zoneid)
   end
 
   defp do_access(:weekday, operand, :date, _context) do
@@ -1069,6 +1162,14 @@ defmodule FeelEx.Expression do
   end
 
   defp do_access(:weekday, %NaiveDateTime{} = dt, :date_time, _context) do
+    Value.new(Date.day_of_week(dt))
+  end
+
+  defp do_access(:weekday, {%NaiveDateTime{} = dt, _offset}, :date_time, _context) do
+    Value.new(Date.day_of_week(dt))
+  end
+
+  defp do_access(:weekday, {%NaiveDateTime{} = dt, _offset, _zoneid}, :date_time, _context) do
     Value.new(Date.day_of_week(dt))
   end
 

@@ -2,6 +2,32 @@ defmodule FeelEx.Helper do
   @moduledoc false
   alias FeelEx.Token
 
+  def normalise(days, hours, minutes, seconds) do
+    days_in_hours = div(hours, 24)
+    hours = rem(hours, 24)
+    days_in_minutes = div(minutes, 1440)
+    minutes = rem(minutes, 1440)
+    days_in_seconds = div(seconds, 86400)
+    seconds = rem(seconds, 86400)
+    hours_in_minutes = div(minutes, 60)
+    minutes = rem(minutes, 60)
+    hours_in_seconds = div(seconds, 3600)
+    seconds = rem(seconds, 3600)
+    minutes_in_seconds = div(seconds, 60)
+    seconds = rem(seconds, 60)
+
+    {days + days_in_hours + days_in_minutes + days_in_seconds,
+     hours + hours_in_minutes +
+       hours_in_seconds, minutes + minutes_in_seconds, seconds}
+  end
+
+  def normalise(years, months) do
+    years_in_months = div(months, 12)
+    months = rem(months, 12)
+
+    {years + years_in_months, months}
+  end
+
   def duration_from_seconds(diff_seconds) when is_integer(diff_seconds) do
     hours = div(diff_seconds, 3600)
     minutes = div(rem(diff_seconds, 3600), 60)

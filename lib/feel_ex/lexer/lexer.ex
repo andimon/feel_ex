@@ -58,7 +58,13 @@ defmodule FeelEx.Lexer do
       state_3: :state_2,
       state_13: :state_13
     ],
-    forward_slash: [state_0: :state_4, state_4: :state_5, state_5: :state_5, state_8: :state_9, state_13: :state_13],
+    forward_slash: [
+      state_0: :state_4,
+      state_4: :state_5,
+      state_5: :state_5,
+      state_8: :state_9,
+      state_13: :state_13
+    ],
     line_feed: [state_5: :state_6],
     asterisk: [
       state_0: :state_12,
@@ -241,12 +247,34 @@ defmodule FeelEx.Lexer do
   defp do_get_tokens(
          program,
          %{
+           lexeme: lexeme,
            current_line_number: current_line_number,
-           current_index: current_index
+           current_index: current_index,
+           lexeme_length: lexeme_length
          } = current_token
        ) do
-    next_token = next_token(program, current_index, current_line_number)
-    [Token.new(current_token) | do_get_tokens(program, next_token)]
+    {cur_token, next_token} =
+      if lexeme == "time" do
+        case String.slice(program, current_index, 7) do
+          " offset" ->
+            current_token =
+              Map.merge(current_token, %{
+                lexeme: lexeme <> " offset",
+                current_index: current_index + 7,
+                lexeme_length: lexeme_length + 7
+              })
+
+            {Token.new(current_token),
+             next_token(program, current_index + 7, current_line_number)}
+
+          _ ->
+            {Token.new(current_token), next_token(program, current_index, current_line_number)}
+        end
+      else
+        {Token.new(current_token), next_token(program, current_index, current_line_number)}
+      end
+
+    [cur_token | do_get_tokens(program, next_token)]
   end
 
   defp rollback_to_final_state(%{

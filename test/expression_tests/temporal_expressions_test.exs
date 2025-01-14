@@ -290,7 +290,7 @@ defmodule FeelEx.TemporalExpressionTest do
     test "duration(\"P5D\") / 5" do
       assert FeelEx.evaluate("duration(\"P5D\")") == %FeelEx.Value{
                value: %Duration{day: 1},
-               type: :years_months_duration
+               type: :days_time_duration
              }
     end
 
@@ -338,11 +338,19 @@ defmodule FeelEx.TemporalExpressionTest do
     end
 
     test "access year for datetime with offset" do
-      assert false
+      assert FeelEx.evaluate("date and time(\"2021-01-01T08:01:05+01:00\").year") ==
+               %FeelEx.Value{value: 2021, type: :number}
+
+      assert FeelEx.evaluate("@\"2021-01-01T08:01:05+01:00\".year") ==
+               %FeelEx.Value{value: 2021, type: :number}
     end
 
     test "access year for datetime with zoneid" do
-      assert false
+      assert FeelEx.evaluate("date and time(\"2021-01-01T08:01:05@Europe/Malta\").year") ==
+               %FeelEx.Value{value: 2021, type: :number}
+
+      assert FeelEx.evaluate("@\"2021-01-01T08:01:05@Europe/Malta\".year") ==
+               %FeelEx.Value{value: 2021, type: :number}
     end
 
     test "access month for date" do
@@ -362,11 +370,19 @@ defmodule FeelEx.TemporalExpressionTest do
     end
 
     test "access month for datetime with offset" do
-      assert false
+      assert FeelEx.evaluate("date and time(\"2021-05-01T08:01:05+01:00\").month") ==
+               %FeelEx.Value{value: 5, type: :number}
+
+      assert FeelEx.evaluate("@\"2021-01-01T08:05:05+01:00\".month") ==
+               %FeelEx.Value{value: 5, type: :number}
     end
 
     test "access month for datetime with zoneid" do
-      assert false
+      assert FeelEx.evaluate("date and time(\"2021-05-01T08:01:05@Europe/Malta\").month") ==
+               %FeelEx.Value{value: 5, type: :number}
+
+      assert FeelEx.evaluate("@\"2021-01-01T08:05:05@Europe/Malta\".month") ==
+               %FeelEx.Value{value: 5, type: :number}
     end
 
     test "access day for date" do
@@ -386,10 +402,19 @@ defmodule FeelEx.TemporalExpressionTest do
     end
 
     test "access day for datetime with offset" do
-      assert false
+      assert FeelEx.evaluate("date and time(\"2021-05-01T08:01:05+01:00\").day") ==
+               %FeelEx.Value{value: 1, type: :number}
+
+      assert FeelEx.evaluate("@\"2021-01-01T08:05:05+01:00\".day") ==
+               %FeelEx.Value{value: 1, type: :number}
     end
 
     test "access day for datetime with zoneid" do
+      assert FeelEx.evaluate("date and time(\"2021-05-01T08:01:05@Europe/Malta\").day") ==
+               %FeelEx.Value{value: 1, type: :number}
+
+      assert FeelEx.evaluate("@\"2021-01-01T08:05:05@Europe/Malta\".day") ==
+               %FeelEx.Value{value: 1, type: :number}
     end
 
     test "access weekday for date" do
@@ -409,83 +434,163 @@ defmodule FeelEx.TemporalExpressionTest do
     end
 
     test "access weekday for datetime with offset" do
-      assert false
+      assert FeelEx.evaluate("date and time(\"2021-01-01T08:01:05+01:00\").weekday") ==
+               %FeelEx.Value{value: 5, type: :number}
+
+      assert FeelEx.evaluate("@\"2021-01-01T08:01:05+01:00\".weekday") ==
+               %FeelEx.Value{value: 5, type: :number}
     end
 
     test "access weekday for datetime with zoneid" do
-      assert false
+      assert FeelEx.evaluate("date and time(\"2021-01-01T08:01:05@Europe/Malta\").weekday") ==
+               %FeelEx.Value{value: 5, type: :number}
+
+      assert FeelEx.evaluate("@\"2021-01-01T08:01:05@Europe/Malta\".weekday") ==
+               %FeelEx.Value{value: 5, type: :number}
     end
 
     test "access hour for time" do
-      assert false
+      assert FeelEx.evaluate("time(\"08:01:05\").hour") ==
+               %FeelEx.Value{value: 8, type: :number}
+
+      assert FeelEx.evaluate("@\"08:01:05\".hour") ==
+               %FeelEx.Value{value: 8, type: :number}
     end
 
     test "access hour for time with offset id" do
-      assert false
+      assert FeelEx.evaluate("time(\"08:01:05+01:00\").hour") ==
+               %FeelEx.Value{value: 8, type: :number}
+
+      assert FeelEx.evaluate("@\"08:01:05+01:00\".hour") ==
+               %FeelEx.Value{value: 8, type: :number}
     end
 
-    test "access hour for time with offset zone id" do
-      assert false
+    test "access hour for time with zone id" do
+      assert FeelEx.evaluate("time(\"08:01:05@Europe/Malta\").hour") ==
+               %FeelEx.Value{value: 8, type: :number}
+
+      assert FeelEx.evaluate("@\"08:01:05@Europe/Malta\".hour") ==
+               %FeelEx.Value{value: 8, type: :number}
     end
 
     test "access hour for datetime" do
-      assert false
+      assert FeelEx.evaluate("date and time(\"2021-01-01T08:01:05\").hour") ==
+               %FeelEx.Value{value: 8, type: :number}
+
+      assert FeelEx.evaluate("@\"2021-01-01T08:01:05\".hour") ==
+               %FeelEx.Value{value: 8, type: :number}
     end
 
     test "access hour for datetime with offset id" do
-      assert false
+      assert FeelEx.evaluate("date and time(\"2021-01-01T08:01:05+01:00\").hour") ==
+               %FeelEx.Value{value: 8, type: :number}
+
+      assert FeelEx.evaluate("@\"2021-01-01T08:01:05+01:00\".hour") ==
+               %FeelEx.Value{value: 8, type: :number}
     end
 
-    test "access hour for datetime with offset zone id" do
-      assert false
+    test "access hour for datetime with zone id" do
+      assert FeelEx.evaluate("date and time(\"2021-01-01T08:01:05@Europe/Malta\").hour") ==
+               %FeelEx.Value{value: 8, type: :number}
+
+      assert FeelEx.evaluate("@\"2021-01-01T08:01:05@Europe/Malta\".hour") ==
+               %FeelEx.Value{value: 8, type: :number}
     end
 
     test "access minute for time" do
-      assert false
+      assert FeelEx.evaluate("time(\"08:01:05\").minute") ==
+               %FeelEx.Value{value: 1, type: :number}
+
+      assert FeelEx.evaluate("@\"08:01:05\".minute") ==
+               %FeelEx.Value{value: 1, type: :number}
     end
 
     test "access minute for time with offset id" do
-      assert false
+      assert FeelEx.evaluate("time(\"08:01:05+01:00\").minute") ==
+               %FeelEx.Value{value: 1, type: :number}
+
+      assert FeelEx.evaluate("@\"08:01:05+01:00\".minute") ==
+               %FeelEx.Value{value: 1, type: :number}
     end
 
     test "access minute for time with offset zone id" do
-      assert false
+      assert FeelEx.evaluate("time(\"08:01:05@Europe/Malta\").minute") ==
+               %FeelEx.Value{value: 1, type: :number}
+
+      assert FeelEx.evaluate("@\"08:01:05@Europe/Malta\".minute") ==
+               %FeelEx.Value{value: 1, type: :number}
     end
 
     test "access minute for datetime" do
-      assert false
+      assert FeelEx.evaluate("date and time(\"2021-01-01T08:01:05\").minute") ==
+               %FeelEx.Value{value: 1, type: :number}
+
+      assert FeelEx.evaluate("@\"2021-01-01T08:01:05\".minute") ==
+               %FeelEx.Value{value: 1, type: :number}
     end
 
     test "access minute for datetime with offset id" do
-      assert false
+      assert FeelEx.evaluate("date and time(\"2021-01-01T08:01:05+01:00\").minute") ==
+               %FeelEx.Value{value: 1, type: :number}
+
+      assert FeelEx.evaluate("@\"2021-01-01T08:01:05+01:00\".minute") ==
+               %FeelEx.Value{value: 1, type: :number}
     end
 
-    test "access minute for datetime with offset zone id" do
-      assert false
+    test "access minute for datetime with zone id" do
+      assert FeelEx.evaluate("date and time(\"2021-01-01T08:01:05@Europe/Malta\").minute") ==
+               %FeelEx.Value{value: 1, type: :number}
+
+      assert FeelEx.evaluate("@\"2021-01-01T08:01:05@Europe/Malta\".minute") ==
+               %FeelEx.Value{value: 1, type: :number}
     end
 
     test "access second for time" do
-      assert false
+      assert FeelEx.evaluate("time(\"08:01:05\").second") ==
+               %FeelEx.Value{value: 5, type: :number}
+
+      assert FeelEx.evaluate("@\"08:01:05\".second") ==
+               %FeelEx.Value{value: 5, type: :number}
     end
 
     test "access second for time with offset id" do
-      assert false
+      assert FeelEx.evaluate("time(\"08:01:05+01:00\").second") ==
+               %FeelEx.Value{value: 5, type: :number}
+
+      assert FeelEx.evaluate("@\"08:01:05+01:00\".second") ==
+               %FeelEx.Value{value: 5, type: :number}
     end
 
-    test "access second for time with offset zone id" do
-      assert false
+    test "access second for time with zone id" do
+      assert FeelEx.evaluate("time(\"08:01:05@Europe/Malta\").second") ==
+               %FeelEx.Value{value: 5, type: :number}
+
+      assert FeelEx.evaluate("@\"08:01:05@Europe/Malta\".second") ==
+               %FeelEx.Value{value: 5, type: :number}
     end
 
     test "access second for datetime" do
-      assert false
+      assert FeelEx.evaluate("date and time(\"2021-01-01T08:01:05\").second") ==
+               %FeelEx.Value{value: 5, type: :number}
+
+      assert FeelEx.evaluate("@\"2021-01-01T08:01:05\".second") ==
+               %FeelEx.Value{value: 5, type: :number}
     end
 
     test "access second for datetime with offset id" do
-      assert false
+      assert FeelEx.evaluate("date and time(\"2021-01-01T08:01:05+01:00\").second") ==
+               %FeelEx.Value{value: 5, type: :number}
+
+      assert FeelEx.evaluate("@\"2021-01-01T08:01:05+01:00\".second") ==
+               %FeelEx.Value{value: 5, type: :number}
     end
 
     test "access second for datetime with offset zone id" do
-      assert false
+      assert FeelEx.evaluate("date and time(\"2021-01-01T08:01:05@Europe/Malta\").second") ==
+               %FeelEx.Value{value: 5, type: :number}
+
+      assert FeelEx.evaluate("@\"2021-01-01T08:01:05@Europe/Malta\".second") ==
+               %FeelEx.Value{value: 5, type: :number}
     end
 
     test "access time offset for time" do
@@ -513,51 +618,108 @@ defmodule FeelEx.TemporalExpressionTest do
     end
 
     test "access timezone for time" do
-      assert false
+      assert FeelEx.evaluate("time(\"08:01:05\").timezone") ==
+               %FeelEx.Value{value: nil, type: :null}
+
+      assert FeelEx.evaluate("@\"08:01:05\".timezone") ==
+               %FeelEx.Value{value: nil, type: :null}
     end
 
     test "access timezone for time with offset id" do
-      assert false
+      assert FeelEx.evaluate("\"08:01:05+01:00\".timezone") ==
+               %FeelEx.Value{value: nil, type: :null}
+
+      assert FeelEx.evaluate("\"08:01:05+01:00\".timezone") ==
+               %FeelEx.Value{value: nil, type: :null}
     end
 
     test "access timezone for time with offset zone id" do
-      assert false
+      assert FeelEx.evaluate("time(\"08:01:05@Europe/Malta\").timezone") ==
+               %FeelEx.Value{value: "Europe/Malta", type: :string}
+
+      assert FeelEx.evaluate("@\"08:01:05@Europe/Malta\".timezone") ==
+               %FeelEx.Value{value: "Europe/Malta", type: :string}
     end
 
     test "access timezone for datetime" do
-      assert false
+      assert FeelEx.evaluate("date and time(\"2021-01-01T08:01:05\").timezone") == %FeelEx.Value{
+               value: nil,
+               type: :null
+             }
+
+      assert FeelEx.evaluate("@\"2021-01-01T08:01:05\".timezone") == %FeelEx.Value{
+               value: nil,
+               type: :null
+             }
     end
 
     test "access timezone for datetime with offset id" do
-      assert false
+      assert FeelEx.evaluate("date and time(\"2021-01-01T08:01:05+01:00\").timezone") ==
+               %FeelEx.Value{
+                 value: nil,
+                 type: :null
+               }
+
+      assert FeelEx.evaluate("@\"2021-01-01T08:01:05+01:00\".timezone") == %FeelEx.Value{
+               value: nil,
+               type: :null
+             }
     end
 
     test "access timezone for datetime with offset zone id" do
-      assert false
+      assert FeelEx.evaluate("date and time(\"2021-01-01T08:01:05@Europe/Malta\").timezone") ==
+               %FeelEx.Value{value: "Europe/Malta", type: :string}
+
+      assert FeelEx.evaluate("@\"2021-01-01T08:01:05@Europe/Malta\".timezone") ==
+               %FeelEx.Value{value: "Europe/Malta", type: :string}
     end
 
     test "access  days for days-time-duration" do
-      assert false
+      assert FeelEx.evaluate("@\"PT24H\".days") ==
+               %FeelEx.Value{value: 1, type: :number}
+
+      assert FeelEx.evaluate("@\"P2DT-24H\".days") ==
+               %FeelEx.Value{value: 1, type: :number}
+
+      assert FeelEx.evaluate("@\"P3DT-24H\".days") ==
+               %FeelEx.Value{value: 2, type: :number}
+
+      assert FeelEx.evaluate("@\"P3DT24H\".days") ==
+               %FeelEx.Value{value: 4, type: :number}
+
+      assert FeelEx.evaluate("@\"P3DT24H1440M\".days") ==
+               %FeelEx.Value{value: 5, type: :number}
+
+      assert FeelEx.evaluate("@\"P3DT24H1441M\".days") ==
+               %FeelEx.Value{value: 5, type: :number}
+
+      assert FeelEx.evaluate("@\"P3DT48H1441M\".days") ==
+               %FeelEx.Value{value: 6, type: :number}
     end
 
     test "access  hours for days-time-duration" do
-      assert false
+      assert FeelEx.evaluate("@\"PT25H\".hours") ==
+               %FeelEx.Value{value: 1, type: :number}
     end
 
     test "access  minutes for days-time-duration" do
-      assert false
+      assert FeelEx.evaluate("@\"PT25H63M\".minutes") ==
+               %FeelEx.Value{value: 3, type: :number}
     end
 
-    test "access  seconds for days-time-duration" do
-      assert false
+    test "access seconds for days-time-duration" do
+      assert FeelEx.evaluate("@\"PT25H63M119S\".seconds") ==
+               %FeelEx.Value{value: 59, type: :number}
     end
 
-    test "access  years for years-months-duration" do
-      assert false
+    test "access years for years-months-duration" do
+      assert FeelEx.evaluate("@\"P1Y13M\".years") ==
+               %FeelEx.Value{value: 2, type: :number}
     end
 
-    test "access  months for years-months-duration" do
-      assert false
+    test "access months for years-months-duration" do
+      assert FeelEx.evaluate("@\"P1Y13M\".months") ==
+               %FeelEx.Value{value: 1, type: :number}
     end
   end
 end
