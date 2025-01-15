@@ -166,6 +166,32 @@ defmodule FeelEx.Parser do
   defp do_parse_expression(
          [
            %Token{type: :name, value: _} = name1,
+           %Token{type: :name, value: _} = name2,
+           %Token{type: :left_parenthesis, value: "("} = lp | remaining_tokens
+         ],
+         _precedence
+       ) do
+    {brackets, remaining_tokens} = Helper.get_parenthesis([lp | remaining_tokens])
+    [_hd | brackets] = brackets
+    expression = brackets |> Enum.reverse() |> tl() |> Enum.reverse()
+
+    expression_list =
+      ([%Token{type: :left_square_bracket}] ++
+         expression ++ [%Token{type: :right_square_bracket}])
+      |> Helper.get_list_values()
+      |> Enum.map(fn tokens -> do_parse_expression(tokens, -1) end)
+
+    name1 = do_parse_expression(name1, -1)
+    name2 = do_parse_expression(name2, -1)
+
+    function = {Expression.new(:function, [name1, name2], expression_list), []}
+
+    do_parse_expression(function, remaining_tokens, -1)
+  end
+
+  defp do_parse_expression(
+         [
+           %Token{type: :name, value: _} = name1,
            %Token{type: type, value: _} = name2,
            %Token{type: :name, value: _} = name3,
            %Token{type: :left_parenthesis, value: "("} = lp | remaining_tokens

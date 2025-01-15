@@ -1,4 +1,5 @@
 defmodule FeelEx.FunctionDefinitions do
+  @moduledoc false
   alias FeelEx.FunctionDefinitions.{Numeric, String, Temporal}
   alias FeelEx.Value
 
@@ -6,8 +7,28 @@ defmodule FeelEx.FunctionDefinitions do
     Numeric.floor(%Value{value: number, type: :number})
   end
 
+  def floor(%Value{value: n1, type: :number}, %Value{value: n2, type: :number}) do
+    Numeric.floor(%Value{value: n1, type: :number}, %Value{value: n2, type: :number})
+  end
+
   def ceiling(%Value{value: number, type: :number}) do
     Numeric.ceiling(%Value{value: number, type: :number})
+  end
+
+  def ceiling(%Value{value: n1, type: :number}, %Value{value: n2, type: :number}) do
+    Numeric.ceiling(%Value{value: n1, type: :number}, %Value{value: n2, type: :number})
+  end
+
+  def round_half_up(%Value{value: n1, type: :number}, %Value{value: n2, type: :number}) do
+    Numeric.round_half_up(%Value{value: n1, type: :number}, %Value{value: n2, type: :number})
+  end
+
+  def round_up(%Value{value: n1, type: :number}, %Value{value: n2, type: :number}) do
+    Numeric.round_up(%Value{value: n1, type: :number}, %Value{value: n2, type: :number})
+  end
+
+  def round_down(%Value{value: n1, type: :number}, %Value{value: n2, type: :number}) do
+    Numeric.round_down(%Value{value: n1, type: :number}, %Value{value: n2, type: :number})
   end
 
   def decimal(%Value{value: number, type: :number}, %Value{

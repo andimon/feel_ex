@@ -620,6 +620,91 @@ iex(4)> FeelEx.evaluate(program2)
 
 Take a look at these tests: https://github.com/ExSemantic/feel_ex/blob/master/test/expression_tests/context_test.exs  for more examples.
 
+
+# Functions
+
+## Numerical Functions
+
+#### Decimal
+```elixir
+iex(1)> FeelEx.evaluate("1/3")
+%FeelEx.Value{value: 0.3333333333333333, type: :number}
+iex(2)> FeelEx.evaluate("decimal(1/3,2)")
+%FeelEx.Value{value: 0.33, type: :number}
+```
+### floor
+
+```elixir
+iex(1)> FeelEx.evaluate("floor(1)")
+%FeelEx.Value{value: 1, type: :number}
+```
+### floor with scale
+
+```elixir
+iex(1)> FeelEx.evaluate("floor(1.56,1)")
+%FeelEx.Value{value: 1.5, type: :number}
+```
+
+### ceiling
+
+```elixir
+iex(1)> FeelEx.evaluate("ceiling(1.54)")
+%FeelEx.Value{value: 2, type: :number}
+```
+### ceiling with scale
+
+```elixir
+iex(1)> FeelEx.evaluate("ceiling(1.5432,2)")
+%FeelEx.Value{value: 1.55, type: :number}
+```
+
+### round up 
+Rounds to given scale.
+```elixir
+iex(1)> FeelEx.evaluate("round up(1.123,3)")
+%FeelEx.Value{value: 1.123, type: :number}
+iex(2)> FeelEx.evaluate("round up(1.1234,3)")
+%FeelEx.Value{value: 1.124, type: :number}
+iex(3)> FeelEx.evaluate("round up(-1.1234,3)")
+%FeelEx.Value{value: -1.124, type: :number}
+iex(4)> FeelEx.evaluate("round up(-1.1234,1)")
+%FeelEx.Value{value: -1.2, type: :number}
+iex(5)> FeelEx.evaluate("round up(-1.121,2)")
+%FeelEx.Value{value: -1.13, type: :number}
+```
+
+### round down
+```elixir
+iex(1)> FeelEx.evaluate("round down(-5.5,0)")
+%FeelEx.Value{value: -5, type: :number}
+iex(2)> FeelEx.evaluate("round down(-5.5,1)")
+%FeelEx.Value{value: -5.5, type: :number}
+iex(3)> FeelEx.evaluate("round down(1.121,2)")
+%FeelEx.Value{value: 1.12, type: :number}
+iex(4)> FeelEx.evaluate("round down(-1.126,2)")
+%FeelEx.Value{value: -1.12, type: :number}
+```
+
+### round half up 
+```elixir
+iex(1)> FeelEx.evaluate("round half up(1.126,2)")
+%FeelEx.Value{value: 1.13, type: :number}
+iex(2)> FeelEx.evaluate("round half up(1.125,2)")
+%FeelEx.Value{value: 1.13, type: :number}
+iex(3)> FeelEx.evaluate("round half up(1.124,2)")
+%FeelEx.Value{value: 1.12, type: :number}
+iex(4)> FeelEx.evaluate("round half up(1.124,0)")
+%FeelEx.Value{value: 1.0, type: :number}
+iex(5)> FeelEx.evaluate("round half up(1.124,0)")
+%FeelEx.Value{value: 1.0, type: :number}
+iex(6)> recompile
+iex(7)> FeelEx.evaluate("round half up(1.124,0)")
+%FeelEx.Value{value: 1, type: :number}
+iex(8)> FeelEx.evaluate("round half up(-1.124,2)")
+%FeelEx.Value{value: -1.12, type: :number}
+iex(9)> FeelEx.evaluate("round half up(-1.125,2)")
+%FeelEx.Value{value: -1.13, type: :number}
+```
 # Temporal Expressions
 ## Addition
 ### `<date>+<duration>=<duration>`
@@ -842,6 +927,8 @@ iex(1)> FeelEx.evaluate("duration(\"P1Y\") / duration(\"P2M\")")
 iex(1)> FeelEx.evaluate("duration(\"P1Y\") / 12")
 %FeelEx.Value{value: %Duration{month: 1}, type: :years_months_duration}
 ```
+
+
 ## Temporal Properties
 
 ### Accessing `year` 

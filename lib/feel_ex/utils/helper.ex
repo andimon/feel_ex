@@ -3,6 +3,114 @@ defmodule FeelEx.Helper do
   alias FeelEx.Value
   alias FeelEx.Token
 
+  def round_up(n, _) when is_integer(n), do: n
+
+  def round_up(n, d) when n >= 0 do
+    dp = decimal_part(n)
+
+    if is_nil(String.at(dp, d)) do
+      tn = trunc(n)
+      if n - tn == 0, do: tn, else: n
+    else
+      n = Float.ceil(n, d)
+      tn = trunc(n)
+      if n - tn == 0, do: tn, else: n
+    end
+  end
+
+  def round_up(n, d) when n < 0 do
+    -1 * round_up(-1 * n, d)
+  end
+
+  def round_down(n, _) when is_integer(n), do: n
+
+  def round_down(n, d) when n >= 0 do
+    dp = decimal_part(n)
+
+    if is_nil(String.at(dp, d)) do
+      tn = trunc(n)
+      if n - tn == 0, do: tn, else: n
+    else
+      n = Float.floor(n, d)
+      tn = trunc(n)
+      if n - tn == 0, do: tn, else: n
+    end
+  end
+
+  def round_down(n, d) when n < 0 do
+    -1 * round_down(-1 * n, d)
+  end
+
+  def round_half_up(n, _) when is_integer(n), do: n
+
+  def round_half_up(n, d) when n >= 0 do
+    dp = decimal_part(n)
+    x = String.at(dp, d)
+
+    cond do
+      is_nil(x) ->
+        tn = trunc(n)
+        if n - tn == 0, do: tn, else: n
+
+      String.to_integer(x) in 1..4 ->
+        round_down(n, d)
+
+      String.to_integer(x) in 5..9 ->
+        round_up(n, d)
+    end
+  end
+
+  def round_half_up(n, d) when n < 0 do
+    -1 * round_half_up(-1 * n, d)
+  end
+
+  def round_half_down(n, _) when is_integer(n), do: n
+
+  def round_half_down(n, d) when n >= 0 do
+    dp = decimal_part(n)
+    x = String.at(dp, d)
+
+    cond do
+      is_nil(x) ->
+        tn = trunc(n)
+        if n - tn == 0, do: tn, else: n
+
+      String.to_integer(x) in 1..5 ->
+        round_down(n, d)
+
+      String.to_integer(x) in 6..9 ->
+        round_up(n, d)
+    end
+  end
+
+  def round_half_down(n, d) when n < 0 do
+    -1 * round_half_down(-1 * n, d)
+  end
+
+  def decimal_part(number) when is_integer(number), do: ""
+
+  def decimal_part(number) do
+    [_integer_part, decimal_part] =
+      number
+      |> Float.to_string()
+      |> String.split(".")
+
+    decimal_part
+  end
+
+  def count_decimal_places(number) when is_integer(number), do: 0
+
+  def count_decimal_places(number) do
+    number
+    |> Float.to_string()
+    |> String.split(".")
+    |> case do
+      [_integer_part, decimal_part] -> String.length(decimal_part)
+      # If no decimal part, return 0
+      _ -> 0
+    end
+  end
+
   def transform_context(context) when is_map(context) do
     Enum.map(context, fn {k, v} ->
       {k, do_transform_context_value(v)}

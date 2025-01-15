@@ -7,7 +7,8 @@ defmodule FeelEx do
   alias FeelEx.{Helper, Lexer, Parser, Expression}
 
   @doc """
-  Evaluates an expression against a context.
+  Evaluates an expression against a context. See https://github.com/ExSemantic/feel_ex/blob/master/README.md
+  to see more examples in detail.
 
   ## Examples
 
