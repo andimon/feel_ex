@@ -27,7 +27,9 @@ defmodule FeelEx.Lexer do
     :state_18,
     :state_19,
     :state_20,
-    :state_21
+    :state_21,
+    :state_22,
+    :state_23
   ]
   @final_states [
     :state_1,
@@ -49,64 +51,151 @@ defmodule FeelEx.Lexer do
   ]
   @states_excluding_error_state @states -- [@error_state]
   @transition_table %{
-    dot: [state_0: :state_3, state_3: :state_20, state_1: :state_21, state_5: :state_5],
+    dot: [
+      state_0: :state_3,
+      state_3: :state_20,
+      state_1: :state_21,
+      state_5: :state_5,
+      state_13: :state_13,
+      state_22: :state_13,
+      state_23: :state_13
+    ],
     digit: [
       state_0: :state_1,
       state_1: :state_1,
       state_21: :state_2,
       state_2: :state_2,
       state_3: :state_2,
-      state_13: :state_13
+      state_13: :state_13,
+      state_22: :state_13,
+      state_23: :state_13
+    ],
+    back_slash: [
+      state_22: :state_22,
+      state_13: :state_22
     ],
     forward_slash: [
       state_0: :state_4,
       state_4: :state_5,
       state_5: :state_5,
       state_8: :state_9,
-      state_13: :state_13
+      state_13: :state_13,
+      state_22: :state_13,
+      state_23: :state_13
     ],
-    line_feed: [state_5: :state_6],
+    line_feed: [state_5: :state_6, state_13: :state_13, state_22: :state_13, state_23: :state_13],
     asterisk: [
       state_0: :state_12,
       state_4: :state_7,
       state_5: :state_5,
       state_7: :state_8,
       state_8: :state_8,
-      state_12: :state_19
+      state_12: :state_19,
+      state_13: :state_13,
+      state_22: :state_13,
+      state_23: :state_13
     ],
-    question_mark: [state_5: :state_5],
+    question_mark: [
+      state_5: :state_5,
+      state_13: :state_13,
+      state_22: :state_13,
+      state_23: :state_13
+    ],
     capital_a_to_z: [
       state_5: :state_5,
       state_10: :state_11,
       state_11: :state_11,
-      state_13: :state_13
+      state_13: :state_13,
+      state_22: :state_13,
+      state_23: :state_13
     ],
-    underscore: [state_5: :state_5, state_11: :state_11],
+    underscore: [state_5: :state_5, state_11: :state_11, state_22: :state_13, state_23: :state_13],
     small_a_to_z: [
       state_0: :state_10,
       state_5: :state_5,
       state_7: :state_7,
       state_10: :state_11,
       state_11: :state_11,
-      state_13: :state_13
+      state_13: :state_13,
+      state_22: :state_13,
+      state_23: :state_13
     ],
-    space: [state_5: :state_5, state_7: :state_7, state_8: :state_7, state_13: :state_13],
-    plus: [state_0: :state_12, state_13: :state_13],
-    at: [state_0: :state_12, state_13: :state_13],
-    opening_brace: [state_0: :state_12],
-    colon: [state_0: :state_12, state_13: :state_13],
-    closing_brace: [state_0: :state_12],
-    minus: [state_0: :state_12, state_13: :state_13],
-    quote: [state_0: :state_13, state_13: :state_14],
-    less_than: [state_0: :state_15],
-    greater_than: [state_0: :state_15],
-    exclamation: [state_0: :state_15],
-    equal: [state_0: :state_17, state_15: :state_16],
-    left_parenthesis: [state_0: :state_18],
-    right_parenthesis: [state_0: :state_18],
-    left_square_bracket: [state_0: :state_18],
-    right_square_bracket: [state_0: :state_18],
-    comma: [state_0: :state_18]
+    space: [
+      state_5: :state_5,
+      state_7: :state_7,
+      state_8: :state_7,
+      state_13: :state_13,
+      state_22: :state_13,
+      state_23: :state_13,
+      state_22: :state_13,
+      state_23: :state_13
+    ],
+    plus: [state_0: :state_12, state_13: :state_13, state_22: :state_13, state_23: :state_13],
+    at: [state_0: :state_12, state_13: :state_13, state_22: :state_13, state_23: :state_13],
+    opening_brace: [
+      state_0: :state_12,
+      state_13: :state_13,
+      state_22: :state_13,
+      state_23: :state_13
+    ],
+    colon: [state_0: :state_12, state_13: :state_13, state_22: :state_13, state_23: :state_13],
+    closing_brace: [
+      state_0: :state_12,
+      state_13: :state_13,
+      state_22: :state_13,
+      state_23: :state_13
+    ],
+    minus: [state_0: :state_12, state_13: :state_13, state_22: :state_13, state_23: :state_13],
+    quote: [
+      state_0: :state_13,
+      state_13: :state_14,
+      state_22: :state_23
+    ],
+    less_than: [state_0: :state_15, state_13: :state_13, state_22: :state_13, state_23: :state_13],
+    greater_than: [
+      state_0: :state_15,
+      state_13: :state_13,
+      state_22: :state_13,
+      state_23: :state_13
+    ],
+    exclamation: [
+      state_0: :state_15,
+      state_13: :state_13,
+      state_22: :state_13,
+      state_23: :state_13
+    ],
+    equal: [
+      state_0: :state_17,
+      state_15: :state_16,
+      state_13: :state_13,
+      state_22: :state_13,
+      state_23: :state_13
+    ],
+    left_parenthesis: [
+      state_0: :state_18,
+      state_13: :state_13,
+      state_22: :state_13,
+      state_23: :state_13
+    ],
+    right_parenthesis: [
+      state_0: :state_18,
+      state_13: :state_13,
+      state_22: :state_13,
+      state_23: :state_13
+    ],
+    left_square_bracket: [
+      state_0: :state_18,
+      state_13: :state_13,
+      state_22: :state_13,
+      state_23: :state_13
+    ],
+    right_square_bracket: [
+      state_0: :state_18,
+      state_13: :state_13,
+      state_22: :state_13,
+      state_23: :state_13
+    ],
+    comma: [state_0: :state_18, state_13: :state_13, state_22: :state_13, state_23: :state_13]
   }
 
   def tokens(program) do
@@ -352,6 +441,7 @@ defmodule FeelEx.Lexer do
       x == 64 -> :at
       x in 65..90 -> :capital_a_to_z
       x == 91 -> :left_square_bracket
+      x == 92 -> :back_slash
       x == 93 -> :right_square_bracket
       x == 95 -> :underscore
       x in 97..122 -> :small_a_to_z
