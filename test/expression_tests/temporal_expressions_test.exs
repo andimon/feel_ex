@@ -288,7 +288,7 @@ defmodule FeelEx.TemporalExpressionTest do
 
   describe "duration/number= duration" do
     test "duration(\"P5D\") / 5" do
-      assert FeelEx.evaluate("duration(\"P5D\")") == %FeelEx.Value{
+      assert FeelEx.evaluate("duration(\"P5D\")/5") == %FeelEx.Value{
                value: %Duration{day: 1},
                type: :days_time_duration
              }
@@ -373,7 +373,7 @@ defmodule FeelEx.TemporalExpressionTest do
       assert FeelEx.evaluate("date and time(\"2021-05-01T08:01:05+01:00\").month") ==
                %FeelEx.Value{value: 5, type: :number}
 
-      assert FeelEx.evaluate("@\"2021-01-01T08:05:05+01:00\".month") ==
+      assert FeelEx.evaluate("@\"2021-05-01T08:05:05+01:00\".month") ==
                %FeelEx.Value{value: 5, type: :number}
     end
 
@@ -381,7 +381,7 @@ defmodule FeelEx.TemporalExpressionTest do
       assert FeelEx.evaluate("date and time(\"2021-05-01T08:01:05@Europe/Malta\").month") ==
                %FeelEx.Value{value: 5, type: :number}
 
-      assert FeelEx.evaluate("@\"2021-01-01T08:05:05@Europe/Malta\".month") ==
+      assert FeelEx.evaluate("@\"2021-05-01T08:05:05@Europe/Malta\".month") ==
                %FeelEx.Value{value: 5, type: :number}
     end
 
@@ -594,27 +594,63 @@ defmodule FeelEx.TemporalExpressionTest do
     end
 
     test "access time offset for time" do
-      assert false
+      assert FeelEx.evaluate("@\"08:01:05\".time offset") == %FeelEx.Value{
+               value: nil,
+               type: :null
+             }
+
+      assert FeelEx.evaluate("time(\"08:01:05\").time offset") == %FeelEx.Value{
+               value: nil,
+               type: :null
+             }
     end
 
     test "access time offset for time with offset id" do
-      assert false
+      assert FeelEx.evaluate("@\"08:01:05+01:32\".time offset") == %FeelEx.Value{
+               value: %Duration{hour: 1, minute: 32},
+               type: :days_time_duration
+             }
+
+      assert FeelEx.evaluate("time(\"08:01:05-02:21\").time offset") == %FeelEx.Value{
+               value: %Duration{hour: -2, minute: -21},
+               type: :days_time_duration
+             }
     end
 
     test "access time offset for time with offset zone id" do
-      assert false
+      assert FeelEx.evaluate("@\"08:01:05@Europe/Malta\".time offset") == %FeelEx.Value{
+               value: %Duration{hour: 1},
+               type: :days_time_duration
+             }
+
+      assert FeelEx.evaluate("time(\"08:01:05@Europe/Malta\").time offset") == %FeelEx.Value{
+               value: %Duration{hour: 1},
+               type: :days_time_duration
+             }
     end
 
     test "access time offset for datetime" do
-      assert false
+      assert FeelEx.evaluate("@\"2021-01-03T08:01:05\".time offset") ==
+               %FeelEx.Value{value: nil, type: :null}
+
+      assert FeelEx.evaluate("date and time(\"2021-01-03T08:01:05\").time offset") ==
+               %FeelEx.Value{value: nil, type: :null}
     end
 
     test "access time offset for datetime with offset id" do
-      assert false
+      assert FeelEx.evaluate("@\"2021-01-03T08:01:05+01:02\".time offset") ==
+               %FeelEx.Value{value: %Duration{hour: 1, minute: 2}, type: :days_time_duration}
+
+      assert FeelEx.evaluate("date and time(\"2021-01-03T08:01:05-02:01\").time offset") ==
+               %FeelEx.Value{value: %Duration{hour: -2, minute: -1}, type: :days_time_duration}
     end
 
     test "access time offset for datetime with offset zone id" do
-      assert false
+      assert FeelEx.evaluate("@\"2021-01-03T08:01:05@Europe/Malta\".time offset") ==
+               %FeelEx.Value{value: %Duration{hour: 1}, type: :days_time_duration}
+
+      assert FeelEx.evaluate("date and time(\"2021-01-03T08:01:05@Europe/Malta\").time offset") ==
+               %FeelEx.Value{value: %Duration{hour: 1}, type: :days_time_duration}
     end
 
     test "access timezone for time" do

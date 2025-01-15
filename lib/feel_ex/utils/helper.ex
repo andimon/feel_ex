@@ -2,6 +2,18 @@ defmodule FeelEx.Helper do
   @moduledoc false
   alias FeelEx.Token
 
+  def offset_to_duration("+" <> time) do
+    hours = String.to_integer(String.slice(time, 0, 2))
+    minutes = String.to_integer(String.slice(time, 3, 2))
+    %Duration{hour: hours, minute: minutes}
+  end
+
+  def offset_to_duration("-" <> time) do
+    hours = String.to_integer(String.slice(time, 0, 2))
+    minutes = String.to_integer(String.slice(time, 3, 2))
+    %Duration{hour: -hours, minute: -minutes}
+  end
+
   def normalise(days, hours, minutes, seconds) do
     days_in_hours = div(hours, 24)
     hours = rem(hours, 24)

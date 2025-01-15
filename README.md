@@ -801,7 +801,47 @@ iex(1)> FeelEx.evaluate("duration(\"P1Y\") - duration(\"P3M\")")
 iex(2)> FeelEx.evaluate("duration(\"P3Y1M\") - duration(\"P1Y12M\")")
 %FeelEx.Value{value: %Duration{year: 1, month: 1}, type: :years_months_duration}
 ```
-
+## Multiplication 
+### `<number>*<days_time_duration>=<days_time_duration>`
+```elixir
+iex(1)> FeelEx.evaluate("5*duration(\"P1D\")")
+%FeelEx.Value{value: %Duration{day: 5}, type: :days_time_duration}
+```
+### `<days_time_duration>*<number>=<days_time_duration>`
+```elixir
+iex(1)> FeelEx.evaluate("duration(\"P1D\") * 5")
+%FeelEx.Value{value: %Duration{day: 5}, type: :days_time_duration}
+```
+### `<number>*<years_months_duration>=<years_months_duration>
+```elixir
+iex(1)> FeelEx.evaluate("13 * duration(\"P1M\")")
+%FeelEx.Value{value: %Duration{year: 1, month: 1}, type: :years_months_duration}
+```
+### `<years_months_duration>*<number>=<years_months_duration>`
+```elixir
+iex(15)> FeelEx.evaluate("duration(\"P1M\") * 13")
+%FeelEx.Value{value: %Duration{year: 1, month: 1}, type: :years_months_duration}
+```
+## Division
+### `<days-time-duration>/<days-time-duration>=<number>`
+```elixir
+iex(1)> FeelEx.evaluate("duration(\"P5D\") / duration(\"P1D\")")
+%FeelEx.Value{value: 5, type: :number}
+```
+### `<days-time-duration>/<number>=<days-time-duration>`
+```elixir
+FeelEx.evaluate("duration(\"P5D\")/5")
+```
+### `<years-months-duration>/<years-months-duration>=<number>`
+```elixir
+iex(1)> FeelEx.evaluate("duration(\"P1Y\") / duration(\"P2M\")")
+%FeelEx.Value{value: 6, type: :number}
+```
+### `<years-months-duration>/<number>=<years-months-duration>`
+```elixir
+iex(1)> FeelEx.evaluate("duration(\"P1Y\") / 12")
+%FeelEx.Value{value: %Duration{month: 1}, type: :years_months_duration}
+```
 ## Temporal Properties
 
 ### Accessing `year` 
@@ -966,7 +1006,26 @@ iex(12)> FeelEx.evaluate("@\"2021-01-01T08:01:05@Europe/Malta\".second")
 ```
 ### Accessing time offset
 ```elixir
-
+iex(1)> FeelEx.evaluate("@\"08:01:05+01:32\".time offset")
+%FeelEx.Value{value: %Duration{hour: 1, minute: 32}, type: :days_time_duration}
+iex(2)> FeelEx.evaluate("time(\"08:01:05-02:21\").time offset")
+%FeelEx.Value{value: %Duration{hour: -2, minute: -21}
+iex(3)> FeelEx.evaluate("time(\"08:01:05-01@Europe/Malta\").time offset")
+%FeelEx.Value{value: %Duration{hour: 1}, type: :days_time_duration}
+iex(4)> FeelEx.evaluate("@\"08:01:05@Europe/Malta\".time offset")
+%FeelEx.Value{value: %Duration{hour: 1}, type: :days_time_duration}
+iex(5)> FeelEx.evaluate("@\"2021-01-03T08:01:05+01:02\".time offset")
+%FeelEx.Value{value: %Duration{hour: 1, minute: 2}, type: :days_time_duration}
+iex(6)> FeelEx.evaluate("date and time(\"2021-01-03T08:01:05-02:01\").time offset")
+%FeelEx.Value{value: %Duration{hour: -2, minute: -1}, type: :days_time_duration}
+iex(7)> FeelEx.evaluate("@\"2021-01-03T08:01:05+01:02\".time offset")
+%FeelEx.Value{value: %Duration{hour: 1, minute: 2}, type: :days_time_duration}
+iex(8)> FeelEx.evaluate("date and time(\"2021-01-03T08:01:05-02:01\").time offset")
+%FeelEx.Value{value: %Duration{hour: -2, minute: -1}, type: :days_time_duration}
+iex(9)> FeelEx.evaluate("@\"2021-01-03T08:01:05@Europe/Malta\".time offset")
+%FeelEx.Value{value: %Duration{hour: 1}, type: :days_time_duration}
+iex(10)> FeelEx.evaluate("date and time(\"2021-01-03T08:01:05@Europe/Malta\").time offset")
+%FeelEx.Value{value: %Duration{hour: 1}, type: :days_time_duration}
 ```
 ### Accessing timezone
 ```elixir

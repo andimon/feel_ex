@@ -675,6 +675,52 @@ defmodule FeelEx.Expression do
   end
 
   defp do_multiply(
+         %FeelEx.Value{value: %Duration{} = d, type: :years_months_duration},
+         %FeelEx.Value{value: n, type: :number}
+       ) do
+    IO.puts("jesues")
+    {y, m} = {d.year * trunc(n), d.month * trunc(n)}
+
+    {y, m} =
+      Helper.normalise(y, m)
+      |> IO.inspect()
+
+    Value.new(Duration.new!(year: y, month: m))
+  end
+
+  defp do_multiply(
+         %FeelEx.Value{value: n, type: :number},
+         %FeelEx.Value{value: %Duration{} = d, type: :years_months_duration}
+       ) do
+    {y, m} = {d.year * trunc(n), d.month * trunc(n)}
+    {y, m} = Helper.normalise(y, m)
+    Value.new(Duration.new!(year: y, month: m))
+  end
+
+  defp do_multiply(
+         %FeelEx.Value{value: n, type: :number},
+         %FeelEx.Value{value: %Duration{} = d, type: :days_time_duration}
+       ) do
+    {day, hour, minute, second} =
+      {d.day * trunc(n), d.hour * trunc(n), d.second * trunc(n), d.second * trunc(n)}
+
+    {day, hour, minute, second} = Helper.normalise(day, hour, minute, second)
+
+    Value.new(Duration.new!(day: day, month: hour, minute: minute, second: second))
+  end
+
+  defp do_multiply(
+         %FeelEx.Value{value: %Duration{} = d, type: :days_time_duration},
+         %FeelEx.Value{value: n, type: :number}
+       ) do
+    {day, hour, minute, second} =
+      {d.day * trunc(n), d.hour * trunc(n), d.second * trunc(n), d.second * trunc(n)}
+
+    {day, hour, minute, second} = Helper.normalise(day, hour, minute, second)
+    Value.new(Duration.new!(day: day, month: hour, minute: minute, second: second))
+  end
+
+  defp do_multiply(
          %FeelEx.Value{value: val1, type: :number},
          %FeelEx.Value{value: val2, type: :number}
        ) do
@@ -850,8 +896,52 @@ defmodule FeelEx.Expression do
          value: val2,
          type: :days_time_duration
        }) do
+    Value.new(div(to_timeout(val1), to_timeout(val2)))
+  end
 
-    Value.new(to_timeout(val1) / to_timeout(val2))
+  defp do_divide(%Value{value: %Duration{} = d1, type: :years_months_duration}, %Value{
+         value: %Duration{} = d2,
+         type: :years_months_duration
+       }) do
+    m1 = d1.year * 12 + d1.month
+    m2 = d2.year * 12 + d2.month
+    Value.new(div(m1, m2))
+  end
+
+  defp do_divide(%Value{value: %Duration{} = d, type: :years_months_duration}, %Value{
+         value: n,
+         type: :number
+       }) do
+    months = div(d.year * 12 + d.month, trunc(n))
+    year = div(months, 12)
+    month = rem(months, 12)
+    Value.new(Duration.new!(year: year, month: month))
+  end
+
+  defp do_divide(%Value{value: %Duration{} = d, type: :days_time_duration}, %Value{
+         value: n,
+         type: :number
+       }) do
+    seconds = d.day * 86400 + d.hour * 3600 + d.minute * 60 + d.second
+    seconds = div(seconds, trunc(n))
+    days_in_seconds = div(seconds, 86400)
+    seconds = rem(seconds, 86400)
+
+    hour_in_seconds = div(seconds, 3600)
+    seconds = rem(seconds, 3600)
+
+    minutes_in_seconds = div(seconds, 60)
+    seconds = rem(seconds, 60)
+
+    Value.new(
+      Duration.new!(
+        day: days_in_seconds,
+        hour: hour_in_seconds,
+        minute: minutes_in_seconds,
+        day: days_in_seconds,
+        second: seconds
+      )
+    )
   end
 
   defp do_divide(%Value{value: val1, type: :number}, %Value{value: val2, type: :number}) do
@@ -1151,6 +1241,14 @@ defmodule FeelEx.Expression do
   defp do_access(name, {%Time{} = dt, _, _}, :time, _context)
        when name in [:hour, :minute, :second] do
     Value.new(Map.get(dt, name))
+  end
+
+  defp do_access(:"time offset", {_, to}, type, _context) when type in [:time, :date_time] do
+    Value.new(Helper.offset_to_duration(to))
+  end
+
+  defp do_access(:"time offset", {_, to, _}, type, _context) when type in [:time, :date_time] do
+    Value.new(Helper.offset_to_duration(to))
   end
 
   defp do_access(:timezone, {_, _, zoneid}, type, _context) when type in [:time, :date_time] do
