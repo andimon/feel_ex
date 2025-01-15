@@ -16,6 +16,7 @@ defmodule FeelEx do
 
   """
   def evaluate(context, expression) when is_map(context) and is_binary(expression) do
+    context = Helper.transform_context(context)
     tokens = Lexer.tokens(expression)
     tokens = Helper.filter_out_comments(tokens)
     expression = Parser.parse_expression(tokens)

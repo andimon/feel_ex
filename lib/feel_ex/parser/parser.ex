@@ -330,6 +330,22 @@ defmodule FeelEx.Parser do
 
   defp do_parse_expression(
          [
+           %Token{type: :name, value: lname},
+           %Token{type: :dot},
+           %Token{type: :name, value: name} | remaining_tokens
+         ],
+         min_prec
+       ) do
+    lname = String.to_atom(lname)
+    name = String.to_atom(name)
+
+    expression = {Expression.new(:access, name, lname), []}
+
+    do_parse_expression(expression, remaining_tokens, min_prec)
+  end
+
+  defp do_parse_expression(
+         [
            %Token{type: :name} = name_token,
            %Token{type: :left_square_bracket, value: "["} | remaining_tokens
          ],

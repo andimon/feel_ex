@@ -493,7 +493,14 @@ defmodule FeelEx.Expression do
         },
         context
       ) do
-    case evaluate(operand, context) do
+    operand =
+      if is_atom(operand) do
+        Value.new(context[operand])
+      else
+        evaluate(operand, context)
+      end
+
+    case operand do
       %Value{value: value, type: type} -> do_access(name, value, type, context)
       list when is_list(list) -> do_access(name, list, :list, context)
     end

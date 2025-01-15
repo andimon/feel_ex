@@ -1,6 +1,22 @@
 defmodule FeelEx.Helper do
   @moduledoc false
+  alias FeelEx.Value
   alias FeelEx.Token
+
+  def transform_context(context) when is_map(context) do
+    Enum.map(context, fn {k, v} ->
+      {k, do_transform_context_value(v)}
+    end)
+    |> Enum.into(%{})
+  end
+
+  defp do_transform_context_value(v) when is_map(v) do
+    transform_context(v)
+  end
+
+  defp do_transform_context_value(v) do
+    Value.new(v)
+  end
 
   def offset_to_duration("+" <> time) do
     hours = String.to_integer(String.slice(time, 0, 2))
