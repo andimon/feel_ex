@@ -2,7 +2,7 @@ defmodule FeelEx.Expression do
   @moduledoc false
   require Logger
 
-  alias FeelEx.{Helper, Value}
+  alias FeelEx.{Helper, Value, Functions}
 
   alias FeelEx.Expression.{
     Name,
@@ -573,7 +573,7 @@ defmodule FeelEx.Expression do
       end
 
     arguments = Enum.map(arguments, fn expression -> evaluate(expression, context) end)
-    apply(FeelEx.FunctionDefinitions, String.to_atom(name), arguments)
+    apply(Functions, String.to_atom(name), arguments)
   end
 
   def evaluate(
