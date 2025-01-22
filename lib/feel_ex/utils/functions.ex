@@ -1677,6 +1677,18 @@ defmodule FeelEx.Functions do
 
   @doc """
   Returns the median element of the given list of numbers.
+
+  ## Examples
+
+      iex> value = FeelEx.Value.new([6, 1, 2, 3])
+      [
+        %FeelEx.Value{value: 6, type: :number},
+        %FeelEx.Value{value: 1, type: :number},
+        %FeelEx.Value{value: 2, type: :number},
+        %FeelEx.Value{value: 3, type: :number}
+      ]
+      iex> FeelEx.Functions.median(value)
+      %FeelEx.Value{value: 2.5, type: :number}
   """
   def median(list) when is_list(list) do
     non_number = non_number(list)
@@ -1697,6 +1709,22 @@ defmodule FeelEx.Functions do
     end
   end
 
+  @doc """
+  Returns the standard deviation of the given list of numbers.
+
+  ## Examples
+
+
+  iex> value = FeelEx.Value.new([2, 4, 7, 5])
+  [
+    %FeelEx.Value{value: 2, type: :number},
+    %FeelEx.Value{value: 4, type: :number},
+    %FeelEx.Value{value: 7, type: :number},
+    %FeelEx.Value{value: 5, type: :number}
+  ]
+  iex> FeelEx.Functions.stddev(value)
+  %FeelEx.Value{value: 2.0816659994661326, type: :number}
+  """
   def stddev(list) when is_list(list) do
     non_number = non_number(list)
 
@@ -1716,28 +1744,250 @@ defmodule FeelEx.Functions do
     end
   end
 
+  @doc """
+  Returns the mode of the given list of numbers.
+
+  ## Examples
+
+      iex> value = FeelEx.Value.new([6, 1, 9, 6, 1])
+      [
+        %FeelEx.Value{value: 6, type: :number},
+        %FeelEx.Value{value: 1, type: :number},
+        %FeelEx.Value{value: 9, type: :number},
+        %FeelEx.Value{value: 6, type: :number},
+        %FeelEx.Value{value: 1, type: :number}
+      ]
+      iex> FeelEx.Functions.mode(value)
+      [%FeelEx.Value{value: 1, type: :number}, %FeelEx.Value{value: 6, type: :number}]
+  """
   def mode(list) when is_list(list) do
-    # TODO
+    non_number = non_number(list)
+
+    cond do
+      is_nil(non_number) ->
+        list
+        |> Enum.map(fn value -> Map.get(value, :value) end)
+        |> do_mode()
+        |> Value.new()
+
+      true ->
+        Logger.warning(
+          "Failed to invoke function 'product': expected number but found '#{inspect(non_number)}'"
+        )
+
+        Value.new(nil)
+    end
   end
 
+  @doc """
+  Expects a list of bollean values.
+  Returns true if all elements in a list are true, otherwise returns false.
+  If the given list is empty it returns true.
+
+  ## Examples
+
+      iex> value = FeelEx.Value.new([true,false])
+      [
+        %FeelEx.Value{value: true, type: :boolean},
+        %FeelEx.Value{value: false, type: :boolean}
+      ]
+      iex> FeelEx.Functions.all(value)
+      %FeelEx.Value{value: false, type: :boolean}
+      iex> value = FeelEx.Value.new([false,nil,true,false])
+      [
+        %FeelEx.Value{value: false, type: :boolean},
+        %FeelEx.Value{value: nil, type: :null},
+        %FeelEx.Value{value: true, type: :boolean},
+        %FeelEx.Value{value: false, type: :boolean}
+      ]
+      iex> FeelEx.Functions.all(value)
+      %FeelEx.Value{value: false, type: :boolean}
+  """
   def all(list) when is_list(list) do
-    # TODO
+    non_boolean = non_boolean(list)
+
+    cond do
+      hd(list).value == false ->
+        hd(list)
+
+      is_nil(non_boolean) ->
+        list
+        |> Enum.map(fn value -> Map.get(value, :value) end)
+        |> do_all()
+        |> Value.new()
+
+      true ->
+        Logger.warning(
+          "Failed to invoke function 'product': expected boolean but found '#{inspect(non_boolean)}'"
+        )
+
+        Value.new(nil)
+    end
   end
 
+  @doc """
+  Returns true if any element of the given list is true. Othewise return false.
+  If the given list is empty return false.
+
+  ## Examples
+
+      iex> value = FeelEx.Value.new([false,true])
+      [
+        %FeelEx.Value{value: false, type: :boolean},
+        %FeelEx.Value{value: true, type: :boolean}
+      ]
+      iex> FeelEx.Functions.any(value)
+      %FeelEx.Value{value: true, type: :boolean}
+  """
   def any(list) when is_list(list) do
-    # TODO
+    non_boolean = non_boolean(list)
+
+    cond do
+      list == [] ->
+        Value.new(false)
+
+      Enum.any?(list, fn x -> x.value == true end) ->
+        Value.new(true)
+
+      is_nil(non_boolean) ->
+        Value.new(false)
+
+      true ->
+        Logger.warning(
+          "Failed to invoke function 'product': expected boolean but found '#{inspect(non_boolean)}'"
+        )
+
+        Value.new(nil)
+    end
   end
 
+  @doc """
+  Returns a partial list of the given value starting at start position.
+  ## Examples
+      iex> value = FeelEx.Value.new([1,2,3])
+      [
+        %FeelEx.Value{value: 1, type: :number},
+        %FeelEx.Value{value: 2, type: :number},
+        %FeelEx.Value{value: 3, type: :number}
+      ]
+      iex> start_index = FeelEx.Value.new(2)
+      %FeelEx.Value{value: 2, type: :number}
+      iex> FeelEx.Functions.sublist(value,start_index)
+      [%FeelEx.Value{value: 2, type: :number}, %FeelEx.Value{value: 3, type: :number}]
+  """
   def sublist(list, %FeelEx.Value{value: start_position, type: :number}) do
+    cond do
+      start_position == 0 ->
+        Logger.warning(
+          "Failed to invoke function 'sublist': start position must be a non-zero number"
+        )
+
+      start_position > 0 ->
+        Enum.slice(list, (start_position - 1)..-1//1)
+
+      start_position < 0 ->
+        Enum.slice(list, start_position..-1//1)
+    end
   end
 
+  @doc """
+  Returns a partial list of the given value starting at start position. The maximum length of the sublist returned is max_length.
+
+  ## Examples
+
+      iex> value = FeelEx.Value.new([1,2,3])
+      [
+        %FeelEx.Value{value: 1, type: :number},
+        %FeelEx.Value{value: 2, type: :number},
+        %FeelEx.Value{value: 3, type: :number}
+      ]
+      iex> length = FeelEx.Value.new(2)
+      %FeelEx.Value{value: 2, type: :number}
+      iex> start_index = FeelEx.Value.new(1)
+      %FeelEx.Value{value: 1, type: :number}
+      iex> FeelEx.Functions.sublist(value,start_index,length)
+      [%FeelEx.Value{value: 1, type: :number}, %FeelEx.Value{value: 2, type: :number}]
+  """
   def sublist(list, %FeelEx.Value{value: start_position, type: :number}, %FeelEx.Value{
         value: length,
         type: :number
       }) do
+    cond do
+      start_position == 0 ->
+        Logger.warning(
+          "Failed to invoke function 'sublist': start position must be a non-zero number"
+        )
+
+      start_position > 0 ->
+        Enum.slice(list, start_position - 1, length)
+
+      start_position < 0 ->
+        Enum.slice(list, start_position, length)
+    end
   end
 
-  def concatenate(list, list_to_append) do
+  @doc """
+  Append a list of items to a list.
+
+  ## Examples
+
+      iex> list = FeelEx.Value.new([1,2,3])
+      [
+        %FeelEx.Value{value: 1, type: :number},
+        %FeelEx.Value{value: 2, type: :number},
+        %FeelEx.Value{value: 3, type: :number}
+      ]
+      iex> items = FeelEx.Value.new(["a","b"])
+      [
+        %FeelEx.Value{value: "a", type: :string},
+        %FeelEx.Value{value: "b", type: :string}
+      ]
+      iex> FeelEx.Functions.append(list,items)
+      [
+        %FeelEx.Value{value: 1, type: :number},
+        %FeelEx.Value{value: 2, type: :number},
+        %FeelEx.Value{value: 3, type: :number},
+        %FeelEx.Value{value: "a", type: :string},
+        %FeelEx.Value{value: "b", type: :string}
+      ]
+  """
+  def append(list, items) when is_list(list) and is_list(list) do
+    list ++ items
+  end
+
+  @doc """
+  Given a list of lists, perform concatenation.
+
+  ## Examples
+
+    iex> list = FeelEx.Value.new([1,2,3])
+    [
+      %FeelEx.Value{value: 1, type: :number},
+      %FeelEx.Value{value: 2, type: :number},
+      %FeelEx.Value{value: 3, type: :number}
+    ]
+    iex> items = FeelEx.Value.new([[1,2],["a","b"]])
+    [
+    [
+      %FeelEx.Value{value: 1, type: :number},
+      %FeelEx.Value{value: 2, type: :number}
+    ],
+    [
+      %FeelEx.Value{value: "a", type: :string},
+      %FeelEx.Value{value: "b", type: :string}
+    ]
+    ]
+
+    iex> FeelEx.Functions.concatenate(items)
+    [
+      %FeelEx.Value{value: 1, type: :number},
+      %FeelEx.Value{value: 2, type: :number},
+      %FeelEx.Value{value: "a", type: :string},
+      %FeelEx.Value{value: "b", type: :string}
+    ]
+  """
+  def concatenate(list) when is_list(list) do
+    Enum.reduce_while(list, [], fn x, acc -> {:cont, acc ++ x} end)
   end
 
   def insert_before(
@@ -1771,12 +2021,43 @@ defmodule FeelEx.Functions do
   def flatten(list) do
   end
 
+  def sort(list) do
+  end
+
+  def string_join(list) do
+  end
+
+
   defp non_number(list) do
     Enum.find(list, fn value -> Map.get(value, :type) != :number end)
   end
 
+  defp non_boolean(list) do
+    Enum.find(list, fn value -> Map.get(value, :type) != :boolean end)
+  end
+
+  defp do_mode([]) do
+    nil
+  end
+
+  defp do_mode(list) do
+    freq = Enum.frequencies(list)
+
+    max_length =
+      elem(Enum.max_by(freq, fn {_, v} -> v end), 1)
+      |> IO.inspect()
+
+    Stream.filter(freq, fn {_, v} -> v == max_length end)
+    |> Enum.map(fn {k, _} -> k end)
+  end
+
+  defp do_median([]) do
+    nil
+  end
+
   defp do_median(list) do
     length = length(list)
+    list = Enum.sort(list)
 
     cond do
       length == 0 ->
@@ -1802,11 +2083,20 @@ defmodule FeelEx.Functions do
     |> integer_checker()
   end
 
-  defp do_median([]) do
-    nil
+  defp do_stddev(list) when is_list(list) do
+    length = length(list)
+    mean = Enum.sum(list) / length
+
+    :math.sqrt(
+      Enum.reduce_while(list, 0, fn x, acc ->
+        {:cont, acc + (x - mean) ** 2}
+      end) / (length - 1)
+    )
   end
 
-  defp do_median(list) when is_list(list) do
+  defp do_all([]), do: true
 
+  defp do_all(list) when is_list(list) do
+    Enum.all?(list, fn x -> x == true end)
   end
 end
