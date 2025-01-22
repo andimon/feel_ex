@@ -2003,33 +2003,106 @@ defmodule FeelEx.Functions do
       ) do
   end
 
-  def reverse(list) do
+  def reverse(list) when is_list(list) do
+    Enum.reverse(list)
   end
 
-  def index_of(list, %FeelEx.Value{} = value) do
+  @doc """
+  Returns 1-based indices of a given list corresponding to a given match.
+  """
+  def index_of(list, %FeelEx.Value{} = match) do
+    Stream.with_index(list)
+    |> Stream.filter(fn {v, _i} -> v == match end)
+    |> Enum.map(fn {i} -> i + 1 end)
   end
 
-  def union(list1, list2) do
+  def union(lists) do
   end
 
-  def distinct_values(list) do
+  @doc """
+  Returns the given list without duplicates.
+  """
+  def distinct_values(list) when is_list(list) do
+    Enum.uniq(list)
   end
 
-  def duplicate_values(list) do
+  @doc """
+  Returns duplicate values within a list
+  """
+  def duplicate_values([]), do: []
+
+  def duplicate_value(list) when is_list(list) do
+    freq = Enum.frequencies(list)
+
+    Stream.filter(freq, fn {_, v} -> v > 1 end)
+    |> Enum.map(fn {k, _} -> k end)
   end
 
-  def flatten(list) do
+  def flatten(list) when is_list(list) do
+    List.flatten(list)
   end
 
-  def sort(list) do
-  end
-
+  @doc """
+  Joins a list of strings into a single string.
+  """
   def string_join(list) do
+    non_string_or_null = non_string_or_null(list)
+
+    cond do
+      is_nil(non_string_or_null) ->
+        list
+        |> Stream.map(fn value -> Map.get(value, :value) end)
+        |> Enum.join()
+        |> Value.new()
+
+      true ->
+        Logger.warning(
+          "Failed to invoke function 'string-join': expected string or null but found '#{inspect(non_string_or_null)}'"
+        )
+
+        Value.new(nil)
+    end
   end
 
+  @doc """
+  Joins a list of strings into a single string, with a delimeter between eech element.
+
+  """
+  def string_join(list, %Value{value: string, type: :string}) do
+    non_string_or_null = non_string_or_null(list)
+
+    cond do
+      is_nil(non_string_or_null) ->
+        list
+        |> Stream.map(fn value -> Map.get(value, :value) end)
+        |> Enum.join(string)
+        |> Value.new()
+
+      true ->
+        Logger.warning(
+          "Failed to invoke function 'string-join': expected string or null but found '#{inspect(non_string_or_null)}'"
+        )
+
+        Value.new(nil)
+    end
+  end
+
+  @doc """
+  Returns true if the given list is empty. Otherwise, returns false.
+  """
+  def is_empty(list) when is_list(list) do
+    cond do
+      list == [] -> Value.new(true)
+      true -> Value.new(false)
+    end
+  end
 
   defp non_number(list) do
     Enum.find(list, fn value -> Map.get(value, :type) != :number end)
+  end
+
+  defp non_string_or_null(list) do
+    Enum.find(list, fn value -> Map.get(value, :type) not in [:string, :null] end)
   end
 
   defp non_boolean(list) do
