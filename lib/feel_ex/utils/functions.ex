@@ -1990,44 +1990,187 @@ defmodule FeelEx.Functions do
     Enum.reduce_while(list, [], fn x, acc -> {:cont, acc ++ x} end)
   end
 
+  @doc """
+  Returns the given list with newItem inserted at position.
+
+  ## Examples
+
+      iex> list  = FeelEx.Value.new([1,3])
+      [%FeelEx.Value{value: 1, type: :number}, %FeelEx.Value{value: 3, type: :number}]
+      iex> position = FeelEx.Value.new(1)
+      %FeelEx.Value{value: 1, type: :number}
+      iex> value = FeelEx.Value.new(2)
+      %FeelEx.Value{value: 2, type: :number}
+      iex> FeelEx.Functions.insert_before(list,position,value)
+      [
+        %FeelEx.Value{value: 2, type: :number},
+        %FeelEx.Value{value: 1, type: :number},
+        %FeelEx.Value{value: 3, type: :number}
+      ]
+  """
   def insert_before(
         list,
         %FeelEx.Value{value: start_position, type: :number},
         %FeelEx.Value{} = value
       ) do
+    List.insert_at(list, start_position - 1, value)
+  end
+
+  def insert_before(
+        _list,
+        %FeelEx.Value{value: 0, type: :number},
+        _value
+      ) do
+    Logger.warning(
+      "[FUNCTION_INVOCATION_FAILURE] Failed to invoke function 'insert before': position must be a non-zero number"
+    )
+
+    Value.new(nil)
+  end
+
+  @doc """
+  Returns the given list without the element at position.
+
+  ## Examples
+
+      iex> list  = FeelEx.Value.new([1,2,3])
+      [
+      %FeelEx.Value{value: 1, type: :number},
+      %FeelEx.Value{value: 2, type: :number},
+      %FeelEx.Value{value: 3, type: :number}
+      ]
+      iex> position = FeelEx.Value.new(2)
+      %FeelEx.Value{value: 2, type: :number}
+      iex> FeelEx.Functions.remove(list,position)
+      [%FeelEx.Value{value: 1, type: :number}, %FeelEx.Value{value: 3, type: :number}]
+  """
+  def remove(
+        list,
+        %FeelEx.Value{value: start_position, type: :number}
+      )
+      when start_position > 0 do
+    List.delete_at(list, start_position - 1)
   end
 
   def remove(
         list,
         %FeelEx.Value{value: start_position, type: :number}
-      ) do
+      )
+      when start_position < 0 do
+    List.delete_at(list, start_position)
   end
 
+  def remove(
+        _list,
+        %FeelEx.Value{value: 0, type: :number}
+      ) do
+    Logger.warning(
+      "[FUNCTION_INVOCATION_FAILURE] Failed to invoke function 'remove': position must be a non-zero number"
+    )
+
+    Value.new(nil)
+  end
+
+  @doc """
+  Returns the given list in revered order.
+
+  ## Examples
+
+  iex> list  = FeelEx.Value.new([1,3])
+  [%FeelEx.Value{value: 1, type: :number}, %FeelEx.Value{value: 3, type: :number}]
+  iex> FeelEx.Functions.reverse(list)
+  [%FeelEx.Value{value: 3, type: :number}, %FeelEx.Value{value: 1, type: :number}]
+  """
   def reverse(list) when is_list(list) do
     Enum.reverse(list)
   end
 
   @doc """
   Returns 1-based indices of a given list corresponding to a given match.
+
+  ## Examples
+
+      iex> list  = FeelEx.Value.new([1,2,3,2])
+      [
+      %FeelEx.Value{value: 1, type: :number},
+      %FeelEx.Value{value: 2, type: :number},
+      %FeelEx.Value{value: 3, type: :number},
+      %FeelEx.Value{value: 2, type: :number}
+      ]
+      iex> value = FeelEx.Value.new(2)
+      %FeelEx.Value{value: 2, type: :number}
+      iex> FeelEx.Functions.index_of(list,value)
+      [%FeelEx.Value{value: 2, type: :number}, %FeelEx.Value{value: 4, type: :number}]
   """
   def index_of(list, %FeelEx.Value{} = match) do
     Stream.with_index(list)
     |> Stream.filter(fn {v, _i} -> v == match end)
-    |> Enum.map(fn {i} -> i + 1 end)
+    |> Enum.map(fn {_v, i} -> Value.new(i + 1) end)
   end
 
-  def union(lists) do
+  @doc """
+  Returns a list that includes all elements of the given lists without duplicates.
+      iex> list  = FeelEx.Value.new([[1,2],[3,2]])
+      [
+      [
+        %FeelEx.Value{value: 1, type: :number},
+        %FeelEx.Value{value: 2, type: :number}
+      ],
+      [
+        %FeelEx.Value{value: 3, type: :number},
+        %FeelEx.Value{value: 2, type: :number}
+      ]
+      ]
+      iex> FeelEx.Functions.union(list)
+      [
+      %FeelEx.Value{value: 1, type: :number},
+      %FeelEx.Value{value: 2, type: :number},
+      %FeelEx.Value{value: 3, type: :number}
+      ]
+  """
+  def union(list) when is_list(list) do
+    list |> Enum.concat() |> Enum.uniq()
   end
 
   @doc """
   Returns the given list without duplicates.
+
+  ## Examples
+
+      iex> list  = FeelEx.Value.new([1,2,3,2,1])
+      [
+        %FeelEx.Value{value: 1, type: :number},
+        %FeelEx.Value{value: 2, type: :number},
+        %FeelEx.Value{value: 3, type: :number},
+        %FeelEx.Value{value: 2, type: :number},
+        %FeelEx.Value{value: 1, type: :number}
+      ]
+      iex> FeelEx.Functions.distinct_values(list)
+      [
+        %FeelEx.Value{value: 1, type: :number},
+        %FeelEx.Value{value: 2, type: :number},
+        %FeelEx.Value{value: 3, type: :number}
+      ]
   """
   def distinct_values(list) when is_list(list) do
     Enum.uniq(list)
   end
 
   @doc """
-  Returns duplicate values within a list
+  Returns duplicate values within a list.
+
+  ## Examples
+
+    iex> list  = FeelEx.Value.new([1,2,3,2,1])
+    [
+      %FeelEx.Value{value: 1, type: :number},
+      %FeelEx.Value{value: 2, type: :number},
+      %FeelEx.Value{value: 3, type: :number},
+      %FeelEx.Value{value: 2, type: :number},
+      %FeelEx.Value{value: 1, type: :number}
+    ]
+    iex> FeelEx.Functions.duplicate_value(list)
+    [%FeelEx.Value{value: 1, type: :number}, %FeelEx.Value{value: 2, type: :number}]
   """
   def duplicate_values([]), do: []
 
@@ -2044,6 +2187,25 @@ defmodule FeelEx.Functions do
 
   @doc """
   Joins a list of strings into a single string.
+
+  ## Examples
+
+      iex> list  = FeelEx.Value.new(["a","b","c"])
+      [
+        %FeelEx.Value{value: "a", type: :string},
+        %FeelEx.Value{value: "b", type: :string},
+        %FeelEx.Value{value: "c", type: :string}
+      ]
+      iex> FeelEx.Functions.string_join(list)
+      %FeelEx.Value{value: "abc", type: :string}
+      iex> list  = FeelEx.Value.new(["a",nil,"c"])
+      [
+        %FeelEx.Value{value: "a", type: :string},
+        %FeelEx.Value{value: nil, type: :null},
+        %FeelEx.Value{value: "c", type: :string}
+      ]
+      iex> FeelEx.Functions.string_join(list)
+      %FeelEx.Value{value: "ac", type: :string}
   """
   def string_join(list) do
     non_string_or_null = non_string_or_null(list)
@@ -2067,6 +2229,25 @@ defmodule FeelEx.Functions do
   @doc """
   Joins a list of strings into a single string, with a delimeter between eech element.
 
+
+  ## Examples
+
+  iex)> list  = FeelEx.Value.new(["a"])
+  [%FeelEx.Value{value: "a", type: :string}]
+  iex)> delimiter  = FeelEx.Value.new("X")
+  %FeelEx.Value{value: "X", type: :string}
+  iex)> FeelEx.Functions.string_join(list,delimiter)
+  %FeelEx.Value{value: "a", type: :string}
+  iex> list  = FeelEx.Value.new(["a","b","c"])
+  [
+    %FeelEx.Value{value: "a", type: :string},
+    %FeelEx.Value{value: "b", type: :string},
+    %FeelEx.Value{value: "c", type: :string}
+  ]
+  iex> delimiter  = FeelEx.Value.new(", ")
+  %FeelEx.Value{value: ", ", type: :string}
+  iex> FeelEx.Functions.string_join(list,delimiter)
+  %FeelEx.Value{value: "a, b, c", type: :string}
   """
   def string_join(list, %Value{value: string, type: :string}) do
     non_string_or_null = non_string_or_null(list)
@@ -2089,13 +2270,24 @@ defmodule FeelEx.Functions do
 
   @doc """
   Returns true if the given list is empty. Otherwise, returns false.
+
+  ## Examples
+
+  iex> list  = FeelEx.Value.new([])
+  []
+  iex> FeelEx.Functions.is_empty(list)
+  %FeelEx.Value{value: true, type: :boolean}
+  iex> list  = FeelEx.Value.new([1,2,3])
+  [
+  %FeelEx.Value{value: 1, type: :number},
+  %FeelEx.Value{value: 2, type: :number},
+  %FeelEx.Value{value: 3, type: :number}
+  ]
+  iex> FeelEx.Functions.is_empty(list)
+  %FeelEx.Value{value: false, type: :boolean}
   """
-  def is_empty(list) when is_list(list) do
-    cond do
-      list == [] -> Value.new(true)
-      true -> Value.new(false)
-    end
-  end
+  def is_empty([]), do: Value.new(true)
+  def is_empty(list) when is_list(list), do: Value.new(false)
 
   defp non_number(list) do
     Enum.find(list, fn value -> Map.get(value, :type) != :number end)
@@ -2118,7 +2310,6 @@ defmodule FeelEx.Functions do
 
     max_length =
       elem(Enum.max_by(freq, fn {_, v} -> v end), 1)
-      |> IO.inspect()
 
     Stream.filter(freq, fn {_, v} -> v == max_length end)
     |> Enum.map(fn {k, _} -> k end)
