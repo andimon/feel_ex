@@ -11,13 +11,7 @@ defmodule FeelEx.Value do
   end
 
   def new(list) when is_list(list) do
-    cond do
-      Keyword.keyword?(list) ->
-        %__MODULE__{value: list, type: :context}
-
-      true ->
-        Enum.map(list, fn item -> new(item) end)
-    end
+    Enum.map(list, fn item -> new(item) end)
   end
 
   def new(boolean) when is_boolean(boolean) do
@@ -41,12 +35,17 @@ defmodule FeelEx.Value do
   end
 
   def new(%{} = context) when not is_struct(context) do
+    context =
+      Stream.map(context, fn {key, value} ->
+        key = if is_atom(key), do: key, else: String.to_atom(key)
+        {key, new(value)}
+      end)
+      |> Enum.into(%{})
+
     %__MODULE__{value: context, type: :context}
   end
 
-  def new(context) when not is_struct(context) do
-    %__MODULE__{value: context, type: :context}
-  end
+  def new(%__MODULE__{} = value), do: value
 
   def new(%Time{} = time) do
     %__MODULE__{value: time, type: :time}
