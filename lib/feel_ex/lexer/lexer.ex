@@ -96,6 +96,9 @@ defmodule FeelEx.Lexer do
       state_23: :state_13
     ],
     question_mark: [
+      state_0: :state_10,
+      state_10: :state_11,
+      state_11: :state_11,
       state_5: :state_5,
       state_13: :state_13,
       state_22: :state_13,
