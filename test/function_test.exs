@@ -84,7 +84,10 @@ defmodule FunctionTest do
     end
 
     test "converting years months duration to string" do
-      assert FeelEx.evaluate("string(duration(\"P1Y6M\"))") == %Value{value: "P1Y6M", type: :string}
+      assert FeelEx.evaluate("string(duration(\"P1Y6M\"))") == %Value{
+               value: "P1Y6M",
+               type: :string
+             }
     end
 
     test "converting list with various datatype to string" do
@@ -97,6 +100,46 @@ defmodule FunctionTest do
     test "convert context with list value to string" do
       assert FeelEx.evaluate("string({a: [duration(\"P4D\"),2, 200.0,time(\"08:01:01\")]})") ==
                %Value{value: "{a:[P4D, 2, 200.0, 08:01:01]}", type: :string}
+    end
+  end
+
+  describe "conversion function - number" do
+    test "converting integer string to number" do
+      assert FeelEx.evaluate("11") == %Value{value: 11, type: :number}
+      assert FeelEx.evaluate("1") == %Value{value: 1, type: :number}
+    end
+
+    test "converting negative integer string to number" do
+      assert FeelEx.evaluate("-11") == %Value{value: -11, type: :number}
+      assert FeelEx.evaluate("-1") == %Value{value: -1, type: :number}
+    end
+
+    test "converting float without integrand to number" do
+      assert FeelEx.evaluate("number(\".1\")") == %Value{value: 0.1, type: :number}
+      assert FeelEx.evaluate("number(\".12\")") == %Value{value: 0.12, type: :number}
+    end
+
+    test "converting negative float without integrand to number" do
+      assert FeelEx.evaluate("number(\"-.1\")") == %Value{value: -0.1, type: :number}
+      assert FeelEx.evaluate("number(\"-.12\")") == %Value{value: -0.12, type: :number}
+    end
+
+    test "converting float to number" do
+      assert FeelEx.evaluate("number(\"1.1\")") == %Value{value: 1.1, type: :number}
+      assert FeelEx.evaluate("number(\"22.12\")") == %Value{value: 22.12, type: :number}
+    end
+
+    test "converting negative float to number" do
+      assert FeelEx.evaluate("number(\"-1.1\")") == %Value{value: -1.1, type: :number}
+      assert FeelEx.evaluate("number(\"-22.12\")") == %Value{value: -22.12, type: :number}
+    end
+
+    test "converting a non number string" do
+      assert FeelEx.evaluate("number(\"aa\")") == %Value{value: nil, type: :null}
+    end
+
+    test "trying to convert anything but string to number" do
+      assert FeelEx.evaluate("number(@\"2021-01-01\")") == %Value{value: nil, type: :null}
     end
   end
 

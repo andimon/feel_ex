@@ -107,8 +107,29 @@ defmodule FeelEx.Functions do
         Value.new(int)
 
       _ ->
+        string =
+          cond do
+            String.starts_with?(string, ".") ->
+              "0" <> string
+
+            String.starts_with?(string, "-.") ->
+              {_, number} = String.split_at(string, 2)
+              "-0." <> number
+
+            true ->
+              string
+          end
+
         try_parse_float(string)
     end
+  end
+
+  def number(%Value{value: value}) do
+    Logger.warning(
+      "[FUNCTION_INVOCATION_FAILURE] Failed to invoke function 'number': Illegal arguments: #{inspect(value)}"
+    )
+
+    Value.new(nil)
   end
 
   defp parse_int(string), do: Integer.parse(string)
@@ -119,6 +140,10 @@ defmodule FeelEx.Functions do
         Value.new(float)
 
       _ ->
+        Logger.warning(
+          "[FUNCTION_INVOCATION_FAILURE] Failed to invoke function 'number': Can't parse #{inspect(string)} as a number"
+        )
+
         Value.new(nil)
     end
   end
