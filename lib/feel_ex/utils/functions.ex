@@ -1436,7 +1436,8 @@ defmodule FeelEx.Functions do
     result =
       Enum.find_value(functions, fn func ->
         try do
-          func.(value)
+          value = func.(value)
+          if value.type == :null, do: nil, else: value
         rescue
           _e -> nil
         end

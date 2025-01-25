@@ -635,7 +635,7 @@ defmodule FeelEx.Expression do
     case time do
       %Time{} -> Value.new(Time.shift(time, duration))
       {time, offset} -> Value.new(Time.shift(time, duration), offset)
-      {time, _offset, zone_id} -> Value.new({Time.shift(time, duration), zone_id})
+      {time, _offset, zone_id} -> Value.new(Time.shift(time, duration), zone_id)
     end
   end
 
@@ -647,7 +647,7 @@ defmodule FeelEx.Expression do
     case time do
       %Time{} -> Value.new(Time.shift(time, duration))
       {time, offset} -> Value.new(Time.shift(time, duration), offset)
-      {time, _offset, zone_id} -> Value.new({Time.shift(time, duration), zone_id})
+      {time, _offset, zone_id} -> Value.new(Time.shift(time, duration), zone_id)
     end
   end
 
@@ -685,12 +685,10 @@ defmodule FeelEx.Expression do
          %FeelEx.Value{value: %Duration{} = d, type: :years_months_duration},
          %FeelEx.Value{value: n, type: :number}
        ) do
-    IO.puts("jesues")
     {y, m} = {d.year * trunc(n), d.month * trunc(n)}
 
     {y, m} =
       Helper.normalise(y, m)
-      |> IO.inspect()
 
     Value.new(Duration.new!(year: y, month: m))
   end

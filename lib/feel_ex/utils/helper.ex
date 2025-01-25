@@ -258,6 +258,10 @@ defmodule FeelEx.Helper do
     Enum.reverse(do_get_list_values(list, []))
   end
 
+  def get_list_values(list) do
+    Enum.reverse(do_get_list_values(list, []))
+  end
+
   defp do_get_list_values([], new_list), do: new_list
 
   defp do_get_list_values([%Token{type: :comma} | tl], new_list) do
