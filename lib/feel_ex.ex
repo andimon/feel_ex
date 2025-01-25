@@ -77,9 +77,9 @@ defmodule FeelEx do
       iex> FeelEx.unary_test("(2..5)",2)
       %FeelEx.Value{value: false, type: :boolean}
       %FeelEx.Value{value: false, type: :boolean}
-      iexs> FeelEx.unary_test("[2..5]",5)
+      iex> FeelEx.unary_test("[2..5]",5)
       %FeelEx.Value{value: true, type: :boolean}
-      iexs> FeelEx.unary_test("[2..5)",5)
+      iex> FeelEx.unary_test("[2..5)",5)
       %FeelEx.Value{value: false, type: :boolean}
   """
   def unary_test(expression, input_value) do

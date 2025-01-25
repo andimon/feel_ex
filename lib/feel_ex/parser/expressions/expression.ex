@@ -635,7 +635,7 @@ defmodule FeelEx.Expression do
     case time do
       %Time{} -> Value.new(Time.shift(time, duration))
       {time, offset} -> Value.new(Time.shift(time, duration), offset)
-      {time, _offset, zone_id} -> Value.new({Time.shift(time, duration), zone_id})
+      {time, _offset, zone_id} -> Value.new(Time.shift(time, duration), zone_id)
     end
   end
 
@@ -647,7 +647,7 @@ defmodule FeelEx.Expression do
     case time do
       %Time{} -> Value.new(Time.shift(time, duration))
       {time, offset} -> Value.new(Time.shift(time, duration), offset)
-      {time, _offset, zone_id} -> Value.new({Time.shift(time, duration), zone_id})
+      {time, _offset, zone_id} -> Value.new(Time.shift(time, duration), zone_id)
     end
   end
 

@@ -16,7 +16,7 @@ defmodule FeelEx.TemporalExpressionTest do
              %FeelEx.Value{value: ~T[09:00:00], type: :time}
 
     assert FeelEx.evaluate("time(\"08:00:00@Europe/Paris\") + duration(\"PT1H\")") ==
-             %FeelEx.Value{value: {~T[09:00:00], "Europe/Paris"}, type: :context}
+             %FeelEx.Value{value: {~T[09:00:00], "+01:00", "Europe/Paris"}, type: :time}
 
     assert FeelEx.evaluate("time(\"08:00:00+01:00\") + duration(\"PT1H\")") ==
              %FeelEx.Value{value: {~T[09:00:00], "+01:00"}, type: :time}
@@ -27,7 +27,7 @@ defmodule FeelEx.TemporalExpressionTest do
              %FeelEx.Value{value: ~T[09:00:00], type: :time}
 
     assert FeelEx.evaluate("duration(\"PT1H\") + time(\"08:00:00@Europe/Paris\")") ==
-             %FeelEx.Value{value: {~T[09:00:00], "Europe/Paris"}, type: :context}
+             %FeelEx.Value{type: :time, value: {~T[09:00:00], "+01:00", "Europe/Paris"}}
 
     assert FeelEx.evaluate("duration(\"PT1H\") + time(\"08:00:00+01:00\")") ==
              %FeelEx.Value{value: {~T[09:00:00], "+01:00"}, type: :time}

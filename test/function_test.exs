@@ -12,7 +12,7 @@ defmodule FunctionTest do
     end
 
     test "substring(\"foobar\", 0)" do
-      assert %Value{value: "", type: :string} == FeelEx.evaluate("substring(\"foobar\", -2)")
+      assert %Value{value: "", type: :string} == FeelEx.evaluate("substring(\"foobar\",0)")
     end
 
     test "substring(\"foobar\", 3,0)" do
@@ -66,12 +66,12 @@ defmodule FunctionTest do
 
     test "contains(\"hello world\",\" world\")" do
       assert %Value{value: true, type: :boolean} ==
-               FeelEx.evaluate("substring before(\"hello world\",\" world\")")
+               FeelEx.evaluate("contains(\"hello world\",\" world\")")
     end
 
     test "contains(\"hello world\",\" worlds\")" do
       assert %Value{value: false, type: :boolean} ==
-               FeelEx.evaluate("substring before(\"hello world\",\" worlds\")")
+               FeelEx.evaluate("contains(\"hello world\",\" worlds\")")
     end
 
     test "starts with(\"hello world\",\"hello \")" do
