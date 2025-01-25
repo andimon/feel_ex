@@ -2,6 +2,104 @@ defmodule FunctionTest do
   use ExUnit.Case
   alias FeelEx.Value
 
+  describe "conversion function - string" do
+    test "test converting integer to string" do
+      assert FeelEx.evaluate("string(1)") == %Value{value: "1", type: :string}
+      assert FeelEx.evaluate("string(12)") == %Value{value: "12", type: :string}
+    end
+
+    test "converting negative integer to string" do
+      assert FeelEx.evaluate("string(-1)") == %Value{value: "-1", type: :string}
+      assert FeelEx.evaluate("string(-12)") == %Value{value: "-12", type: :string}
+    end
+
+    test "converting float without integral part to string" do
+      assert FeelEx.evaluate("string(.12)") == %Value{value: "0.12", type: :string}
+      assert FeelEx.evaluate("string(.1)") == %Value{value: "0.1", type: :string}
+    end
+
+    test "convert null to string still returns null" do
+      assert FeelEx.evaluate("string(null)") == %Value{value: nil, type: :null}
+    end
+
+    test "converting a string to a string is idempotent" do
+      assert FeelEx.evaluate("string(\"this is a wonderful string\")") == %Value{
+               value: "this is a wonderful string",
+               type: :string
+             }
+    end
+
+    test "converting a boolean value to string" do
+      assert FeelEx.evaluate("string(true)") == %Value{value: "true", type: :string}
+      assert FeelEx.evaluate("string(false)") == %Value{value: "false", type: :string}
+    end
+
+    test "converting a date to string" do
+      assert FeelEx.evaluate("string(date(\"2021-01-01\"))") ==
+               %Value{value: "2021-01-01", type: :string}
+    end
+
+    test "converting time without timezone or offset to string" do
+      assert FeelEx.evaluate("string(time(\"08:01:00\"))") == %Value{
+               value: "08:01:00",
+               type: :string
+             }
+    end
+
+    test "converting time with timezone to string" do
+      assert FeelEx.evaluate("string(time(\"08:01:00@Europe/Malta\"))") ==
+               %Value{value: "08:01:00@Europe/Malta", type: :string}
+    end
+
+    test "converting time with offset to string" do
+      assert FeelEx.evaluate("string(time(\"08:01:00+01:00\"))") ==
+               %Value{value: "08:01:00+01:00", type: :string}
+    end
+
+    test "converting  datetime without timezone or offset to string" do
+      assert FeelEx.evaluate("string(date and time(\"2021-01-01T08:01:01\"))") == %Value{
+               value: "2021-01-01T08:01:01",
+               type: :string
+             }
+    end
+
+    test "converting  datetime with timezone to string" do
+      assert FeelEx.evaluate("string(date and time(\"2021-01-01T08:01:01@Europe/Malta\"))") ==
+               %Value{
+                 value: "2021-01-01T08:01:01@Europe/Malta",
+                 type: :string
+               }
+    end
+
+    test "converting  datetime with offset to string" do
+      assert FeelEx.evaluate("string(date and time(\"2021-01-01T08:01:01+01:00\"))") ==
+               %Value{
+                 value: "2021-01-01T08:01:01+01:00",
+                 type: :string
+               }
+    end
+
+    test "converting days time duration to string" do
+      assert FeelEx.evaluate("string(duration(\"P4D\"))") == %Value{value: "P4D", type: :string}
+    end
+
+    test "converting years months duration to string" do
+      assert FeelEx.evaluate("string(duration(\"P1Y6M\"))") == %Value{value: "P1Y6M", type: :string}
+    end
+
+    test "converting list with various datatype to string" do
+      assert FeelEx.evaluate("string([duration(\"P4D\"),2, 200.0,time(\"08:01:01\")])") == %Value{
+               value: "[P4D, 2, 200.0, 08:01:01]",
+               type: :string
+             }
+    end
+
+    test "convert context with list value to string" do
+      assert FeelEx.evaluate("string({a: [duration(\"P4D\"),2, 200.0,time(\"08:01:01\")]})") ==
+               %Value{value: "{a:[P4D, 2, 200.0, 08:01:01]}", type: :string}
+    end
+  end
+
   describe "string functions" do
     test "substring(\"foobar\", 3)" do
       assert %Value{value: "obar", type: :string} == FeelEx.evaluate("substring(\"foobar\", 3)")
@@ -108,19 +206,19 @@ defmodule FunctionTest do
 
   describe "numeric functions" do
     test "decimal(1/3,2)" do
-      assert %FeelEx.Value{value: 0.33, type: :number} == FeelEx.evaluate("decimal(1/3,2)")
+      assert %Value{value: 0.33, type: :number} == FeelEx.evaluate("decimal(1/3,2)")
     end
 
     test "ceiling(1+1+0.5)" do
-      %FeelEx.Value{value: 3, type: :number} = FeelEx.evaluate("ceiling(1+1+0.5)")
+      %Value{value: 3, type: :number} = FeelEx.evaluate("ceiling(1+1+0.5)")
     end
 
     test "floor(1+1+0.5)" do
-      %FeelEx.Value{value: 2, type: :number} = FeelEx.evaluate("floor(1+1+0.5)")
+      %Value{value: 2, type: :number} = FeelEx.evaluate("floor(1+1+0.5)")
     end
 
     test "random()" do
-      %FeelEx.Value{value: number, type: :number} = %FeelEx.Value{
+      %Value{value: number, type: :number} = %Value{
         value: 0.5189989081813825,
         type: :number
       }

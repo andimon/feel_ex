@@ -43,7 +43,7 @@ defmodule FeelEx.Functions do
   end
 
   def string(%Value{type: :null, value: nil}) do
-    Value.new("null")
+    Value.new(nil)
   end
 
   def string(%Value{type: :date, value: date}) do
