@@ -4,7 +4,7 @@ defmodule FeelEx do
   """
 
   require Logger
-  alias FeelEx.{Helper, Lexer, Parser, Expression}
+  alias FeelEx.{Helper, Lexer, Parser, Expression, UnaryParser}
 
   @doc """
   Evaluates an expression against a context. See https://github.com/ExSemantic/feel_ex/blob/master/README.md
@@ -39,5 +39,57 @@ defmodule FeelEx do
   """
   def evaluate(expression) when is_binary(expression) do
     evaluate(%{}, expression)
+  end
+
+  @doc """
+  Run a unary test with a given unary expression, input value, context.
+
+  ## Examples
+
+      iex> FeelEx.unary_test("<a",3,%{a: 2})
+      %FeelEx.Value{value: false, type: :boolean}
+      iex> FeelEx.unary_test("<a",3,%{a: 5})
+      %FeelEx.Value{value: true, type: :boolean}
+
+  """
+  def unary_test(expression, input_value, context) do
+    context = Map.put(context, :"?", input_value)
+
+    expression =
+      Lexer.tokens(expression)
+      |> Helper.filter_out_comments()
+      |> UnaryParser.parse_unary_expression()
+
+    Expression.evaluate(expression, context)
+  end
+
+  @doc """
+  Run a unary test with a given unary expression and input value.
+
+  ## Examples
+
+      iex FeelEx.unary_test("<5",3)
+      %FeelEx.Value{value: true, type: :boolean}
+      iex> FeelEx.unary_test("<2",3)
+      %FeelEx.Value{value: false, type: :boolean}
+      iex> FeelEx.unary_test("(2..5)",3)
+      %FeelEx.Value{value: true, type: :boolean}
+      iex> FeelEx.unary_test("(2..5)",2)
+      %FeelEx.Value{value: false, type: :boolean}
+      %FeelEx.Value{value: false, type: :boolean}
+      iexs> FeelEx.unary_test("[2..5]",5)
+      %FeelEx.Value{value: true, type: :boolean}
+      iexs> FeelEx.unary_test("[2..5)",5)
+      %FeelEx.Value{value: false, type: :boolean}
+  """
+  def unary_test(expression, input_value) do
+    context = %{"?": input_value}
+
+    expression =
+      Lexer.tokens(expression)
+      |> Helper.filter_out_comments()
+      |> UnaryParser.parse_unary_expression()
+
+    Expression.evaluate(expression, context)
   end
 end

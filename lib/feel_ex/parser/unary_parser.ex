@@ -3,13 +3,17 @@ defmodule FeelEx.UnaryParser do
   alias FeelEx.{Token, Parser, Helper, Expression}
 
   def parse_unary_expression(tokens) do
+
     tokens =
       if List.last(tokens).type == :eof,
         do: List.delete_at(tokens, -1),
         else: tokens
 
     [hd | tl] =
-      Helper.get_list_values(tokens)
+      cond do
+        hd(tokens).type == :left_square_bracket -> [tokens]
+        true -> Helper.get_list_values(tokens)
+      end
       |> Enum.map(fn x -> do_parse_unary_expression(x) end)
 
     build_or_tree(hd, tl)
@@ -22,8 +26,6 @@ defmodule FeelEx.UnaryParser do
              :gt,
              :lt
            ] do
-    IO.inspect(tokens)
-
     Parser.parse_expression([%Token{type: :name, value: "?"} | tokens])
   end
 
@@ -36,9 +38,11 @@ defmodule FeelEx.UnaryParser do
       List.last(tokens)
 
     compare_token =
-      if type == :left_square_bracket,
-        do: %Token{value: ">=", type: :geq},
-        else: %Token{value: ">", type: :gt}
+      cond do
+        type == :left_square_bracket -> %Token{value: ">=", type: :geq}
+        type == :left_parenthesis -> %Token{value: ">", type: :gt}
+        true -> raise "Unexpected type #{inspect(type)}"
+      end
 
     tokens =
       tokens
@@ -50,6 +54,7 @@ defmodule FeelEx.UnaryParser do
 
     cond do
       last_item.type == :right_parenthesis and not is_nil(dd_index) ->
+
         left_tokens =
           [%Token{type: :name, value: "?"}, compare_token] ++
             Enum.slice(tokens, 0..(dd_index - 1))
@@ -61,6 +66,7 @@ defmodule FeelEx.UnaryParser do
         Parser.parse_expression(left_tokens ++ [%Token{type: :and, value: "and"}] ++ right_tokens)
 
       last_item.type == :right_square_bracket and not is_nil(dd_index) ->
+
         left_tokens =
           [%Token{type: :name, value: "?"}, compare_token] ++
             Enum.slice(tokens, 0..(dd_index - 1))
@@ -69,10 +75,7 @@ defmodule FeelEx.UnaryParser do
           [%Token{type: :name, value: "?"}, %Token{value: "<=", type: :leq}] ++
             Enum.slice(tokens, (dd_index + 1)..-1//1)
 
-        tokens =
-          left_tokens ++ [%Token{type: :and, value: "and"}] ++ right_tokens
-
-        Parser.parse_expression(tokens)
+        Parser.parse_expression(left_tokens ++ [%Token{type: :and, value: "and"}] ++ right_tokens)
 
       true ->
         raise ArgumentError, message: "Expected ],) to close interval, or .. to seperate interval"
@@ -85,9 +88,7 @@ defmodule FeelEx.UnaryParser do
     tokens =
       if List.last(tokens).type == :right_parenthesis,
         do: List.delete_at(tokens, -1) |> IO.inspect(),
-        else:
-          raise(ArgumentError, message: "Expected ) after ( in not unary expression")
-          |> IO.inspect()
+        else: raise(ArgumentError, message: "Expected ) after ( in not unary expression")
 
     [hd | tl] =
       Helper.get_list_values(tokens)

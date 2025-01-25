@@ -685,12 +685,10 @@ defmodule FeelEx.Expression do
          %FeelEx.Value{value: %Duration{} = d, type: :years_months_duration},
          %FeelEx.Value{value: n, type: :number}
        ) do
-    IO.puts("jesues")
     {y, m} = {d.year * trunc(n), d.month * trunc(n)}
 
     {y, m} =
       Helper.normalise(y, m)
-      |> IO.inspect()
 
     Value.new(Duration.new!(year: y, month: m))
   end
