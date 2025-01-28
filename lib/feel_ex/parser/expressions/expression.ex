@@ -572,8 +572,33 @@ defmodule FeelEx.Expression do
           Enum.map_join(list, "_", fn val -> Helper.filter_expression(val).child.value end)
       end
 
-    arguments = Enum.map(arguments, fn expression -> evaluate(expression, context) end)
-    apply(Functions, String.to_atom(name), arguments)
+    func_name = String.to_atom(name)
+
+    arguments =
+      Enum.map(arguments, fn expression -> evaluate(expression, context) end)
+      |> Helper.argument_wrapper(func_name)
+
+    try do
+      case func_name do
+        :not -> :negate
+        func_name -> func_name
+      end
+      |> (&apply(Functions, &1, arguments)).()
+    rescue
+      _e in FunctionClauseError ->
+        Logger.warning(
+          "[FUNCTION_INVOCATION_FAILURE] Failed to invoke function '#{func_name}': Illegal arguments: #{inspect(arguments)}"
+        )
+
+        Value.new(nil)
+
+      _e in UndefinedFunctionError ->
+        Logger.warning(
+          "[NO_FUNCTION_FOUND] No function found with name '#{func_name}' and #{length(arguments)} parameters"
+        )
+
+        Value.new(nil)
+    end
   end
 
   def evaluate(
