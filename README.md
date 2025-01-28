@@ -853,7 +853,7 @@ iex(5)> FeelEx.evaluate("date and time(\"2025-01-01T08:00:00@Europe/Malta\") - d
 ```
 **Note!**: DateTime difference for times with different time zones and offsets is currently not supported.
 
-### `<date-time>-<duration>=<date-time>
+### `<date-time>-<duration>=<date-time>`
 
 ```elixir
 iex(1)> FeelEx.evaluate("date and time(\"2021-01-01T08:00:00\") - duration(\"PT2H\")")
@@ -867,7 +867,7 @@ iex(3)> FeelEx.evaluate("date and time(\"2021-01-01T08:00:00@Europe/Malta\") - d
 }
 ```
 
-### `<days-time-duration>-<days-time-duration>=<days-time-duration>
+### `<days-time-duration>-<days-time-duration>=<days-time-duration>`
 
 ```iex
 iex(1)> FeelEx.evaluate("duration(\"P7D\") - duration(\"P2D\")")
@@ -878,7 +878,7 @@ iex(2)> FeelEx.evaluate("duration(\"P7D\") - duration(\"P8DT1S\")")
   type: :days_time_duration
 }
 ```
-### `<years-months-duration>-<years-months-duration>=<years-months-duration>
+### `<years-months-duration>-<years-months-duration>=<years-months-duration>`
 
 ```elixir
 iex(1)> FeelEx.evaluate("duration(\"P1Y\") - duration(\"P3M\")") 

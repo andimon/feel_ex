@@ -263,7 +263,6 @@ defmodule FeelEx.ConverstionFunctionTests do
                %Value{value: {~T[08:00:01], "+01:00", "Europe/Malta"}, type: :time}
     end
 
-
     test "convert datetime to time with  american timezone id" do
       assert FeelEx.evaluate("time(date and time(\"2021-01-03T08:00:01@America/Vancouver\"))") ==
                %Value{value: {~T[08:00:01], "-08:00", "America/Vancouver"}, type: :time}
@@ -309,7 +308,7 @@ defmodule FeelEx.ConverstionFunctionTests do
     end
 
     test "negative hour and negative minute offset" do
-      assert FeelEx.evaluate("time(8,59,11,@\"PT-1H-2M\")") == Value.new(~T[08:59:11], "-01:01")
+      assert FeelEx.evaluate("time(8,59,11,@\"PT-1H-2M\")") == Value.new(~T[08:59:11], "-01:02")
     end
 
     test "invalid parameter" do
@@ -372,22 +371,52 @@ defmodule FeelEx.ConverstionFunctionTests do
              }
     end
 
+    test "converting with datetime with offset and  time without offset/timezone id" do
+      assert FeelEx.evaluate(
+               "date and time(date and time(\"2012-12-24T08:01:01+01:00\"),time(\"T23:59:00\"))"
+             ) == %Value{value: ~N[2012-12-24 23:59:00], type: :date_time}
+    end
+
+    test "converting with datetime with offset time with offset" do
+      assert FeelEx.evaluate(
+               "date and time(date and time(\"2012-12-24T08:01:01+01:00\"),time(\"T23:59:00+01:00\"))"
+             ) == %Value{value: {~N[2012-12-24 23:59:00], "+01:00"}, type: :date_time}
+    end
+
+    test "convert with datetime with offset time with timezone id" do
+      assert FeelEx.evaluate(
+               "date and time(date and time(\"2012-12-24T08:01:01+01:00\"),time(\"T23:59:00@Europe/Malta\"))"
+             ) == %Value{
+               value: {~N[2012-12-24 23:59:00], "+01:00", "Europe/Malta"},
+               type: :date_time
+             }
+    end
+
+    test "converting with datetime with timezone and  time without offset/timezone id" do
+      assert FeelEx.evaluate(
+               "date and time(date and time(\"2012-12-24T08:01:01@Europe/Malta\"),time(\"T23:59:00\"))"
+             ) == %Value{value: ~N[2012-12-24 23:59:00], type: :date_time}
+    end
+
+    test "converting with datetime with timezone time with offset" do
+      assert FeelEx.evaluate(
+               "date and time(date and time(\"2012-12-24T08:01:01@Europe/Malta\"),time(\"T23:59:00+01:00\"))"
+             ) == %Value{value: {~N[2012-12-24 23:59:00], "+01:00"}, type: :date_time}
+    end
+
+    test "convert with datetime with timezone time with timezone id" do
+      assert FeelEx.evaluate(
+               "date and time(date and time(\"2012-12-24T08:01:01@Europe/Malta\"),time(\"T23:59:00@Europe/Malta\"))"
+             ) == %Value{
+               value: {~N[2012-12-24 23:59:00], "+01:00", "Europe/Malta"},
+               type: :date_time
+             }
+    end
+
     test "convert with 2 invalid parameters" do
       assert FeelEx.evaluate(
                "date and time(date and time(\"2012-12-24T08:012:01\"),time(\"T23:59:00@Europe/Malta\"))"
              ) == %Value{value: nil, type: :null}
-    end
-  end
-
-  describe "duration(from)" do
-    test "duration with day" do
-      FeelEx.evaluate("duration(\"P5D\")") == %Value{
-        value: %Duration{day: 5},
-        type: :days_time_duration
-      }
-    end
-
-    test "duration with years" do
     end
   end
 end

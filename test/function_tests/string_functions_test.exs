@@ -429,4 +429,16 @@ defmodule FeelEx.StringFunctionsTests do
       assert FeelEx.evaluate("trim(\"hello  world\")") == Value.new("hello  world")
     end
   end
+
+  describe "upper case(string)" do
+    test "woWow" do
+      assert FeelEx.evaluate("upper case(\"woWow\")") == Value.new("WOWOW")
+    end
+  end
+
+  describe "lower case(string)" do
+    test "woWow" do
+      assert FeelEx.evaluate("lower case(\"woWow\")") == Value.new("wowow")
+    end
+  end
 end

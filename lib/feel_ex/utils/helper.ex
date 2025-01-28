@@ -3,11 +3,12 @@ defmodule FeelEx.Helper do
   alias FeelEx.Value
   alias FeelEx.Token
 
-  def argument_wrapper([list] = argument, :max) when is_list(list) do
+  def argument_wrapper([list] = argument, func_name)
+      when is_list(list) and func_name in [:max, :concatenate] do
     argument
   end
 
-  def argument_wrapper(arguments, :max) do
+  def argument_wrapper(arguments, func_name) when func_name in [:max, :concatenate] do
     [arguments]
   end
 
