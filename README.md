@@ -107,7 +107,7 @@ iex(2)> FeelEx.evaluate("duration(\"PT2H\")")
 %FeelEx.Value{value: %Duration{hour: 2}, type: :days_time_duration}
 iex(3)> FeelEx.evaluate("duration(\"PT30M\")")
 %FeelEx.Value{value: %Duration{minute: 30}, type: :days_time_duration}
-iex(4)> FeelEx.evaluate("duration(\"P1DT6H\")")
+iex(4)> FeelEx.evaluate("duration(\"  P1DT6H\")")
 %FeelEx.Value{value: %Duration{day: 1, hour: 6}, type: :days_time_duration}
 iex(5)> FeelEx.evaluate("@\"P4D\"")
 %FeelEx.Value{value: %Duration{day: 4}, type: :days_time_duration}
