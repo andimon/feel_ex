@@ -1,4 +1,4 @@
-# FeelEx [![Build Status](https://github.com/ExSemantic/feel_ex/actions/workflows/tests.yml/badge.svg)](https://github.com/ExSemantic/feel_ex/actions) [![Coverage Status](https://coveralls.io/repos/github/ExSemantic/feel_ex/badge.svg?branch=master)](https://coveralls.io/github/ExSemantic/feel_ex?branch=master) [![Hex.pm](https://img.shields.io/hexpm/v/feel_ex.svg)](https://hex.pm/packages/feel_ex) [![Documentation](https://img.shields.io/badge/documentation-gray)](https://hexdocs.pm/feel_ex/)
+# FeelEx [![Build Status](https://github.com/ExSemantic/feel_ex/actions/workflows/tests.yml/badge.svg)](https://github.com/ExSemantic/feel_ex/actions) [![Coverage Status](https://coveralls.io/repos/github/ExSemantic/feel_ex/badge.svg)](https://coveralls.io/github/ExSemantic/feel_ex?branch=master) [![Hex.pm](https://img.shields.io/hexpm/v/feel_ex.svg)](https://hex.pm/packages/feel_ex) [![Documentation](https://img.shields.io/badge/documentation-gray)](https://hexdocs.pm/feel_ex/)
 
 # Introduction
 
