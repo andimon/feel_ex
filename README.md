@@ -4,6 +4,18 @@
 
 A friendly expression language helps users define decision logic without needing deep technical expertise. This language is based on the FEEL(Friendly Enough Expression Language). For more information regarding FEEL, please take a look at the official OMG specification at [https://www.omg.org/dmn/](https://www.omg.org/dmn/).
 
+# Installation
+
+Add `feel_ex` to the list of dependencies in mix.exs:
+
+```elixir
+def deps do
+[
+  {:feel_ex, "~> 0.2.0"}
+]
+end
+```
+
 # Data types
 
 ## Null
