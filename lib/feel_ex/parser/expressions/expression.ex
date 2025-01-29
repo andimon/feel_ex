@@ -619,7 +619,7 @@ defmodule FeelEx.Expression do
     end)
   end
 
-  defp do_add(%FeelEx.Value{value: d1, type: dt1}, %FeelEx.Value{
+  defp do_add(%Value{value: d1, type: dt1}, %Value{
          value: d2,
          type: dt2
        })
@@ -628,7 +628,7 @@ defmodule FeelEx.Expression do
     Value.new(Duration.add(d1, d2))
   end
 
-  defp do_add(%FeelEx.Value{value: datetime, type: :date_time}, %FeelEx.Value{
+  defp do_add(%Value{value: datetime, type: :date_time}, %Value{
          value: duration,
          type: duration_type
        })
@@ -641,8 +641,8 @@ defmodule FeelEx.Expression do
   end
 
   defp do_add(
-         %FeelEx.Value{value: duration, type: duration_type},
-         %FeelEx.Value{value: datetime, type: :date_time}
+         %Value{value: duration, type: duration_type},
+         %Value{value: datetime, type: :date_time}
        )
        when duration_type in [:days_time_duration, :years_months_duration] do
     case datetime do
@@ -653,8 +653,8 @@ defmodule FeelEx.Expression do
   end
 
   defp do_add(
-         %FeelEx.Value{value: time, type: :time},
-         %FeelEx.Value{value: duration, type: duration_type}
+         %Value{value: time, type: :time},
+         %Value{value: duration, type: duration_type}
        )
        when duration_type in [:days_time_duration, :years_months_duration] do
     case time do
@@ -665,8 +665,8 @@ defmodule FeelEx.Expression do
   end
 
   defp do_add(
-         %FeelEx.Value{value: duration, type: duration_type},
-         %FeelEx.Value{value: time, type: :time}
+         %Value{value: duration, type: duration_type},
+         %Value{value: time, type: :time}
        )
        when duration_type in [:days_time_duration, :years_months_duration] do
     case time do
@@ -677,38 +677,38 @@ defmodule FeelEx.Expression do
   end
 
   defp do_add(
-         %FeelEx.Value{value: date, type: :date},
-         %FeelEx.Value{value: duration, type: duration_type}
+         %Value{value: date, type: :date},
+         %Value{value: duration, type: duration_type}
        )
        when duration_type in [:days_time_duration, :years_months_duration] do
     Value.new(Date.shift(date, duration))
   end
 
   defp do_add(
-         %FeelEx.Value{value: duration, type: duration_type},
-         %FeelEx.Value{value: date, type: :date}
+         %Value{value: duration, type: duration_type},
+         %Value{value: date, type: :date}
        )
        when duration_type in [:days_time_duration, :years_months_duration] do
     Value.new(Date.shift(date, duration))
   end
 
   defp do_add(
-         %FeelEx.Value{value: val1, type: :number},
-         %FeelEx.Value{value: val2, type: :number}
+         %Value{value: val1, type: :number},
+         %Value{value: val2, type: :number}
        ) do
     Value.new(val1 + val2)
   end
 
   defp do_add(
-         %FeelEx.Value{value: val1, type: :string},
-         %FeelEx.Value{value: val2, type: :string}
+         %Value{value: val1, type: :string},
+         %Value{value: val2, type: :string}
        ) do
     Value.new(val1 <> val2)
   end
 
   defp do_multiply(
-         %FeelEx.Value{value: %Duration{} = d, type: :years_months_duration},
-         %FeelEx.Value{value: n, type: :number}
+         %Value{value: %Duration{} = d, type: :years_months_duration},
+         %Value{value: n, type: :number}
        ) do
     {y, m} = {d.year * trunc(n), d.month * trunc(n)}
 
@@ -719,8 +719,8 @@ defmodule FeelEx.Expression do
   end
 
   defp do_multiply(
-         %FeelEx.Value{value: n, type: :number},
-         %FeelEx.Value{value: %Duration{} = d, type: :years_months_duration}
+         %Value{value: n, type: :number},
+         %Value{value: %Duration{} = d, type: :years_months_duration}
        ) do
     {y, m} = {d.year * trunc(n), d.month * trunc(n)}
     {y, m} = Helper.normalise(y, m)
@@ -728,8 +728,8 @@ defmodule FeelEx.Expression do
   end
 
   defp do_multiply(
-         %FeelEx.Value{value: n, type: :number},
-         %FeelEx.Value{value: %Duration{} = d, type: :days_time_duration}
+         %Value{value: n, type: :number},
+         %Value{value: %Duration{} = d, type: :days_time_duration}
        ) do
     {day, hour, minute, second} =
       {d.day * trunc(n), d.hour * trunc(n), d.second * trunc(n), d.second * trunc(n)}
@@ -740,8 +740,8 @@ defmodule FeelEx.Expression do
   end
 
   defp do_multiply(
-         %FeelEx.Value{value: %Duration{} = d, type: :days_time_duration},
-         %FeelEx.Value{value: n, type: :number}
+         %Value{value: %Duration{} = d, type: :days_time_duration},
+         %Value{value: n, type: :number}
        ) do
     {day, hour, minute, second} =
       {d.day * trunc(n), d.hour * trunc(n), d.second * trunc(n), d.second * trunc(n)}
@@ -751,29 +751,29 @@ defmodule FeelEx.Expression do
   end
 
   defp do_multiply(
-         %FeelEx.Value{value: val1, type: :number},
-         %FeelEx.Value{value: val2, type: :number}
+         %Value{value: val1, type: :number},
+         %Value{value: val2, type: :number}
        ) do
     Value.new(val1 * val2)
   end
 
   defp do_exponentiation(
-         %FeelEx.Value{value: val1, type: :number},
-         %FeelEx.Value{value: val2, type: :number}
+         %Value{value: val1, type: :number},
+         %Value{value: val2, type: :number}
        ) do
     Value.new(val1 ** val2)
   end
 
   defp do_subtract(
-         %FeelEx.Value{value: val1, type: :number},
-         %FeelEx.Value{value: val2, type: :number}
+         %Value{value: val1, type: :number},
+         %Value{value: val2, type: :number}
        ) do
     Value.new(val1 - val2)
   end
 
   defp do_subtract(
-         %FeelEx.Value{value: %Time{} = t1, type: :time},
-         %FeelEx.Value{value: %Time{} = t2, type: :time}
+         %Value{value: %Time{} = t1, type: :time},
+         %Value{value: %Time{} = t2, type: :time}
        ) do
     diff_seconds = Time.diff(t1, t2)
 
@@ -784,8 +784,8 @@ defmodule FeelEx.Expression do
   end
 
   defp do_subtract(
-         %FeelEx.Value{value: {%Time{} = t1, offset}, type: :time},
-         %FeelEx.Value{value: {%Time{} = t2, offset}, type: :time}
+         %Value{value: {%Time{} = t1, offset}, type: :time},
+         %Value{value: {%Time{} = t2, offset}, type: :time}
        ) do
     diff_seconds = Time.diff(t1, t2)
 
@@ -796,8 +796,8 @@ defmodule FeelEx.Expression do
   end
 
   defp do_subtract(
-         %FeelEx.Value{value: {%Time{} = t1, offset, zoneid}, type: :time},
-         %FeelEx.Value{value: {%Time{} = t2, offset, zoneid}, type: :time}
+         %Value{value: {%Time{} = t1, offset, zoneid}, type: :time},
+         %Value{value: {%Time{} = t2, offset, zoneid}, type: :time}
        ) do
     Time.diff(t1, t2)
     |> Helper.duration_from_seconds()
@@ -805,8 +805,8 @@ defmodule FeelEx.Expression do
   end
 
   defp do_subtract(
-         %FeelEx.Value{value: d1, type: :date},
-         %FeelEx.Value{value: d2, type: duration_type}
+         %Value{value: d1, type: :date},
+         %Value{value: d2, type: duration_type}
        )
        when duration_type in [:days_time_duration, :years_months_duration] do
     Value.new(Date.shift(d1, Duration.multiply(d2, -1)))
@@ -979,8 +979,8 @@ defmodule FeelEx.Expression do
   end
 
   defp do_gt(
-         %FeelEx.Value{value: val1, type: type1},
-         %FeelEx.Value{value: val2, type: type2}
+         %Value{value: val1, type: type1},
+         %Value{value: val2, type: type2}
        )
        when type1 in [:days_time_duration, :years_months_duration] and
               type2 in [:days_time_duration, :years_months_duration] do
@@ -988,15 +988,15 @@ defmodule FeelEx.Expression do
   end
 
   defp do_gt(
-         %FeelEx.Value{value: val1, type: type},
-         %FeelEx.Value{value: val2, type: type}
+         %Value{value: val1, type: type},
+         %Value{value: val2, type: type}
        ) do
     Value.new(val1 > val2)
   end
 
   defp do_lt(
-         %FeelEx.Value{value: val1, type: type1},
-         %FeelEx.Value{value: val2, type: type2}
+         %Value{value: val1, type: type1},
+         %Value{value: val2, type: type2}
        )
        when type1 in [:days_time_duration, :years_months_duration] and
               type2 in [:days_time_duration, :years_months_duration] do
@@ -1004,15 +1004,15 @@ defmodule FeelEx.Expression do
   end
 
   defp do_lt(
-         %FeelEx.Value{value: val1, type: type},
-         %FeelEx.Value{value: val2, type: type}
+         %Value{value: val1, type: type},
+         %Value{value: val2, type: type}
        ) do
     Value.new(val1 < val2)
   end
 
   defp do_leq(
-         %FeelEx.Value{value: val1, type: type1},
-         %FeelEx.Value{value: val2, type: type2}
+         %Value{value: val1, type: type1},
+         %Value{value: val2, type: type2}
        )
        when type1 in [:days_time_duration, :years_months_duration] and
               type2 in [:days_time_duration, :years_months_duration] do
@@ -1020,22 +1020,22 @@ defmodule FeelEx.Expression do
   end
 
   defp do_leq(
-         %FeelEx.Value{value: val1, type: type},
-         %FeelEx.Value{value: val2, type: type}
+         %Value{value: val1, type: type},
+         %Value{value: val2, type: type}
        ) do
     Value.new(val1 <= val2)
   end
 
   defp do_geq(
-         %FeelEx.Value{value: val1, type: type},
-         %FeelEx.Value{value: val2, type: type}
+         %Value{value: val1, type: type},
+         %Value{value: val2, type: type}
        ) do
     Value.new(val1 >= val2)
   end
 
   defp do_eq(
-         %FeelEx.Value{value: val1, type: :time},
-         %FeelEx.Value{value: val2, type: :time}
+         %Value{value: val1, type: :time},
+         %Value{value: val2, type: :time}
        )
        when is_struct(val1) and is_tuple(val2) do
     Logger.warning("Cannot compare #{inspect(val1)} with #{inspect(val2)}")
@@ -1043,8 +1043,8 @@ defmodule FeelEx.Expression do
   end
 
   defp do_eq(
-         %FeelEx.Value{value: val1, type: :time},
-         %FeelEx.Value{value: val2, type: :time}
+         %Value{value: val1, type: :time},
+         %Value{value: val2, type: :time}
        )
        when is_struct(val2) and is_tuple(val1) do
     Logger.warning("Cannot compare #{inspect(val1)} with #{inspect(val2)}")
@@ -1052,16 +1052,16 @@ defmodule FeelEx.Expression do
   end
 
   defp do_eq(
-         %FeelEx.Value{value: val1, type: type1},
-         %FeelEx.Value{value: val2, type: type2}
+         %Value{value: val1, type: type1},
+         %Value{value: val2, type: type2}
        )
        when type1 == :null or type2 == :null do
     Value.new(val1 == val2)
   end
 
   defp do_eq(
-         %FeelEx.Value{value: val1, type: type1},
-         %FeelEx.Value{value: val2, type: type2}
+         %Value{value: val1, type: type1},
+         %Value{value: val2, type: type2}
        )
        when type1 in [:days_time_duration, :years_months_duration] and
               type2 in [:days_time_duration, :years_months_duration] do
@@ -1069,8 +1069,8 @@ defmodule FeelEx.Expression do
   end
 
   defp do_eq(
-         %FeelEx.Value{value: val1, type: type},
-         %FeelEx.Value{value: val2, type: type}
+         %Value{value: val1, type: type},
+         %Value{value: val2, type: type}
        ) do
     Value.new(val1 == val2)
   end
@@ -1079,46 +1079,58 @@ defmodule FeelEx.Expression do
     Value.new(l1 == l2)
   end
 
+  defp do_eq(
+         %Value{value: val1},
+         %Value{value: val2}
+       ) do
+    Logger.warning("Cannot compare #{inspect(val1)} with #{inspect(val2)}")
+    Value.new(nil)
+  end
+
   defp do_neq(val1, val2) do
     case do_eq(val1, val2) do
-      %FeelEx.Value{value: value, type: :boolean} ->
-        %FeelEx.Value{value: not value, type: :boolean}
+      %Value{value: value, type: :boolean} ->
+        %Value{value: not value, type: :boolean}
 
       val ->
         val
     end
   end
 
-  defp do_and(%FeelEx.Value{value: true, type: :boolean}, right_tree, context) do
+  defp do_and(%Value{value: true, type: :boolean}, right_tree, context) do
     do_and(evaluate(right_tree, context))
   end
 
-  defp do_and(%FeelEx.Value{value: false, type: :boolean}, _right_tree, _context) do
-    %FeelEx.Value{value: false, type: :boolean}
+  defp do_and(%Value{}, _right_tree, _context) do
+    %Value{value: false, type: :boolean}
   end
 
-  defp do_and(%FeelEx.Value{value: value, type: :boolean}) when is_boolean(value) do
-    %FeelEx.Value{value: value, type: :boolean}
+  defp do_and(%Value{value: true, type: :boolean}) do
+    Value.new(true)
   end
 
-  defp do_or(%FeelEx.Value{value: true, type: :boolean}, _right_tree, _context) do
-    %FeelEx.Value{value: true, type: :boolean}
+  defp do_and(%Value{}) do
+    Value.new(false)
   end
 
-  defp do_or(%FeelEx.Value{value: false, type: :boolean}, right_tree, context) do
+  defp do_or(%Value{value: true, type: :boolean}, _right_tree, _context) do
+    %Value{value: true, type: :boolean}
+  end
+
+  defp do_or(%Value{value: false, type: :boolean}, right_tree, context) do
     do_or(evaluate(right_tree, context))
   end
 
-  defp do_or(%FeelEx.Value{value: value, type: :boolean}) when is_boolean(value) do
-    %FeelEx.Value{value: value, type: :boolean}
+  defp do_or(%Value{value: value, type: :boolean}) when is_boolean(value) do
+    %Value{value: value, type: :boolean}
   end
 
-  defp do_negation(%FeelEx.Value{value: val1, type: :number}) do
+  defp do_negation(%Value{value: val1, type: :number}) do
     Value.new(-val1)
   end
 
   defp do_if(
-         %FeelEx.Value{value: true, type: :boolean},
+         %Value{value: true, type: :boolean},
          conditional_statement,
          _else_statement,
          context
@@ -1137,8 +1149,8 @@ defmodule FeelEx.Expression do
   end
 
   defp get_range_list(
-         %FeelEx.Value{value: first_bound, type: :number},
-         %FeelEx.Value{value: second_bound, type: :number}
+         %Value{value: first_bound, type: :number},
+         %Value{value: second_bound, type: :number}
        ) do
     Helper.gen_list_from_range(first_bound, second_bound)
     |> Enum.map(fn x -> Value.new(x) end)

@@ -1252,8 +1252,6 @@ defmodule FeelEx.Functions do
   defp calculate_offset_string(hour, minute) do
     cond do
       String.starts_with?(hour, "-") and String.starts_with?(minute, "-") ->
-        IO.puts("dora 1")
-
         hour =
           String.slice(hour, 1..-1//1)
           |> String.pad_leading(2, "0")
