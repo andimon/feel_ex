@@ -7,6 +7,7 @@ defmodule FeelEx.Functions do
   import Kernel, except: [floor: 1]
   require Integer
   require Logger
+  alias FeelEx.Helper
   alias FeelEx.Value
 
   #############################
@@ -43,7 +44,7 @@ defmodule FeelEx.Functions do
   end
 
   def string(%Value{type: :null, value: nil}) do
-    Value.new("null")
+    Value.new(nil)
   end
 
   def string(%Value{type: :date, value: date}) do
@@ -67,10 +68,6 @@ defmodule FeelEx.Functions do
 
   def string(%Value{type: :date_time, value: {%NaiveDateTime{} = date, _offset, zone}}) do
     Value.new(NaiveDateTime.to_iso8601(date) <> "@" <> zone)
-  end
-
-  def string(%Value{type: %Time{} = time, value: :time}) do
-    Value.new(Time.to_iso8601(time))
   end
 
   def string(%Value{type: type, value: %Duration{} = duration})
@@ -107,8 +104,29 @@ defmodule FeelEx.Functions do
         Value.new(int)
 
       _ ->
+        string =
+          cond do
+            String.starts_with?(string, ".") ->
+              "0" <> string
+
+            String.starts_with?(string, "-.") ->
+              {_, number} = String.split_at(string, 2)
+              "-0." <> number
+
+            true ->
+              string
+          end
+
         try_parse_float(string)
     end
+  end
+
+  def number(%Value{value: value}) do
+    Logger.warning(
+      "[FUNCTION_INVOCATION_FAILURE] Failed to invoke function 'number': Illegal arguments: #{inspect(value)}"
+    )
+
+    Value.new(nil)
   end
 
   defp parse_int(string), do: Integer.parse(string)
@@ -119,6 +137,10 @@ defmodule FeelEx.Functions do
         Value.new(float)
 
       _ ->
+        Logger.warning(
+          "[FUNCTION_INVOCATION_FAILURE] Failed to invoke function 'number': Can't parse #{inspect(string)} as a number"
+        )
+
         Value.new(nil)
     end
   end
@@ -198,16 +220,20 @@ defmodule FeelEx.Functions do
       }) do
     case {number, precision} do
       {number, _} when is_integer(number) ->
-        Value.new(number)
+        number
+        |> integer_checker()
+        |> Value.new()
 
       {number, precision} when is_float(number) and is_integer(precision) ->
         number
         |> Float.round(precision)
+        |> integer_checker()
         |> Value.new()
 
       {number, precision} when is_float(number) and is_float(precision) ->
         number
         |> Float.round(trunc(precision))
+        |> integer_checker()
         |> Value.new()
     end
   end
@@ -326,7 +352,8 @@ defmodule FeelEx.Functions do
       iex> FeelEx.Functions.round_up(number,scale)
       %FeelEx.Value{value: -1.13, type: :number}
   """
-  def round_up(%Value{value: number1, type: :number} = value, _) when is_integer(number1) do
+  def round_up(%Value{value: number1, type: :number} = value, %Value{type: :number})
+      when is_integer(number1) do
     value
   end
 
@@ -368,7 +395,8 @@ defmodule FeelEx.Functions do
       iex> FeelEx.Functions.round_down(number,scale)
       %FeelEx.Value{value: 5, type: :number}
   """
-  def round_down(%Value{value: number1, type: :number} = value, _) when is_integer(number1) do
+  def round_down(%Value{value: number1, type: :number} = value, %Value{type: :number})
+      when is_integer(number1) do
     value
   end
 
@@ -429,7 +457,8 @@ defmodule FeelEx.Functions do
       %FeelEx.Value{value: -1.13, type: :number}
 
   """
-  def round_half_up(%Value{value: number, type: :number} = value, _) when is_integer(number) do
+  def round_half_up(%Value{value: number, type: :number} = value, %Value{type: :number})
+      when is_integer(number) do
     value
   end
 
@@ -585,10 +614,13 @@ defmodule FeelEx.Functions do
       iex> FeelEx.Functions.sqrt(number)
       %FeelEx.Value{value: 4, type: :number}
   """
-  def sqrt(%Value{value: number, type: :number}) do
-    value = integer_checker(:math.sqrt(number))
+  def sqrt(%Value{value: number, type: :number}) when number < 0 do
+    Value.new(nil)
+  end
 
-    %Value{value: value, type: :number}
+  def sqrt(%Value{value: number, type: :number}) do
+    integer_checker(:math.sqrt(number))
+    |> Value.new()
   end
 
   @doc """
@@ -601,10 +633,13 @@ defmodule FeelEx.Functions do
       iex> FeelEx.Functions.log(number)
       %FeelEx.Value{value: 2.302585092994046, type: :number}
   """
-  def log(%Value{value: number, type: :number}) do
-    value = integer_checker(:math.log(number))
+  def log(%Value{value: number, type: :number}) when number <= 0 do
+    Value.new(nil)
+  end
 
-    %Value{value: value, type: :number}
+  def log(%Value{value: number, type: :number}) do
+    integer_checker(:math.log(number))
+    |> Value.new()
   end
 
   @doc """
@@ -617,9 +652,8 @@ defmodule FeelEx.Functions do
       %FeelEx.Value{value: 148.4131591025766, type: :number}
   """
   def exp(%Value{value: number, type: :number}) do
-    value = integer_checker(:math.exp(number))
-
-    %Value{value: value, type: :number}
+    integer_checker(:math.exp(number))
+    |> Value.new()
   end
 
   @doc """
@@ -930,6 +964,19 @@ defmodule FeelEx.Functions do
       ]
 
   """
+
+  def split(%Value{type: :string, value: string1}, %Value{
+        type: :string,
+        value: ""
+      }) do
+    String.split(string1, "")
+    |> tl()
+    |> Enum.reverse()
+    |> tl()
+    |> Enum.reverse()
+    |> Enum.map(fn string -> Value.new(string) end)
+  end
+
   def split(%Value{type: :string, value: string1}, %Value{
         type: :string,
         value: string2
@@ -1076,7 +1123,13 @@ defmodule FeelEx.Functions do
         Value.new(Time.from_iso8601!(time))
 
       true ->
-        Value.new(Time.from_iso8601!(time))
+        case Time.from_iso8601(time) do
+          {:ok, time} ->
+            Value.new(time)
+
+          {:error, _} ->
+            Value.new(nil)
+        end
     end
   end
 
@@ -1085,18 +1138,14 @@ defmodule FeelEx.Functions do
     |> Value.new()
   end
 
-  def time(%Value{type: :date_time, value: {%NaiveDateTime{} = date_time, _}}) do
+  def time(%Value{type: :date_time, value: {%NaiveDateTime{} = date_time, offset}}) do
     NaiveDateTime.to_time(date_time)
-    |> Value.new()
+    |> Value.new(offset)
   end
 
-  def time(%Value{type: :date_time, value: {%NaiveDateTime{} = date_time, _, _}}) do
+  def time(%Value{type: :date_time, value: {%NaiveDateTime{} = date_time, _, timezoneid}}) do
     NaiveDateTime.to_time(date_time)
-    |> Value.new()
-  end
-
-  def time(%Value{}) do
-    Value.new(nil)
+    |> Value.new(timezoneid)
   end
 
   @doc """
@@ -1121,6 +1170,14 @@ defmodule FeelEx.Functions do
       {:ok, time} -> Value.new(time)
       {:error, _} -> Value.new(nil)
     end
+  end
+
+  def time(%Value{value: value1}, %Value{value: value2}, %Value{value: value3}) do
+    Logger.warning(
+      "[FUNCTION_INVOCATION_FAILURE] Failed to invoke function 'time': Illegal arguments: '#{inspect(value1)}', '#{inspect(value2)}', '#{inspect(value3)}'"
+    )
+
+    Value.new(nil)
   end
 
   @doc """
@@ -1150,8 +1207,19 @@ defmodule FeelEx.Functions do
         %Value{type: :days_time_duration, value: duration}
       ) do
     case Time.new(trunc(hour), trunc(minute), trunc(second)) do
-      {:ok, time} -> Value.new(time, days_time_duration_to_offset(duration))
-      {:error, _} -> Value.new(nil)
+      {:ok, time} ->
+        offset = days_time_duration_to_offset(duration)
+
+        case Helper.get_offset(offset) do
+          {:error, _} ->
+            Value.new(nil)
+
+          offset ->
+            Value.new(time, offset)
+        end
+
+      {:error, _} ->
+        Value.new(nil)
     end
   end
 
@@ -1189,7 +1257,7 @@ defmodule FeelEx.Functions do
           |> String.pad_leading(2, "0")
 
         minute =
-          String.slice(hour, 1..-1//1)
+          String.slice(minute, 1..-1//1)
           |> String.pad_leading(2, "0")
 
         "-" <> hour <> ":" <> minute
@@ -1243,7 +1311,10 @@ defmodule FeelEx.Functions do
   def date_and_time(%Value{value: time, type: :string}) do
     cond do
       Regex.match?(~r/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/, time) ->
-        Value.new(NaiveDateTime.from_iso8601!(time))
+        case NaiveDateTime.from_iso8601(time) do
+          {:ok, dt} -> Value.new(dt)
+          {:error, _} -> Value.new(nil)
+        end
 
       String.contains?(time, "@") ->
         temporal_with_zone_id(time, NaiveDateTime)
@@ -1253,6 +1324,9 @@ defmodule FeelEx.Functions do
 
       String.contains?(time, "-") ->
         temporal_with_offset(time, "-", NaiveDateTime)
+
+      true ->
+        Value.new(nil)
     end
   end
 
@@ -1282,47 +1356,39 @@ defmodule FeelEx.Functions do
         type: :time,
         value: %Time{} = time
       }) do
-    case NaiveDateTime.new(date, time) do
-      {:ok, time} -> Value.new(time)
-      _ -> Value.new(nil)
-    end
+    NaiveDateTime.new!(date, time)
+    |> Value.new()
   end
 
   def date_and_time(%Value{type: :date_time, value: %NaiveDateTime{} = date_time}, %Value{
         type: :time,
         value: %Time{} = time
       }) do
-    case NaiveDateTime.new(NaiveDateTime.to_date(date_time), time) do
-      {:ok, time} -> Value.new(time)
-      _ -> Value.new(nil)
-    end
+    NaiveDateTime.new!(NaiveDateTime.to_date(date_time), time)
+    |> Value.new()
   end
 
   def date_and_time(%Value{type: :date_time, value: {%NaiveDateTime{} = date_time, _}}, %Value{
         type: :time,
         value: %Time{} = time
       }) do
-    case NaiveDateTime.new(NaiveDateTime.to_date(date_time), time) do
-      {:ok, time} -> Value.new(time)
-      _ -> Value.new(nil)
-    end
+    NaiveDateTime.new!(NaiveDateTime.to_date(date_time), time)
+    |> Value.new()
   end
 
   def date_and_time(%Value{type: :date_time, value: {%NaiveDateTime{} = date_time, _, _}}, %Value{
         type: :time,
         value: %Time{} = time
       }) do
-    case NaiveDateTime.new(NaiveDateTime.to_date(date_time), time) do
-      {:ok, time} -> Value.new(time)
-      _ -> Value.new(nil)
-    end
+    NaiveDateTime.new!(NaiveDateTime.to_date(date_time), time)
+    |> Value.new()
   end
 
   def date_and_time(%Value{type: :date, value: %Date{} = date}, %Value{
         type: :time,
         value: {%Time{} = time, offset}
       }) do
-    NaiveDateTime.new(date, time)
+    NaiveDateTime.new!(date, time)
     |> Value.new(offset)
   end
 
@@ -1330,7 +1396,7 @@ defmodule FeelEx.Functions do
         type: :time,
         value: {%Time{} = time, _offset, timezone}
       }) do
-    NaiveDateTime.new(date, time)
+    NaiveDateTime.new!(date, time)
     |> Value.new(timezone)
   end
 
@@ -1338,7 +1404,7 @@ defmodule FeelEx.Functions do
         type: :time,
         value: {%Time{} = time, offset}
       }) do
-    NaiveDateTime.new(NaiveDateTime.to_date(date_time), time)
+    NaiveDateTime.new!(NaiveDateTime.to_date(date_time), time)
     |> Value.new(offset)
   end
 
@@ -1346,7 +1412,7 @@ defmodule FeelEx.Functions do
         type: :time,
         value: {%Time{} = time, _offset, timezone}
       }) do
-    NaiveDateTime.new(NaiveDateTime.to_date(date_time), time)
+    NaiveDateTime.new!(NaiveDateTime.to_date(date_time), time)
     |> Value.new(timezone)
   end
 
@@ -1354,7 +1420,7 @@ defmodule FeelEx.Functions do
         type: :time,
         value: {%Time{} = time, offset}
       }) do
-    NaiveDateTime.new(NaiveDateTime.to_date(date_time), time)
+    NaiveDateTime.new!(NaiveDateTime.to_date(date_time), time)
     |> Value.new(offset)
   end
 
@@ -1362,7 +1428,7 @@ defmodule FeelEx.Functions do
         type: :time,
         value: {%Time{} = time, _offset, timezone}
       }) do
-    NaiveDateTime.new(NaiveDateTime.to_date(date_time), time)
+    NaiveDateTime.new!(NaiveDateTime.to_date(date_time), time)
     |> Value.new(timezone)
   end
 
@@ -1370,7 +1436,7 @@ defmodule FeelEx.Functions do
         type: :time,
         value: {%Time{} = time, offset}
       }) do
-    NaiveDateTime.new(NaiveDateTime.to_date(date_time), time)
+    NaiveDateTime.new!(NaiveDateTime.to_date(date_time), time)
     |> Value.new(offset)
   end
 
@@ -1378,28 +1444,44 @@ defmodule FeelEx.Functions do
         type: :time,
         value: {%Time{} = time, _offset, timezone}
       }) do
-    NaiveDateTime.new(NaiveDateTime.to_date(date_time), time)
+    NaiveDateTime.new!(NaiveDateTime.to_date(date_time), time)
     |> Value.new(timezone)
+  end
+
+  def date_and_time(%Value{value: value1}, %Value{value: value2}) do
+    Logger.warning(
+      "[FUNCTION_INVOCATION_FAILURE] Failed to invoke function 'date and time': Illegal arguments: '#{inspect(value1)}', '#{inspect(value2)}'"
+    )
+
+    Value.new(nil)
   end
 
   defp temporal_with_offset(datetime, _offset, NaiveDateTime) do
     {new_time, offset_val} =
       String.split_at(datetime, 19)
 
-    datetime = NaiveDateTime.from_iso8601!(new_time)
-    Value.new(datetime, offset_val)
+    case NaiveDateTime.from_iso8601(new_time) do
+      {:ok, datetime} -> Value.new(datetime, offset_val)
+      {:error, _} -> Value.new(nil)
+    end
   end
 
   defp temporal_with_offset(time, offset, temporal_type) do
     [new_time, offset_val] = String.split(time, offset, parts: 2)
-    time = temporal_type.from_iso8601!(new_time)
-    Value.new(time, offset <> offset_val)
+
+    case temporal_type.from_iso8601(new_time) do
+      {:ok, time} -> Value.new(time, offset <> offset_val)
+      {:error, _} -> Value.new(nil)
+    end
   end
 
   defp temporal_with_zone_id(time, temporal_type) do
     [time, zone_id] = String.split(time, "@", parts: 2)
-    time = temporal_type.from_iso8601!(time)
-    Value.new(time, zone_id)
+
+    case temporal_type.from_iso8601(time) do
+      {:ok, time} -> Value.new(time, zone_id)
+      {:error, _} -> Value.new(nil)
+    end
   end
 
   @doc """
@@ -1461,6 +1543,10 @@ defmodule FeelEx.Functions do
   """
   def negate(%Value{type: :boolean, value: boolean}) do
     Value.new(not boolean)
+  end
+
+  def negate(%Value{value: _value}) do
+    Value.new(nil)
   end
 
   #############################
@@ -1654,6 +1740,7 @@ defmodule FeelEx.Functions do
 
   @doc """
   Returns arithmetic mean given a list of numbers.
+  Returns nil when the list is empty or contains an element which is not a number.
   ## Examples
       iex> list = FeelEx.Value.new([1,2,3])
       [
@@ -1664,15 +1751,22 @@ defmodule FeelEx.Functions do
       iex> FeelEx.Functions.mean(list)
       %FeelEx.Value{value: 2, type: :number}
   """
+  def mean([]), do: Value.new(nil)
+
   def mean(list) when is_list(list) do
-    sum = sum(list)
+    non_number = non_number(list)
 
     cond do
-      not is_nil(sum) ->
+      is_nil(non_number) ->
+        sum = sum(list)
         Map.update!(sum, :value, &integer_checker(&1 / length(list)))
 
       true ->
-        sum
+        Logger.warning(
+          "Failed to invoke function 'product': expected number but found '#{inspect(non_number)}'"
+        )
+
+        Value.new(nil)
     end
   end
 
@@ -1726,6 +1820,9 @@ defmodule FeelEx.Functions do
   iex> FeelEx.Functions.stddev(value)
   %FeelEx.Value{value: 2.0816659994661326, type: :number}
   """
+  def stddev([]), do: Value.new(nil)
+  def stddev([_]), do: Value.new(nil)
+
   def stddev(list) when is_list(list) do
     non_number = non_number(list)
 
@@ -1804,6 +1901,8 @@ defmodule FeelEx.Functions do
       iex> FeelEx.Functions.all(value)
       %FeelEx.Value{value: false, type: :boolean}
   """
+  def all([]), do: Value.new(true)
+
   def all(list) when is_list(list) do
     non_boolean = non_boolean(list)
 
@@ -1883,6 +1982,8 @@ defmodule FeelEx.Functions do
           "Failed to invoke function 'sublist': start position must be a non-zero number"
         )
 
+        Value.new(nil)
+
       start_position > 0 ->
         Enum.slice(list, (start_position - 1)..-1//1)
 
@@ -1918,6 +2019,8 @@ defmodule FeelEx.Functions do
         Logger.warning(
           "Failed to invoke function 'sublist': start position must be a non-zero number"
         )
+
+        Value.new(nil)
 
       start_position > 0 ->
         Enum.slice(list, start_position - 1, length)
@@ -2010,14 +2113,6 @@ defmodule FeelEx.Functions do
       ]
   """
   def insert_before(
-        list,
-        %FeelEx.Value{value: start_position, type: :number},
-        %FeelEx.Value{} = value
-      ) do
-    List.insert_at(list, start_position - 1, value)
-  end
-
-  def insert_before(
         _list,
         %FeelEx.Value{value: 0, type: :number},
         _value
@@ -2027,6 +2122,14 @@ defmodule FeelEx.Functions do
     )
 
     Value.new(nil)
+  end
+
+  def insert_before(
+        list,
+        %FeelEx.Value{value: start_position, type: :number},
+        %FeelEx.Value{} = value
+      ) do
+    List.insert_at(list, start_position - 1, value)
   end
 
   @doc """

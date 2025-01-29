@@ -3,6 +3,19 @@ defmodule FeelEx.Helper do
   alias FeelEx.Value
   alias FeelEx.Token
 
+  def argument_wrapper([list] = argument, func_name)
+      when is_list(list) and func_name in [:max, :concatenate] do
+    argument
+  end
+
+  def argument_wrapper(arguments, func_name) when func_name in [:max, :concatenate] do
+    [arguments]
+  end
+
+  def argument_wrapper(arguments, _) do
+    arguments
+  end
+
   def transform_context(context) when is_map(context) do
     Enum.map(context, fn {k, v} ->
       {k, do_transform_context_value(v)}
@@ -320,14 +333,18 @@ defmodule FeelEx.Helper do
   end
 
   defp get_offset_from_zone_id(zone_id) when is_binary(zone_id) do
-    {:ok, datetime} = DateTime.now(zone_id, Tzdata.TimeZoneDatabase)
+    case DateTime.now(zone_id, Tzdata.TimeZoneDatabase) do
+      {:ok, datetime} ->
+        offset_seconds = datetime.utc_offset
 
-    offset_seconds = datetime.utc_offset
+        hours = div(offset_seconds, 3600)
+        minutes = div(rem(offset_seconds, 3600), 60)
 
-    hours = div(offset_seconds, 3600)
-    minutes = div(rem(offset_seconds, 3600), 60)
+        "#{sign(hours)}#{format_hours_and_minutes(abs(hours))}:#{format_hours_and_minutes(minutes)}"
 
-    "#{sign(hours)}#{format_hours_and_minutes(abs(hours))}:#{format_hours_and_minutes(minutes)}"
+      e ->
+        e
+    end
   end
 
   defp sign(n) when n < 0, do: "-"

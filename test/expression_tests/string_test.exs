@@ -10,10 +10,6 @@ defmodule FeelEx.StringTest do
     assert %Value{value: "Aw Dinja", type: :string} == FeelEx.evaluate("\"Aw\"+\" Dinja\"")
   end
 
-  test "string() - null" do
-    assert %Value{value: "null", type: :string} == FeelEx.evaluate("string(null)")
-  end
-
   test "string() - number" do
     assert %Value{value: "12", type: :string} == FeelEx.evaluate("string(12)")
     assert %Value{value: "0.22", type: :string} == FeelEx.evaluate("string(.22)")

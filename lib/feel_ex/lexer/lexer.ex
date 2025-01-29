@@ -397,6 +397,14 @@ defmodule FeelEx.Lexer do
   end
 
   defp rollback_to_final_state(%{
+         lexeme: lexeme,
+         current_states: [],
+         current_line_number: _current_line_number
+       }) do
+    raise ArgumentError, message: "Invalid lexeme #{inspect(lexeme)}"
+  end
+
+  defp rollback_to_final_state(%{
          current_index: current_index,
          lexeme: lexeme,
          current_states: current_states,

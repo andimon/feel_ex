@@ -70,24 +70,42 @@ defmodule FeelEx.Value do
   end
 
   def new(%NaiveDateTime{} = date, offset_or_zone_id) do
-    if String.starts_with?(offset_or_zone_id, "+") or String.starts_with?(offset_or_zone_id, "-") do
-      %__MODULE__{value: {date, Helper.get_offset(offset_or_zone_id)}, type: :date_time}
-    else
-      %__MODULE__{
-        value: {date, Helper.get_offset(offset_or_zone_id), offset_or_zone_id},
-        type: :date_time
-      }
+    offset = Helper.get_offset(offset_or_zone_id)
+
+    case offset do
+      {:error, _} ->
+        new(nil)
+
+      offset ->
+        if String.starts_with?(offset_or_zone_id, "+") or
+             String.starts_with?(offset_or_zone_id, "-") do
+          %__MODULE__{value: {date, offset}, type: :date_time}
+        else
+          %__MODULE__{
+            value: {date, offset, offset_or_zone_id},
+            type: :date_time
+          }
+        end
     end
   end
 
   def new(%Time{} = time, offset_or_zone_id) do
-    if String.starts_with?(offset_or_zone_id, "+") or String.starts_with?(offset_or_zone_id, "-") do
-      %__MODULE__{value: {time, Helper.get_offset(offset_or_zone_id)}, type: :time}
-    else
-      %__MODULE__{
-        value: {time, Helper.get_offset(offset_or_zone_id), offset_or_zone_id},
-        type: :time
-      }
+    offset = Helper.get_offset(offset_or_zone_id)
+
+    case offset do
+      {:error, _} ->
+        new(nil)
+
+      offset ->
+        if String.starts_with?(offset_or_zone_id, "+") or
+             String.starts_with?(offset_or_zone_id, "-") do
+          %__MODULE__{value: {time, offset}, type: :time}
+        else
+          %__MODULE__{
+            value: {time, offset, offset_or_zone_id},
+            type: :time
+          }
+        end
     end
   end
 end
