@@ -1,4 +1,114 @@
-# v0.2.0-dev
-* Added for expression support ([test cases](https://github.com/ExSemantic/feel_ex/blob/master/test/expression_tests/for_expression_test.exs))
+# v0.2.0
+
+- evaluate a value against a unary test
+- evaluate an expression
+- datatypes supported
+  - null
+  - string
+  - boolean
+  - data
+  - time (can have an offset or time zone id)
+  - date-time (time can have an offset or time zone id)
+  - days-time-duration
+  - years-months-duration
+  - list
+  - context
+  -
+- unary operators
+  - comparison
+    - equality, less than, less than or equal to, greater than, greater than or equal
+    - intervals (with boundaries `[x..y]`,`[x..y)`,`(x..y]`,`(x..y)`)
+    - disjunction/or
+    - negation
+    - expressions
+- expressions
+
+  - single and multiline comments
+  - parentheses to enclose sub-statements
+  - boolean expressions
+
+    - `true` and `false` literals
+    - comparison
+      - equality `=` for all datatypes
+      - ineqaulity `!=` for all datatypes
+      - less than `<` for values with datatypes: number, date, time, date-time, duration
+      - less than or equal `<=` for values with datatypes: number, date, time, date-time, duration
+      - greater than `>` for values with datatypes: number, date, time, date-time, duration
+      - greater than or equal `>=` for values with datatypes: number, date, time, date-time, duration
+      - conjunction `and` for all datatypes
+      - disjunction `or` for all datatypes
+    - string expressions
+      - literals
+      - string addition/concatenation using `+` operator
+    - numeric expressions
+      - numeric literals
+      - leading `0` support in literals
+      - floating point without integral part support
+      - addition, subtraction, multiplication, division, exponentiation
+    - list expressions
+      - list literals
+      - get elements using square notation with 1-based index
+        - accessing elements from the end of list using negative index
+      - filtering of a list
+      - existential and universal quantification of list using `some` and `every`
+    - context expressions
+      - literal
+      - get enty using dot syntax
+      - filter>
+      - projection
+    - temporal expressions
+
+      - literal
+        - using temporal function
+        - using `@` notation
+      - addition
+        - date + duration = date
+        - time + days-time-duration = time
+        - date-time + duration = date-time
+        - duration + time = time
+        - duration + date-time = date-time
+        - duration + duration = duration
+      - subtraction
+        - date - date = days-time-duration
+        - date - duration = date
+        - time - time = days-time-duration
+        - time - days-time-duration = time
+        - date-time - date-time = days-time-duration
+        - date-time - duration = date-time
+        - duration - time = time
+        - duration - date-time = date-time
+        - days-time-duration - days-time-duration = days-time-duration
+        - years-months-duration - years-months-duration = years-months-duration
+      - multiplication
+        - days-time-duration \* number = days-time-duration
+        - number \* days-time-duration = days-time-duration
+        - years-months-duration \* number = years-months-duration
+        - number \* years-months-duration = yeats-months-duration
+      - division
+        - days-time-duration / days-time-duration = number
+        - days-time-duration / number = days-time-duration
+        - years-months-duration / years-months-duration = number
+        - years-months-duration / number = years-months-duration
+      - properties
+        - year, month, day, weekday, hour, minute, second, time offset, timezone, days, hours, minutes, seconds, years, months
+
+    - variable expressions
+    - control flow
+      - if conditions
+      - for loops
+    - built in functions
+      - conversion functions
+      - boolean functions
+      - string functions
+      - numeric functions
+      - list functions
+      - context functions
+      - temporal functions
+      - range functions
+
 # v0.1.0
-* Initial release
+
+Experimental Version
+
+- Added feel ex lexer
+- Added feel ex parser>
