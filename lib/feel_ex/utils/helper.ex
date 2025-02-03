@@ -3,6 +3,15 @@ defmodule FeelEx.Helper do
   alias FeelEx.Value
   alias FeelEx.Token
 
+  # convert float to integer if decimal part is 0
+  def integer_checker(float) do
+    if trunc(float) == float do
+      trunc(float)
+    else
+      float
+    end
+  end
+
   def argument_wrapper([list] = argument, func_name)
       when is_list(list) and func_name in [:max, :concatenate] do
     argument

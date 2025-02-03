@@ -221,19 +221,19 @@ defmodule FeelEx.Functions do
     case {number, precision} do
       {number, _} when is_integer(number) ->
         number
-        |> integer_checker()
+        |> Helper.integer_checker()
         |> Value.new()
 
       {number, precision} when is_float(number) and is_integer(precision) ->
         number
         |> Float.round(precision)
-        |> integer_checker()
+        |> Helper.integer_checker()
         |> Value.new()
 
       {number, precision} when is_float(number) and is_float(precision) ->
         number
         |> Float.round(trunc(precision))
-        |> integer_checker()
+        |> Helper.integer_checker()
         |> Value.new()
     end
   end
@@ -281,7 +281,7 @@ defmodule FeelEx.Functions do
       {n1, n2} when is_float(n1) ->
         n1
         |> Float.floor(trunc(n2))
-        |> integer_checker()
+        |> Helper.integer_checker()
         |> Value.new()
     end
   end
@@ -323,7 +323,7 @@ defmodule FeelEx.Functions do
       {n1, n2} when is_float(n1) ->
         n1
         |> Float.ceil(trunc(n2))
-        |> integer_checker()
+        |> Helper.integer_checker()
         |> Value.new()
     end
   end
@@ -366,7 +366,7 @@ defmodule FeelEx.Functions do
       decimal_part_length(number1) > trunc(number2) ->
         number1
         |> Float.ceil(trunc(number2))
-        |> integer_checker()
+        |> Helper.integer_checker()
         |> Value.new()
 
       true ->
@@ -409,7 +409,7 @@ defmodule FeelEx.Functions do
       decimal_part_length(number1) > trunc(number2) ->
         number1
         |> Float.floor(trunc(number2))
-        |> integer_checker()
+        |> Helper.integer_checker()
         |> Value.new()
 
       true ->
@@ -599,7 +599,7 @@ defmodule FeelEx.Functions do
       %FeelEx.Value{value: 2, type: :number}
   """
   def modulo(%Value{value: divedend, type: :number}, %Value{value: divisor, type: :number}) do
-    value = integer_checker(:math.fmod(divedend, divisor))
+    value = Helper.integer_checker(:math.fmod(divedend, divisor))
 
     %Value{value: value, type: :number}
   end
@@ -619,7 +619,7 @@ defmodule FeelEx.Functions do
   end
 
   def sqrt(%Value{value: number, type: :number}) do
-    integer_checker(:math.sqrt(number))
+    Helper.integer_checker(:math.sqrt(number))
     |> Value.new()
   end
 
@@ -638,7 +638,7 @@ defmodule FeelEx.Functions do
   end
 
   def log(%Value{value: number, type: :number}) do
-    integer_checker(:math.log(number))
+    Helper.integer_checker(:math.log(number))
     |> Value.new()
   end
 
@@ -652,7 +652,7 @@ defmodule FeelEx.Functions do
       %FeelEx.Value{value: 148.4131591025766, type: :number}
   """
   def exp(%Value{value: number, type: :number}) do
-    integer_checker(:math.exp(number))
+    Helper.integer_checker(:math.exp(number))
     |> Value.new()
   end
 
@@ -708,15 +708,6 @@ defmodule FeelEx.Functions do
   """
   def random() do
     Value.new(:rand.uniform())
-  end
-
-  # convert float to integer if decimal part is 0
-  defp integer_checker(float) do
-    if trunc(float) == float do
-      trunc(float)
-    else
-      float
-    end
   end
 
   defp decimal_part_length(float) when is_float(float) do
@@ -1759,7 +1750,7 @@ defmodule FeelEx.Functions do
     cond do
       is_nil(non_number) ->
         sum = sum(list)
-        Map.update!(sum, :value, &integer_checker(&1 / length(list)))
+        Map.update!(sum, :value, &Helper.integer_checker(&1 / length(list)))
 
       true ->
         Logger.warning(
@@ -2448,7 +2439,7 @@ defmodule FeelEx.Functions do
         index = div(length, 2)
         Enum.at(list, index)
     end
-    |> integer_checker()
+    |> Helper.integer_checker()
   end
 
   defp do_stddev(list) when is_list(list) do
