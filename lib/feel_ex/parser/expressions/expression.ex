@@ -696,7 +696,9 @@ defmodule FeelEx.Expression do
          %Value{value: val1, type: :number},
          %Value{value: val2, type: :number}
        ) do
-    Value.new(val1 + val2)
+    (val1 + val2)
+    |> Helper.integer_checker()
+    |> Value.new()
   end
 
   defp do_add(
@@ -754,7 +756,9 @@ defmodule FeelEx.Expression do
          %Value{value: val1, type: :number},
          %Value{value: val2, type: :number}
        ) do
-    Value.new(val1 * val2)
+    (val1 * val2)
+    |> Helper.integer_checker()
+    |> Value.new()
   end
 
   defp do_exponentiation(
@@ -768,7 +772,9 @@ defmodule FeelEx.Expression do
          %Value{value: val1, type: :number},
          %Value{value: val2, type: :number}
        ) do
-    Value.new(val1 - val2)
+    (val1 - val2)
+    |> Helper.integer_checker()
+    |> Value.new()
   end
 
   defp do_subtract(
@@ -975,7 +981,9 @@ defmodule FeelEx.Expression do
   end
 
   defp do_divide(%Value{value: val1, type: :number}, %Value{value: val2, type: :number}) do
-    Value.new(val1 / val2)
+    (val1 / val2)
+    |> Helper.integer_checker()
+    |> Value.new()
   end
 
   defp do_gt(
