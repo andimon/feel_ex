@@ -16,6 +16,7 @@ defmodule FeelEx do
       %FeelEx.Value{value: 4, type: :number}
 
   """
+  @spec evaluate(map(), String.t()) :: Value.t()
   def evaluate(context, expression) when is_map(context) and is_binary(expression) do
     context = Helper.transform_context(context)
 

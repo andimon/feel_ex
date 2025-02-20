@@ -4,6 +4,24 @@ defmodule FeelEx.Value do
 
   defstruct [:value, :type]
 
+  @type feelex_number_value() :: %__MODULE__{value: number(), type: :number}
+  @type feelex_string_value() :: %__MODULE__{value: String.t(), type: :string}
+  @type feelex_null_value() :: %__MODULE__{value: nil, type: :null}
+  @type feelex_boolean_value() :: %__MODULE__{value: boolean(), type: :boolean}
+  @type feelex_date_value() :: %__MODULE__{value: Date.t(), type: :date}
+  @type feelex_datetime_value() :: %__MODULE__{value: boolean(), type: :boolean}
+
+  @type t() :: feelex_string_value() | feelex_boolean_value()
+
+  @spec new(t()) :: t()
+  @spec new(number()) :: feelex_number_value()
+  @spec new(list) :: [t()]
+  @spec new(boolean()) :: feelex_boolean_value()
+  @spec new(String.t()) :: feelex_string_value()()
+  @spec new(nil) :: feelex_null_value()
+  @spec new(Date.t()) :: feelex_date_value()
+  @spec new(NaiveDateTime.t()) :: feelex_datetime_value()
+
   def new(%__MODULE__{} = value), do: value
 
   def new(number) when is_number(number) do
