@@ -389,6 +389,4 @@ defmodule FeelEx.NumericFunctionTests do
       assert result >= Value.new(0) && result <= Value.new(1)
     end
   end
-
-
 end

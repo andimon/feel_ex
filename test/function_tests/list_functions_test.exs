@@ -477,7 +477,7 @@ defmodule FeelEx.ListFunctionTests do
 
     test "list with no mode" do
       # Each element occurs once, so all are modes
-      assert FeelEx.evaluate("mode([3, 1, 4, 5])") == Value.new([1,3, 4, 5])
+      assert FeelEx.evaluate("mode([3, 1, 4, 5])") == Value.new([1, 3, 4, 5])
     end
 
     test "mode with negative numbers" do
