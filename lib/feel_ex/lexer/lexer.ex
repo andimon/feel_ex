@@ -459,14 +459,15 @@ defmodule FeelEx.Lexer do
                 lexeme_length: lexeme_length + 7
               })
 
-            {Token.new(Map.delete(current_token,:lexeme_length)),
+            {Token.new(Map.drop(current_token, [:lexeme_length, :current_index])),
              next_token(program, current_index + 7, current_line_number)}
 
           _ ->
-            {Token.new(current_token), next_token(program, current_index, current_line_number)}
+            {Token.new(Map.drop(current_token, [:lexeme_length, :current_index])), next_token(program, current_index, current_line_number)}
         end
       else
-        {Token.new(Map.delete(current_token,:lexeme_length)), next_token(program, current_index, current_line_number)}
+        {Token.new(Map.drop(current_token, [:lexeme_length, :current_index])),
+         next_token(program, current_index, current_line_number)}
       end
 
     [cur_token | do_get_tokens(program, next_token)]

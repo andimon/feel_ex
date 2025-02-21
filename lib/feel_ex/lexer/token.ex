@@ -7,7 +7,7 @@ defmodule FeelEx.Token do
            current_state: :state_1,
            lexeme: String.t(),
            current_line_number: non_neg_integer()
-         }
+         } | {:eof,non_neg_integer()}
 
   @spec new(t_info()) :: t()
   def new({:eof, line_number}) do
