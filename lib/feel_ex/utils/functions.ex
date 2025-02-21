@@ -58,15 +58,15 @@ defmodule FeelEx.Functions do
     )
   end
 
-  def string(%Value{type: :date_time, value: %NaiveDateTime{} = date}) do
+  def string(%Value{type: :datetime, value: %NaiveDateTime{} = date}) do
     Value.new(NaiveDateTime.to_iso8601(date))
   end
 
-  def string(%Value{type: :date_time, value: {%NaiveDateTime{} = date, offset}}) do
+  def string(%Value{type: :datetime, value: {%NaiveDateTime{} = date, offset}}) do
     Value.new(NaiveDateTime.to_iso8601(date) <> offset)
   end
 
-  def string(%Value{type: :date_time, value: {%NaiveDateTime{} = date, _offset, zone}}) do
+  def string(%Value{type: :datetime, value: {%NaiveDateTime{} = date, _offset, zone}}) do
     Value.new(NaiveDateTime.to_iso8601(date) <> "@" <> zone)
   end
 
@@ -1007,7 +1007,7 @@ defmodule FeelEx.Functions do
       iex> value = FeelEx.Value.new(NaiveDateTime.utc_now,"+01:00")
       %FeelEx.Value{
       value: {~N[2025-01-19 20:40:52.380623], "+01:00"},
-      type: :date_time
+      type: :datetime
       }
       iex> FeelEx.Functions.date(value)
       %FeelEx.Value{value: ~D[2025-01-19], type: :date}
@@ -1019,17 +1019,17 @@ defmodule FeelEx.Functions do
     end
   end
 
-  def date(%Value{type: :date_time, value: %NaiveDateTime{} = date_time}) do
+  def date(%Value{type: :datetime, value: %NaiveDateTime{} = date_time}) do
     NaiveDateTime.to_date(date_time)
     |> Value.new()
   end
 
-  def date(%Value{type: :date_time, value: {%NaiveDateTime{} = date_time, _}}) do
+  def date(%Value{type: :datetime, value: {%NaiveDateTime{} = date_time, _}}) do
     NaiveDateTime.to_date(date_time)
     |> Value.new()
   end
 
-  def date(%Value{type: :date_time, value: {%NaiveDateTime{} = date_time, _, _}}) do
+  def date(%Value{type: :datetime, value: {%NaiveDateTime{} = date_time, _, _}}) do
     NaiveDateTime.to_date(date_time)
     |> Value.new()
   end
@@ -1086,12 +1086,12 @@ defmodule FeelEx.Functions do
       iex> value = FeelEx.Value.new(NaiveDateTime.utc_now,"+01:00")
       %FeelEx.Value{
       value: {~N[2025-01-19 20:50:37.065020], "+01:00"},
-      type: :date_time
+      type: :datetime
       }
       iex> value = FeelEx.Value.new(NaiveDateTime.utc_now,"+01:00")
       %FeelEx.Value{
       value: {~N[2025-01-19 20:50:48.964545], "+01:00"},
-      type: :date_time
+      type: :datetime
       }
       iex> FeelEx.Functions.date(value)
       %FeelEx.Value{value: ~D[2025-01-19], type: :date}
@@ -1124,17 +1124,17 @@ defmodule FeelEx.Functions do
     end
   end
 
-  def time(%Value{type: :date_time, value: %NaiveDateTime{} = date_time}) do
+  def time(%Value{type: :datetime, value: %NaiveDateTime{} = date_time}) do
     NaiveDateTime.to_time(date_time)
     |> Value.new()
   end
 
-  def time(%Value{type: :date_time, value: {%NaiveDateTime{} = date_time, offset}}) do
+  def time(%Value{type: :datetime, value: {%NaiveDateTime{} = date_time, offset}}) do
     NaiveDateTime.to_time(date_time)
     |> Value.new(offset)
   end
 
-  def time(%Value{type: :date_time, value: {%NaiveDateTime{} = date_time, _, timezoneid}}) do
+  def time(%Value{type: :datetime, value: {%NaiveDateTime{} = date_time, _, timezoneid}}) do
     NaiveDateTime.to_time(date_time)
     |> Value.new(timezoneid)
   end
@@ -1260,7 +1260,7 @@ defmodule FeelEx.Functions do
 
         "-" <> hour <> ":" <> "00"
 
-      hour == 0 and String.starts_with?(minute, "-") ->
+      String.starts_with?(minute, "-") ->
         minute =
           String.slice(minute, 1..-1//1)
           |> String.pad_leading(2, "0")
@@ -1286,17 +1286,17 @@ defmodule FeelEx.Functions do
       iex> value = FeelEx.Value.new("2018-04-29T09:30:00")
       %FeelEx.Value{value: "2018-04-29T09:30:00", type: :string}
       iex> FeelEx.Functions.date_and_time(value)
-      %FeelEx.Value{value: ~N[2018-04-29 09:30:00], type: :date_time}
+      %FeelEx.Value{value: ~N[2018-04-29 09:30:00], type: :datetime}
       iex> value = FeelEx.Value.new("2018-04-29T09:30:00+02:00")
       %FeelEx.Value{value: "2018-04-29T09:30:00+02:00", type: :string}
       iex> FeelEx.Functions.date_and_time(value)
-      %FeelEx.Value{value: {~N[2018-04-29 09:30:00], "+02:00"}, type: :date_time}
+      %FeelEx.Value{value: {~N[2018-04-29 09:30:00], "+02:00"}, type: :datetime}
       iex> value = FeelEx.Value.new("2018-04-29T09:30:00@Europe/Malta")
       %FeelEx.Value{value: "2018-04-29T09:30:00@Europe/Malta", type: :string}
       iex> FeelEx.Functions.date_and_time(value)
       %FeelEx.Value{
       value: {~N[2018-04-29 09:30:00], "+01:00", "Europe/Malta"},
-      type: :date_time
+      type: :datetime
       }
   """
   def date_and_time(%Value{value: time, type: :string}) do
@@ -1335,13 +1335,13 @@ defmodule FeelEx.Functions do
       iex> time = FeelEx.Value.new(Time.utc_now)
       %FeelEx.Value{value: ~T[21:47:41.988770], type: :time}
       iex> FeelEx.Functions.date_and_time(date,time)
-      %FeelEx.Value{value: ~N[2025-01-19 21:47:41.988770], type: :date_time}
+      %FeelEx.Value{value: ~N[2025-01-19 21:47:41.988770], type: :datetime}
       iex> date_time = FeelEx.Value.new(NaiveDateTime.utc_now)
-      %FeelEx.Value{value: ~N[2025-01-19 21:58:55.449808], type: :date_time}
+      %FeelEx.Value{value: ~N[2025-01-19 21:58:55.449808], type: :datetime}
       iex> time = FeelEx.Value.new(Time.new!(8,2,3))
       %FeelEx.Value{value: ~T[08:02:03], type: :time}
       iex> FeelEx.Functions.date_and_time(date_time,time)
-      %FeelEx.Value{value: ~N[2025-01-19 08:02:03], type: :date_time}
+      %FeelEx.Value{value: ~N[2025-01-19 08:02:03], type: :datetime}
   """
   def date_and_time(%Value{type: :date, value: %Date{} = date}, %Value{
         type: :time,
@@ -1351,7 +1351,7 @@ defmodule FeelEx.Functions do
     |> Value.new()
   end
 
-  def date_and_time(%Value{type: :date_time, value: %NaiveDateTime{} = date_time}, %Value{
+  def date_and_time(%Value{type: :datetime, value: %NaiveDateTime{} = date_time}, %Value{
         type: :time,
         value: %Time{} = time
       }) do
@@ -1359,7 +1359,7 @@ defmodule FeelEx.Functions do
     |> Value.new()
   end
 
-  def date_and_time(%Value{type: :date_time, value: {%NaiveDateTime{} = date_time, _}}, %Value{
+  def date_and_time(%Value{type: :datetime, value: {%NaiveDateTime{} = date_time, _}}, %Value{
         type: :time,
         value: %Time{} = time
       }) do
@@ -1367,7 +1367,7 @@ defmodule FeelEx.Functions do
     |> Value.new()
   end
 
-  def date_and_time(%Value{type: :date_time, value: {%NaiveDateTime{} = date_time, _, _}}, %Value{
+  def date_and_time(%Value{type: :datetime, value: {%NaiveDateTime{} = date_time, _, _}}, %Value{
         type: :time,
         value: %Time{} = time
       }) do
@@ -1391,7 +1391,7 @@ defmodule FeelEx.Functions do
     |> Value.new(timezone)
   end
 
-  def date_and_time(%Value{type: :date_time, value: %NaiveDateTime{} = date_time}, %Value{
+  def date_and_time(%Value{type: :datetime, value: %NaiveDateTime{} = date_time}, %Value{
         type: :time,
         value: {%Time{} = time, offset}
       }) do
@@ -1399,7 +1399,7 @@ defmodule FeelEx.Functions do
     |> Value.new(offset)
   end
 
-  def date_and_time(%Value{type: :date_time, value: %NaiveDateTime{} = date_time}, %Value{
+  def date_and_time(%Value{type: :datetime, value: %NaiveDateTime{} = date_time}, %Value{
         type: :time,
         value: {%Time{} = time, _offset, timezone}
       }) do
@@ -1407,7 +1407,7 @@ defmodule FeelEx.Functions do
     |> Value.new(timezone)
   end
 
-  def date_and_time(%Value{type: :date_time, value: {%NaiveDateTime{} = date_time, _}}, %Value{
+  def date_and_time(%Value{type: :datetime, value: {%NaiveDateTime{} = date_time, _}}, %Value{
         type: :time,
         value: {%Time{} = time, offset}
       }) do
@@ -1415,7 +1415,7 @@ defmodule FeelEx.Functions do
     |> Value.new(offset)
   end
 
-  def date_and_time(%Value{type: :date_time, value: {%NaiveDateTime{} = date_time, _}}, %Value{
+  def date_and_time(%Value{type: :datetime, value: {%NaiveDateTime{} = date_time, _}}, %Value{
         type: :time,
         value: {%Time{} = time, _offset, timezone}
       }) do
@@ -1423,7 +1423,7 @@ defmodule FeelEx.Functions do
     |> Value.new(timezone)
   end
 
-  def date_and_time(%Value{type: :date_time, value: {%NaiveDateTime{} = date_time, _, _}}, %Value{
+  def date_and_time(%Value{type: :datetime, value: {%NaiveDateTime{} = date_time, _, _}}, %Value{
         type: :time,
         value: {%Time{} = time, offset}
       }) do
@@ -1431,7 +1431,7 @@ defmodule FeelEx.Functions do
     |> Value.new(offset)
   end
 
-  def date_and_time(%Value{type: :date_time, value: {%NaiveDateTime{} = date_time, _, _}}, %Value{
+  def date_and_time(%Value{type: :datetime, value: {%NaiveDateTime{} = date_time, _, _}}, %Value{
         type: :time,
         value: {%Time{} = time, _offset, timezone}
       }) do

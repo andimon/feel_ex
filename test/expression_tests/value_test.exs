@@ -70,27 +70,27 @@ defmodule FeelEx.ValueTests do
 
   test "evaluate date-time" do
     assert FeelEx.evaluate("date and time(\"2015-09-18T10:31:10\")") ==
-             %FeelEx.Value{value: ~N[2015-09-18 10:31:10], type: :date_time}
+             %FeelEx.Value{value: ~N[2015-09-18 10:31:10], type: :datetime}
 
     assert FeelEx.evaluate("date and time(\"2015-09-18T10:31:10+01:00\")") ==
-             %FeelEx.Value{value: {~N[2015-09-18 10:31:10], "+01:00"}, type: :date_time}
+             %FeelEx.Value{value: {~N[2015-09-18 10:31:10], "+01:00"}, type: :datetime}
 
     assert FeelEx.evaluate("date and time(\"2015-09-18T10:31:10@Europe/Paris\")") ==
              %FeelEx.Value{
                value: {~N[2015-09-18 10:31:10], "+01:00", "Europe/Paris"},
-               type: :date_time
+               type: :datetime
              }
 
     assert FeelEx.evaluate("@\"2015-09-18T10:31:10\"") ==
-             %FeelEx.Value{value: ~N[2015-09-18 10:31:10], type: :date_time}
+             %FeelEx.Value{value: ~N[2015-09-18 10:31:10], type: :datetime}
 
     assert FeelEx.evaluate("@\"2015-09-18T10:31:10+01:00\"") ==
-             %FeelEx.Value{value: {~N[2015-09-18 10:31:10], "+01:00"}, type: :date_time}
+             %FeelEx.Value{value: {~N[2015-09-18 10:31:10], "+01:00"}, type: :datetime}
 
     assert FeelEx.evaluate("@\"2015-09-18T10:31:10@Europe/Paris\"") ==
              %FeelEx.Value{
                value: {~N[2015-09-18 10:31:10], "+01:00", "Europe/Paris"},
-               type: :date_time
+               type: :datetime
              }
   end
 

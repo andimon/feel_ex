@@ -107,22 +107,22 @@ Format: `yyyy-MM-dd'T'HH:mm:ss` / `yyyy-MM-dd'T'HH:mm:ss+/-HH:mm` / `yyyy-MM-dd'
 
 ```elixir
 iex> FeelEx.evaluate("date and time(\"2015-09-18T10:31:10\")")
-%FeelEx.Value{value: ~N[2015-09-18 10:31:10], type: :date_time}
+%FeelEx.Value{value: ~N[2015-09-18 10:31:10], type: :datetime}
 iex> FeelEx.evaluate("date and time(\"2015-09-18T10:31:10+01:00\")")
-%FeelEx.Value{value: {~N[2015-09-18 10:31:10], "+01:00"}, type: :date_time}
+%FeelEx.Value{value: {~N[2015-09-18 10:31:10], "+01:00"}, type: :datetime}
 iex> FeelEx.evaluate("date and time(\"2015-09-18T10:31:10@Europe/Paris\")")
 %FeelEx.Value{
   value: {~N[2015-09-18 10:31:10], "+01:00", "Europe/Paris"},
-  type: :date_time
+  type: :datetime
 }
 iex> FeelEx.evaluate("@\"2015-09-18T10:31:10\"")
-%FeelEx.Value{value: ~N[2015-09-18 10:31:10], type: :date_time}
+%FeelEx.Value{value: ~N[2015-09-18 10:31:10], type: :datetime}
 iex> FeelEx.evaluate("@\"2015-09-18T10:31:10+01:00\"")
-%FeelEx.Value{value: {~N[2015-09-18 10:31:10], "+01:00"}, type: :date_time}
+%FeelEx.Value{value: {~N[2015-09-18 10:31:10], "+01:00"}, type: :datetime}
 iex> FeelEx.evaluate("@\"2015-09-18T10:31:10@Europe/Paris\"")
 %FeelEx.Value{
   value: {~N[2015-09-18 10:31:10], "+01:00", "Europe/Paris"},
-  type: :date_time
+  type: :datetime
 }
 ```
 
@@ -875,13 +875,13 @@ iex> FeelEx.evaluate("duration(\"PT1H\") + time(\"08:00:00+01:00\")")
 
 ```elixir
 iex> FeelEx.evaluate("date and time(\"2020-04-06T08:00:00\") + duration(\"P7D\")")
-%FeelEx.Value{value: ~N[2020-04-13 08:00:00], type: :date_time}
+%FeelEx.Value{value: ~N[2020-04-13 08:00:00], type: :datetime}
 iex> FeelEx.evaluate("date and time(\"2020-04-06T08:00:00+01:00\") + duration(\"P7D\")")
-%FeelEx.Value{value: {~N[2020-04-13 08:00:00], "+01:00"}, type: :date_time}
+%FeelEx.Value{value: {~N[2020-04-13 08:00:00], "+01:00"}, type: :datetime}
 iex> FeelEx.evaluate("date and time(\"2020-04-06T08:00:00@Europe/Malta\") + duration(\"P7D\")")
 %FeelEx.Value{
   value: {~N[2020-04-13 08:00:00], "+01:00", "Europe/Malta"},
-  type: :date_time
+  type: :datetime
 }
 ```
 
@@ -889,13 +889,13 @@ iex> FeelEx.evaluate("date and time(\"2020-04-06T08:00:00@Europe/Malta\") + dura
 
 ```elixir
 iex> FeelEx.evaluate("duration(\"P7D\")+date and time(\"2020-04-06T08:00:00\")")
-%FeelEx.Value{value: ~N[2020-04-13 08:00:00], type: :date_time}
+%FeelEx.Value{value: ~N[2020-04-13 08:00:00], type: :datetime}
 iex> FeelEx.evaluate("duration(\"P7D\") + date and time(\"2020-04-06T08:00:00+01:00\")")
-%FeelEx.Value{value: {~N[2020-04-13 08:00:00], "+01:00"}, type: :date_time}
+%FeelEx.Value{value: {~N[2020-04-13 08:00:00], "+01:00"}, type: :datetime}
 iex> FeelEx.evaluate("duration(\"P7D\")+date and time(\"2020-04-06T08:00:00@Europe/Malta\")")
 %FeelEx.Value{
   value: {~N[2020-04-13 08:00:00], "+01:00", "Europe/Malta"},
-  type: :date_time
+  type: :datetime
 }
 ```
 
@@ -976,7 +976,7 @@ iex> FeelEx.evaluate("date and time(\"2025-01-01T08:00:00+01:00\") - date and ti
   type: :days_time_duration
 }
 iex> FeelEx.evaluate("date and time(\"2025-01-01T08:00:00+01:00\") - date and time(\"2024-01-01T06:00:01-01:00\")")
-[warning] [Elixir.FeelEx.Expression][do_subtract/2] Cannot subtract %FeelEx.Value{value: {~N[2025-01-01 08:00:00], "+01:00"}, type: :date_time} with %FeelEx.Value{value: {~N[2024-01-01 06:00:01], "-01:00"}, type: :date_time}.
+[warning] [Elixir.FeelEx.Expression][do_subtract/2] Cannot subtract %FeelEx.Value{value: {~N[2025-01-01 08:00:00], "+01:00"}, type: :datetime} with %FeelEx.Value{value: {~N[2024-01-01 06:00:01], "-01:00"}, type: :datetime}.
 %FeelEx.Value{value: nil, type: :null}
 iex> FeelEx.evaluate("date and time(\"2025-01-01T08:00:00@Europe/Malta\") - date and time(\"2024-01-01T06:00:01@Europe/Malta\")")
 %FeelEx.Value{
@@ -984,7 +984,7 @@ iex> FeelEx.evaluate("date and time(\"2025-01-01T08:00:00@Europe/Malta\") - date
   type: :days_time_duration
 }
 iex> FeelEx.evaluate("date and time(\"2025-01-01T08:00:00@Europe/Malta\") - date and time(\"2024-01-01T06:00:01@Europe/Paris\")")
-[warning] [Elixir.FeelEx.Expression][do_subtract/2] Cannot subtract %FeelEx.Value{value: {~N[2025-01-01 08:00:00], "+01:00", "Europe/Malta"}, type: :date_time} with %FeelEx.Value{value: {~N[2024-01-01 06:00:01], "+01:00", "Europe/Paris"}, type: :date_time}.
+[warning] [Elixir.FeelEx.Expression][do_subtract/2] Cannot subtract %FeelEx.Value{value: {~N[2025-01-01 08:00:00], "+01:00", "Europe/Malta"}, type: :datetime} with %FeelEx.Value{value: {~N[2024-01-01 06:00:01], "+01:00", "Europe/Paris"}, type: :datetime}.
 %FeelEx.Value{value: nil, type: :null}
 ```
 
@@ -994,13 +994,13 @@ iex> FeelEx.evaluate("date and time(\"2025-01-01T08:00:00@Europe/Malta\") - date
 
 ```elixir
 iex> FeelEx.evaluate("date and time(\"2021-01-01T08:00:00\") - duration(\"PT2H\")")
-%FeelEx.Value{value: ~N[2021-01-01 06:00:00], type: :date_time}
+%FeelEx.Value{value: ~N[2021-01-01 06:00:00], type: :datetime}
 iex> FeelEx.evaluate("date and time(\"2021-01-01T08:00:00+01:00\") - duration(\"PT2H\")")
-%FeelEx.Value{value: {~N[2021-01-01 06:00:00], "+01:00"}, type: :date_time}
+%FeelEx.Value{value: {~N[2021-01-01 06:00:00], "+01:00"}, type: :datetime}
 iex> FeelEx.evaluate("date and time(\"2021-01-01T08:00:00@Europe/Malta\") - duration(\"PT2H\")")
 %FeelEx.Value{
   value: {~N[2021-01-01 06:00:00], "+01:00", "Europe/Malta"},
-  type: :date_time
+  type: :datetime
 }
 ```
 

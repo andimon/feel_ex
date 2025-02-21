@@ -35,33 +35,33 @@ defmodule FeelEx.TemporalExpressionTest do
 
   test "date-time+duration=date-time" do
     assert FeelEx.evaluate("date and time(\"2020-04-06T08:00:00\") + duration(\"P7D\")") ==
-             %FeelEx.Value{value: ~N[2020-04-13 08:00:00], type: :date_time}
+             %FeelEx.Value{value: ~N[2020-04-13 08:00:00], type: :datetime}
 
     assert FeelEx.evaluate("date and time(\"2020-04-06T08:00:00+01:00\") + duration(\"P7D\")") ==
-             %FeelEx.Value{value: {~N[2020-04-13 08:00:00], "+01:00"}, type: :date_time}
+             %FeelEx.Value{value: {~N[2020-04-13 08:00:00], "+01:00"}, type: :datetime}
 
     assert FeelEx.evaluate(
              "date and time(\"2020-04-06T08:00:00@Europe/Malta\") + duration(\"P7D\")"
            ) ==
              %FeelEx.Value{
                value: {~N[2020-04-13 08:00:00], "+01:00", "Europe/Malta"},
-               type: :date_time
+               type: :datetime
              }
   end
 
   test "duration+date-time=date-time" do
     assert FeelEx.evaluate("duration(\"P7D\")+date and time(\"2020-04-06T08:00:00\")") ==
-             %FeelEx.Value{value: ~N[2020-04-13 08:00:00], type: :date_time}
+             %FeelEx.Value{value: ~N[2020-04-13 08:00:00], type: :datetime}
 
     assert FeelEx.evaluate("duration(\"P7D\") + date and time(\"2020-04-06T08:00:00+01:00\")") ==
-             %FeelEx.Value{value: {~N[2020-04-13 08:00:00], "+01:00"}, type: :date_time}
+             %FeelEx.Value{value: {~N[2020-04-13 08:00:00], "+01:00"}, type: :datetime}
 
     assert FeelEx.evaluate(
              "duration(\"P7D\")+date and time(\"2020-04-06T08:00:00@Europe/Malta\")"
            ) ==
              %FeelEx.Value{
                value: {~N[2020-04-13 08:00:00], "+01:00", "Europe/Malta"},
-               type: :date_time
+               type: :datetime
              }
   end
 
@@ -216,12 +216,12 @@ defmodule FeelEx.TemporalExpressionTest do
   describe "date-time duration =date-time" do
     test "reduce duration from date-time without offset or zone id" do
       assert FeelEx.evaluate("date and time(\"2021-01-01T08:00:00\") - duration(\"PT2H\")") ==
-               %FeelEx.Value{value: ~N[2021-01-01 06:00:00], type: :date_time}
+               %FeelEx.Value{value: ~N[2021-01-01 06:00:00], type: :datetime}
     end
 
     test "reduce duration from date-time with offset" do
       assert FeelEx.evaluate("date and time(\"2021-01-01T08:00:00+01:00\") - duration(\"PT2H\")") ==
-               %FeelEx.Value{value: {~N[2021-01-01 06:00:00], "+01:00"}, type: :date_time}
+               %FeelEx.Value{value: {~N[2021-01-01 06:00:00], "+01:00"}, type: :datetime}
     end
 
     test "reduce duration from date-time with zone id" do
@@ -230,7 +230,7 @@ defmodule FeelEx.TemporalExpressionTest do
              ) ==
                %FeelEx.Value{
                  value: {~N[2021-01-01 06:00:00], "+01:00", "Europe/Malta"},
-                 type: :date_time
+                 type: :datetime
                }
     end
   end

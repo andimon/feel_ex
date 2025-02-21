@@ -4,7 +4,7 @@ defmodule FeelEx do
   """
 
   require Logger
-  alias FeelEx.{Helper, Lexer, Parser, Expression, UnaryParser}
+  alias FeelEx.{Value, Helper, Lexer, Parser, Expression, UnaryParser}
 
   @doc """
   Evaluates an expression against a context. See https://github.com/ExSemantic/feel_ex/blob/master/README.md

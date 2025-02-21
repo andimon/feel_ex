@@ -28,6 +28,7 @@ defmodule FeelEx.MixProject do
     [
       {:jason, "~> 1.4"},
       {:tzdata, "~> 1.1"},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:excoveralls, "~> 0.18.3", only: :test}
     ]
