@@ -100,7 +100,7 @@ defmodule FeelEx.UnaryParser do
 
   def do_parse_unary_expression(tokens) do
     contains_question_mark? =
-      Enum.any?(tokens, fn token -> token.value == "?" and token.type == "name" end)
+      Enum.any?(tokens, fn token -> token.value == "?" and token.type == :name end)
 
     if contains_question_mark? do
       Parser.parse_expression(tokens)

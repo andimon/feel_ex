@@ -4,7 +4,7 @@ defmodule FeelEx do
   """
 
   require Logger
-  alias FeelEx.{Helper, Lexer, Parser, Expression, UnaryParser}
+  alias FeelEx.{Value, Helper, Lexer, Parser, Expression, UnaryParser}
 
   @doc """
   Evaluates an expression against a context. See https://github.com/ExSemantic/feel_ex/blob/master/README.md
@@ -16,6 +16,7 @@ defmodule FeelEx do
       %FeelEx.Value{value: 4, type: :number}
 
   """
+  @spec evaluate(map(), String.t()) :: Value.t()
   def evaluate(context, expression) when is_map(context) and is_binary(expression) do
     context = Helper.transform_context(context)
 
