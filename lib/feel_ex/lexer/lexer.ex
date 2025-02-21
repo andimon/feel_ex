@@ -1,5 +1,7 @@
 defmodule FeelEx.Lexer do
-  @moduledoc false
+  @moduledoc """
+  Parse a program string into tokens.
+  """
   alias FeelEx.Token
 
   @start_state :state_0
@@ -301,7 +303,8 @@ defmodule FeelEx.Lexer do
     ]
   }
 
-  def tokens(program) do
+  @spec tokens(String.t()) :: [Token.t()]
+  def tokens(program) when is_binary(program) do
     current_token = next_token(program, 0, 1)
     do_get_tokens(program, current_token)
   end
@@ -313,7 +316,7 @@ defmodule FeelEx.Lexer do
       move_current_index_ignoring_whitespace(program, current_index, current_line_number)
 
     if current_index == program_length do
-      :eof
+      {:eof, current_line_number}
     else
       calculate_lexeme(
         @start_state,
@@ -434,7 +437,7 @@ defmodule FeelEx.Lexer do
   defp is_char_whitespace?(<<32::utf8>>), do: true
   defp is_char_whitespace?(_), do: false
 
-  defp do_get_tokens(_program, :eof), do: [Token.new(:eof)]
+  defp do_get_tokens(_program, {:eof, line_number}), do: [Token.new({:eof, line_number})]
 
   defp do_get_tokens(
          program,
@@ -456,14 +459,14 @@ defmodule FeelEx.Lexer do
                 lexeme_length: lexeme_length + 7
               })
 
-            {Token.new(current_token),
+            {Token.new(Map.delete(current_token,:lexeme_length)),
              next_token(program, current_index + 7, current_line_number)}
 
           _ ->
             {Token.new(current_token), next_token(program, current_index, current_line_number)}
         end
       else
-        {Token.new(current_token), next_token(program, current_index, current_line_number)}
+        {Token.new(Map.delete(current_token,:lexeme_length)), next_token(program, current_index, current_line_number)}
       end
 
     [cur_token | do_get_tokens(program, next_token)]
@@ -529,7 +532,7 @@ defmodule FeelEx.Lexer do
     line_number
   end
 
-  def get_transition_type(<<x::utf8>>) do
+  defp get_transition_type(<<x::utf8>>) do
     cond do
       x == 10 -> :line_feed
       x == 32 -> :space
