@@ -1,5 +1,7 @@
 defmodule FeelEx.Value do
-  @moduledoc false
+  @moduledoc """
+  Construct a FeelEx's value from Elixir's terms.
+  """
   alias FeelEx.Helper
 
   defstruct [:value, :type]
@@ -9,19 +11,63 @@ defmodule FeelEx.Value do
   @type feelex_null_value() :: %__MODULE__{value: nil, type: :null}
   @type feelex_boolean_value() :: %__MODULE__{value: boolean(), type: :boolean}
   @type feelex_date_value() :: %__MODULE__{value: Date.t(), type: :date}
-  @type feelex_datetime_value() :: %__MODULE__{value: boolean(), type: :boolean}
+  @type feelex_datetime_value() :: %__MODULE__{value: NaiveDateTime.t(), type: :datetime}
+  @type feelex_time_value() :: %__MODULE__{value: Time.t(), type: :time}
+  @typedoc """
+  Offset in the form +dd:dd or -dd:dd, where 'dd' represents two digits for hours and minutes, e.g., "+02:30" or "-05:00".
+  """
+  @type offset :: String.t()
+  @typedoc """
+  Timezone ID is a timezone identifier, e.g., "Europe/Malta".
+  """
+  @type zone_id :: String.t()
+  @type feelex_datetime_with_timezone_or_offset_value() ::
+          %__MODULE__{value: {NaiveDateTime.t(), offset()}, type: :datetime}
+          | %__MODULE__{value: {NaiveDateTime.t(), offset(), zone_id()}, type: :datetime}
+  @type feelex_time_with_timezone_or_offset_value() ::
+          %__MODULE__{value: {Time.t(), offset()}, type: :datetime}
+          | %__MODULE__{value: {Time.t(), offset(), zone_id()}, type: :datetime}
 
-  @type t() :: feelex_string_value() | feelex_boolean_value()
+  @type feelex_context_value() :: %__MODULE__{value: map(), type: :context}
+  @type feelex_days_time_duration_value() :: %__MODULE__{
+          value: Duration.t(),
+          type: :days_time_duration
+        }
+  @type feelex_years_months_duration_value() :: %__MODULE__{
+          value: Duration.t(),
+          type: :years_months_duration
+        }
+
+  @type t() ::
+          feelex_number_value()
+          | feelex_string_value()
+          | feelex_null_value()
+          | feelex_boolean_value()
+          | feelex_date_value()
+          | feelex_datetime_value()
+          | feelex_time_value()
+          | offset()
+          | zone_id()
 
   @spec new(t()) :: t()
   @spec new(number()) :: feelex_number_value()
   @spec new(list) :: [t()]
   @spec new(boolean()) :: feelex_boolean_value()
-  @spec new(String.t()) :: feelex_string_value()()
+  @spec new(String.t()) :: feelex_string_value()
   @spec new(nil) :: feelex_null_value()
   @spec new(Date.t()) :: feelex_date_value()
+  @spec new(map()) :: feelex_context_value()
   @spec new(NaiveDateTime.t()) :: feelex_datetime_value()
-
+  @spec new(Time.t()) :: feelex_time_value()
+  @spec new(Duration.t()) ::
+          feelex_days_time_duration_value() | feelex_years_months_duration_value()
+  @spec new(NaiveDateTime.t(), String.t()) ::
+          feelex_datetime_with_timezone_or_offset_value()
+  @spec new(Time.t(), String.t()) ::
+          feelex_time_with_timezone_or_offset_value()
+  @doc """
+  Create a FeelEx's value from Elixir terms. Refer to the function's spec for more information.
+  """
   def new(%__MODULE__{} = value), do: value
 
   def new(number) when is_number(number) do
@@ -44,12 +90,12 @@ defmodule FeelEx.Value do
     %__MODULE__{value: nil, type: :null}
   end
 
-  def new(%Date{} = date) do
-    %__MODULE__{value: date, type: :date}
+  def new(%Date{} = temporal) do
+    %__MODULE__{value: temporal, type: :date}
   end
 
-  def new(%NaiveDateTime{} = date) do
-    %__MODULE__{value: date, type: :date_time}
+  def new(%NaiveDateTime{} = temporal) do
+    %__MODULE__{value: temporal, type: :datetime}
   end
 
   def new(%{} = context) when not is_struct(context) do
@@ -87,6 +133,9 @@ defmodule FeelEx.Value do
     %__MODULE__{value: d, type: :years_months_duration}
   end
 
+  @doc """
+  Create a FeelEx's temporal value by specifying an offset or timezone id. Refer to the function's spec for more information.
+  """
   def new(%NaiveDateTime{} = date, offset_or_zone_id) do
     offset = Helper.get_offset(offset_or_zone_id)
 
@@ -97,11 +146,11 @@ defmodule FeelEx.Value do
       offset ->
         if String.starts_with?(offset_or_zone_id, "+") or
              String.starts_with?(offset_or_zone_id, "-") do
-          %__MODULE__{value: {date, offset}, type: :date_time}
+          %__MODULE__{value: {date, offset}, type: :datetime}
         else
           %__MODULE__{
             value: {date, offset, offset_or_zone_id},
-            type: :date_time
+            type: :datetime
           }
         end
     end
