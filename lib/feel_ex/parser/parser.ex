@@ -1,12 +1,12 @@
 defmodule FeelEx.Parser do
-  @moduledoc false
-
-  alias FeelEx.Helper
-  alias FeelEx.Token
-  alias FeelEx.Expression
-  alias FeelEx.Parser.Evaluators.Precedence
+  @moduledoc """
+  Used to get an abstract syntax tree of a program given a sequence of tokens
+  """
   require Logger
 
+  alias FeelEx.{Helper, Token, Expression}
+
+  @spec parse_expression([Token.t()]) :: atom()
   def parse_expression(tokens) do
     {exp, []} = do_parse_expression_first(tokens, -1)
     exp
@@ -554,7 +554,7 @@ defmodule FeelEx.Parser do
               :and,
               :exponentiation
             ] do
-    next_prec = Precedence.precedence(type)
+    next_prec = precedence(type)
 
     if next_prec <= min_prec do
       {left_expression, [%Token{type: type, value: value} | remaining_tokens]}
@@ -664,4 +664,19 @@ defmodule FeelEx.Parser do
        ), []}
     end
   end
+
+  def precedence(:or), do: 0
+  def precedence(:and), do: 0
+  def precedence(:between), do: 0
+  def precedence(:eq), do: 1
+  def precedence(:neq), do: 1
+  def precedence(:geq), do: 1
+  def precedence(:leq), do: 1
+  def precedence(:lt), do: 1
+  def precedence(:gt), do: 1
+  def precedence(:arithmetic_op_add), do: 2
+  def precedence(:arithmetic_op_sub), do: 2
+  def precedence(:arithmetic_op_div), do: 3
+  def precedence(:arithmetic_op_mul), do: 3
+  def precedence(:exponentiation), do: 4
 end
