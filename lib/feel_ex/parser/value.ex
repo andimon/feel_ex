@@ -40,7 +40,6 @@ defmodule FeelEx.Value do
         }
 
   @type t() ::
-
           feelex_number_value()
           | feelex_string_value()
           | feelex_null_value()
@@ -52,7 +51,6 @@ defmodule FeelEx.Value do
           | feelex_years_months_duration_value()
           | feelex_datetime_with_timezone_or_offset_value()
           | feelex_time_with_timezone_or_offset_value()
-
 
   @spec new(t()) :: t()
   @spec new(number()) :: feelex_number_value()

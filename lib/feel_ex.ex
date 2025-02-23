@@ -56,7 +56,7 @@ defmodule FeelEx do
   def unary_test(expression, input_value, context)
       when is_binary(expression) and is_binary(input_value) and is_map(context) do
     context =
-      evaluate(context,input_value)
+      evaluate(context, input_value)
       |> (&Map.put(context, :"?", &1)).()
 
     Lexer.tokens(expression)
