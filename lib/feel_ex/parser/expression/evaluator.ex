@@ -2,6 +2,7 @@ defmodule FeelEx.Expression.Evaluator do
   require Logger
   alias FeelEx.{Expression, Functions, Value, Helper}
 
+  @spec evaluate(Expression.t(), map()) :: Value.t() | [Value.t()]
   def evaluate(
         %Expression{
           child: %Expression.Between{

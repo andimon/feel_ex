@@ -6,10 +6,10 @@ defmodule FeelEx.Parser do
 
   alias FeelEx.{Helper, Token, Expression}
 
-  @spec parse_expression([Token.t()]) :: atom()
+  @spec parse_expression([Token.t()]) :: Expression.t()
   def parse_expression(tokens) do
-    {exp, []} = do_parse_expression_first(tokens, -1)
-    exp
+    do_parse_expression_first(tokens, -1)
+    |> Helper.filter_expression()
   end
 
   defp do_parse_expression_first(tokens, precedence) do
@@ -223,9 +223,9 @@ defmodule FeelEx.Parser do
       |> Enum.map(fn tokens -> do_parse_expression(tokens, -1) end)
       |> Helper.filter_expression()
 
-    name1 = do_parse_expression(name1, -1)
-    name2 = do_parse_expression(%{name2 | :type => :name}, -1)
-    name3 = do_parse_expression(name3, -1)
+    name1 = Helper.filter_expression(do_parse_expression(name1, -1))
+    name2 = Helper.filter_expression(do_parse_expression(%{name2 | :type => :name}, -1))
+    name3 = Helper.filter_expression(do_parse_expression(name3, -1))
 
     function = {Expression.Function.new([name1, name2, name3], expression_list), []}
 
@@ -238,25 +238,6 @@ defmodule FeelEx.Parser do
 
   defp do_parse_expression([%Token{type: :name, value: value}, %Token{type: :eof}], _precedence) do
     {Expression.Name.new(value), []}
-  end
-
-  defp do_parse_expression([%Token{type: :int, value: value}, %Token{type: :eof}], _precedence) do
-    String.to_integer(value)
-    |> (&{Expression.Number.new(&1), []}).()
-  end
-
-  defp do_parse_expression([%Token{type: :float, value: value}, %Token{type: :eof}], _precedence) do
-    if(String.starts_with?(value, "."), do: "0" <> value, else: value)
-    |> (&String.to_float(&1)).()
-    |> (&{Expression.Number.new(&1), []}).()
-  end
-
-  defp do_parse_expression([%Token{type: :name, value: value}, %Token{type: :eof}], _precedence) do
-    {Expression.Name.new(value), []}
-  end
-
-  defp do_parse_expression([%Token{type: :string, value: value}, %Token{type: :eof}], _precedence) do
-    {Expression.String_.new(value), []}
   end
 
   defp do_parse_expression([%Token{type: :int, value: value}, %Token{type: :eof}], _precedence) do
@@ -427,12 +408,12 @@ defmodule FeelEx.Parser do
        when type in [:int, :float] do
     filter_expression =
       number
-      |> parse_expression()
+      |> do_parse_expression(-1)
       |> Helper.filter_expression()
 
     name_expresion =
       name_token
-      |> parse_expression()
+      |> do_parse_expression(-1)
       |> Helper.filter_expression()
 
     expression = {Expression.FilterList.new(name_expresion, filter_expression), []}

@@ -13,6 +13,7 @@ defmodule FeelEx.Value do
   @type feelex_date_value() :: %__MODULE__{value: Date.t(), type: :date}
   @type feelex_datetime_value() :: %__MODULE__{value: NaiveDateTime.t(), type: :datetime}
   @type feelex_time_value() :: %__MODULE__{value: Time.t(), type: :time}
+
   @typedoc """
   Offset in the form +dd:dd or -dd:dd, where 'dd' represents two digits for hours and minutes, e.g., "+02:30" or "-05:00".
   """
@@ -39,6 +40,7 @@ defmodule FeelEx.Value do
         }
 
   @type t() ::
+
           feelex_number_value()
           | feelex_string_value()
           | feelex_null_value()
@@ -46,8 +48,11 @@ defmodule FeelEx.Value do
           | feelex_date_value()
           | feelex_datetime_value()
           | feelex_time_value()
-          | offset()
-          | zone_id()
+          | feelex_days_time_duration_value()
+          | feelex_years_months_duration_value()
+          | feelex_datetime_with_timezone_or_offset_value()
+          | feelex_time_with_timezone_or_offset_value()
+
 
   @spec new(t()) :: t()
   @spec new(number()) :: feelex_number_value()

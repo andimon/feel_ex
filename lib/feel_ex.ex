@@ -20,12 +20,10 @@ defmodule FeelEx do
   def evaluate(context, expression) when is_map(context) and is_binary(expression) do
     context = Helper.transform_context(context)
 
-    expression =
-      Lexer.tokens(expression)
-      |> Helper.filter_out_comments()
-      |> Parser.parse_expression()
-
-    Expression.Evaluator.evaluate(expression, context)
+    Lexer.tokens(expression)
+    |> Helper.filter_out_comments()
+    |> Parser.parse_expression()
+    |> (&Expression.Evaluator.evaluate(&1, context)).()
   end
 
   @doc """
@@ -56,12 +54,10 @@ defmodule FeelEx do
   def unary_test(expression, input_value, context) do
     context = Map.put(context, :"?", input_value)
 
-    expression =
-      Lexer.tokens(expression)
-      |> Helper.filter_out_comments()
-      |> UnaryParser.parse_unary_expression()
-
-    Expression.Evaluator.evaluate(expression, context)
+    Lexer.tokens(expression)
+    |> Helper.filter_out_comments()
+    |> UnaryParser.parse_unary_expression()
+    |> (&Expression.Evaluator.evaluate(&1, context)).()
   end
 
   @doc """
@@ -86,11 +82,9 @@ defmodule FeelEx do
   def unary_test(expression, input_value) do
     context = %{"?": input_value}
 
-    expression =
-      Lexer.tokens(expression)
-      |> Helper.filter_out_comments()
-      |> UnaryParser.parse_unary_expression()
-
-    Expression.Evaluator.evaluate(expression, context)
+    Lexer.tokens(expression)
+    |> Helper.filter_out_comments()
+    |> UnaryParser.parse_unary_expression()
+    |> (&Expression.Evaluator.evaluate(&1, context)).()
   end
 end
