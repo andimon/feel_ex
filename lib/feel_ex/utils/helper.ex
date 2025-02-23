@@ -3,7 +3,6 @@ defmodule FeelEx.Helper do
   alias FeelEx.Value
   alias FeelEx.Token
 
-  # convert float to integer if decimal part is 0
   def integer_checker(float) do
     if trunc(float) == float do
       trunc(float)
@@ -297,6 +296,19 @@ defmodule FeelEx.Helper do
   defp do_get_list_values([%Token{type: :opening_brace} | _] = list, new_list) do
     {context_tokens, remaining_tokens} = get_context(list)
     do_get_list_values(remaining_tokens, [context_tokens | new_list])
+  end
+
+  defp do_get_list_values(
+         [
+           %Token{type: :and} = tand,
+           %Token{type: :name} = name,
+           %Token{type: :left_parenthesis} | _
+         ] = list,
+         new_list
+       ) do
+    parenthesis = tl(tl(list))
+    {context_tokens, remaining_tokens} = get_parenthesis(parenthesis)
+    do_get_list_values(remaining_tokens, [[tand, name | context_tokens] | new_list])
   end
 
   defp do_get_list_values(
