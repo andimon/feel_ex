@@ -4,21 +4,65 @@ defmodule FeelEx.UnaryParser do
 
   def parse_unary_expression(tokens) do
     tokens =
-      if List.last(tokens).type == :eof,
-        do: List.delete_at(tokens, -1),
-        else: tokens
-
-    [hd | tl] =
-      cond do
-        hd(tokens).type == :left_square_bracket or hd(tokens).type == :left_parenthesis ->
-          [tokens]
-
-        true ->
-          Helper.get_list_values(tokens)
+      if List.last(tokens).type == :eof do
+        List.delete_at(tokens, -1)
+      else
+        tokens
       end
-      |> Enum.map(fn x -> do_parse_unary_expression(x) end)
 
-    build_or_tree(hd, tl)
+    cond do
+      hd(tokens).type == :left_square_bracket or hd(tokens).type == :left_parenthesis ->
+        [tokens]
+
+      true ->
+        Helper.get_list_values(tokens)
+    end
+    |> build_unary_expression_tree()
+  end
+
+  defp build_unary_expression_tree([l, [%FeelEx.Token{type: :and} | rem]])
+       when is_list(l) do
+    Expression.BinaryOp.new(
+      :and,
+      Helper.filter_expression(do_parse_unary_expression(l)),
+      Helper.filter_expression(do_parse_unary_expression(rem))
+    )
+  end
+
+  defp build_unary_expression_tree([l, [%FeelEx.Token{type: :and} | rem] | rest])
+       when is_list(l) do
+    and_tree =
+      Expression.BinaryOp.new(
+        :and,
+        Helper.filter_expression(do_parse_unary_expression(l)),
+        Helper.filter_expression(do_parse_unary_expression(rem))
+      )
+
+    Expression.BinaryOp.new(
+      :or,
+      and_tree,
+      build_unary_expression_tree(rest)
+    )
+  end
+
+  defp build_unary_expression_tree([l1, l2]) when is_list(l1) and is_list(l2) do
+    Expression.BinaryOp.new(
+      :or,
+      Helper.filter_expression(do_parse_unary_expression(l1)),
+      Helper.filter_expression(do_parse_unary_expression(l2))
+    )
+  end
+
+  defp build_unary_expression_tree([l]) when is_list(l) do
+    do_parse_unary_expression(l)
+  end
+
+  defp build_unary_expression_tree([l1 | rest]) when is_list(l1) do
+    Expression.BinaryOp.new(
+      :or,
+      Helper.filter_expression(do_parse_unary_expression(l1)),
+      Helper.filter_expression(build_unary_expression_tree(rest))
+    )
   end
 
   def do_parse_unary_expression([%Token{type: type} | _] = tokens)
@@ -92,7 +136,7 @@ defmodule FeelEx.UnaryParser do
     [hd | tl] =
       Helper.get_list_values(tokens)
       |> Enum.map(fn x ->
-        Expression.new(:function, Expression.new(:name, "not"), [do_parse_unary_expression(x)])
+        Expression.Function.new(Expression.Name.new("not"), [do_parse_unary_expression(x)])
       end)
 
     build_and_tree(hd, tl)
@@ -112,15 +156,16 @@ defmodule FeelEx.UnaryParser do
     end
   end
 
-  defp build_or_tree(hd, []), do: hd
-
-  defp build_or_tree(hd, tl) do
-    build_or_tree(Expression.new(:or, hd, hd(tl)), tl(tl))
-  end
-
   defp build_and_tree(hd, []), do: hd
 
   defp build_and_tree(hd, tl) do
-    build_and_tree(Expression.new(:and, hd, hd(tl)), tl(tl))
+    build_and_tree(
+      Expression.BinaryOp.new(
+        :and,
+        Helper.filter_expression(hd),
+        Helper.filter_expression(hd(tl))
+      ),
+      tl(tl)
+    )
   end
 end

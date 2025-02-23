@@ -3,11 +3,13 @@ defmodule FeelEx.Token do
   defstruct [:type, :value, :line_number]
   @opaque t :: %__MODULE__{type: atom(), value: binary(), line_number: non_neg_integer()}
 
-  @typep t_info :: %{
-           current_state: :state_1,
-           lexeme: String.t(),
-           current_line_number: non_neg_integer()
-         } | {:eof,non_neg_integer()}
+  @typep t_info ::
+           %{
+             current_state: :state_1,
+             lexeme: String.t(),
+             current_line_number: non_neg_integer()
+           }
+           | {:eof, non_neg_integer()}
 
   @spec new(t_info()) :: t()
   def new({:eof, line_number}) do
@@ -31,7 +33,7 @@ defmodule FeelEx.Token do
   end
 
   def new(%{current_state: :state_4, lexeme: "/", current_line_number: line_number}) do
-    %__MODULE__{type: :arithmetic_op_div, value: "/", line_number: line_number - 1}
+    %__MODULE__{type: :divide, value: "/", line_number: line_number - 1}
   end
 
   def new(%{current_state: :state_9, lexeme: lexeme, current_line_number: line_number}) do
@@ -63,15 +65,15 @@ defmodule FeelEx.Token do
   end
 
   def new(%{current_state: :state_12, lexeme: "*", current_line_number: line_number}) do
-    %__MODULE__{type: :arithmetic_op_mul, value: "*", line_number: line_number - 1}
+    %__MODULE__{type: :multiply, value: "*", line_number: line_number - 1}
   end
 
   def new(%{current_state: :state_12, lexeme: "+", current_line_number: line_number}) do
-    %__MODULE__{type: :arithmetic_op_add, value: "+", line_number: line_number - 1}
+    %__MODULE__{type: :add, value: "+", line_number: line_number - 1}
   end
 
   def new(%{current_state: :state_12, lexeme: "-", current_line_number: line_number}) do
-    %__MODULE__{type: :arithmetic_op_sub, value: "-", line_number: line_number - 1}
+    %__MODULE__{type: :subtract, value: "-", line_number: line_number - 1}
   end
 
   def new(%{current_state: :state_14, lexeme: lexeme, current_line_number: line_number}) do

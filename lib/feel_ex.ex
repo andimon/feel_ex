@@ -20,12 +20,10 @@ defmodule FeelEx do
   def evaluate(context, expression) when is_map(context) and is_binary(expression) do
     context = Helper.transform_context(context)
 
-    expression =
-      Lexer.tokens(expression)
-      |> Helper.filter_out_comments()
-      |> Parser.parse_expression()
-
-    Expression.evaluate(expression, context)
+    Lexer.tokens(expression)
+    |> Helper.filter_out_comments()
+    |> Parser.parse_expression()
+    |> (&Expression.Evaluator.evaluate(&1, context)).()
   end
 
   @doc """
@@ -38,6 +36,7 @@ defmodule FeelEx do
       %FeelEx.Value{value: 4, type: :number}
 
   """
+  @spec evaluate(String.t()) :: Value.t()
   def evaluate(expression) when is_binary(expression) do
     evaluate(%{}, expression)
   end
@@ -47,21 +46,23 @@ defmodule FeelEx do
 
   ## Examples
 
-      iex> FeelEx.unary_test("<a",3,%{a: 2})
+      iex> FeelEx.unary_test("<a","3",%{a: 2})
       %FeelEx.Value{value: false, type: :boolean}
-      iex> FeelEx.unary_test("<a",3,%{a: 5})
+      iex> FeelEx.unary_test("<a","3",%{a: 5})
       %FeelEx.Value{value: true, type: :boolean}
 
   """
-  def unary_test(expression, input_value, context) do
-    context = Map.put(context, :"?", input_value)
+  @spec unary_test(String.t(), String.t(), map()) :: Value.t()
+  def unary_test(expression, input_value, context)
+      when is_binary(expression) and is_binary(input_value) and is_map(context) do
+    context =
+      evaluate(context, input_value)
+      |> (&Map.put(context, :"?", &1)).()
 
-    expression =
-      Lexer.tokens(expression)
-      |> Helper.filter_out_comments()
-      |> UnaryParser.parse_unary_expression()
-
-    Expression.evaluate(expression, context)
+    Lexer.tokens(expression)
+    |> Helper.filter_out_comments()
+    |> UnaryParser.parse_unary_expression()
+    |> (&Expression.Evaluator.evaluate(&1, context)).()
   end
 
   @doc """
@@ -69,28 +70,22 @@ defmodule FeelEx do
 
   ## Examples
 
-      iex FeelEx.unary_test("<5",3)
+      iex> FeelEx.unary_test("<5","3")
       %FeelEx.Value{value: true, type: :boolean}
-      iex> FeelEx.unary_test("<2",3)
+      iex> FeelEx.unary_test("<2","3")
       %FeelEx.Value{value: false, type: :boolean}
-      iex> FeelEx.unary_test("(2..5)",3)
+      iex> FeelEx.unary_test("(2..5)","3")
       %FeelEx.Value{value: true, type: :boolean}
-      iex> FeelEx.unary_test("(2..5)",2)
+      iex> FeelEx.unary_test("(2..5)","2")
       %FeelEx.Value{value: false, type: :boolean}
       %FeelEx.Value{value: false, type: :boolean}
-      iex> FeelEx.unary_test("[2..5]",5)
+      iex> FeelEx.unary_test("[2..5]","5")
       %FeelEx.Value{value: true, type: :boolean}
-      iex> FeelEx.unary_test("[2..5)",5)
+      iex> FeelEx.unary_test("[2..5)","5")
       %FeelEx.Value{value: false, type: :boolean}
   """
-  def unary_test(expression, input_value) do
-    context = %{"?": input_value}
-
-    expression =
-      Lexer.tokens(expression)
-      |> Helper.filter_out_comments()
-      |> UnaryParser.parse_unary_expression()
-
-    Expression.evaluate(expression, context)
+  @spec unary_test(String.t(), String.t()) :: Value.t()
+  def unary_test(expression, input_value) when is_binary(expression) and is_binary(input_value) do
+    unary_test(expression, input_value, %{})
   end
 end

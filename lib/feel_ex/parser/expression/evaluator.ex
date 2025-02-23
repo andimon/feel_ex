@@ -1,261 +1,11 @@
-defmodule FeelEx.Expression do
-  @moduledoc false
+defmodule FeelEx.Expression.Evaluator do
   require Logger
+  alias FeelEx.{Expression, Functions, Value, Helper}
 
-  alias FeelEx.{Helper, Value, Functions}
-
-  alias FeelEx.Expression.{
-    Name,
-    Number,
-    Negation,
-    BinaryOp,
-    Boolean,
-    String_,
-    List,
-    For,
-    Range,
-    If,
-    Function,
-    FilterList,
-    Context,
-    Access,
-    Quantified,
-    Between
-  }
-
-  require Logger
-
-  defstruct [:child]
-
-  def new(:context, expression_list) do
-    expression_list =
-      Enum.map(expression_list, fn {key, value} ->
-        value = Helper.filter_expression(value)
-        {key, value}
-      end)
-
-    %__MODULE__{child: %Context{keys_with_values: expression_list}}
-  end
-
-  def new(:list, expression_list) do
-    expression_list =
-      Enum.map(expression_list, fn expression_list ->
-        Helper.filter_expression(expression_list)
-      end)
-
-    %__MODULE__{child: %List{elements: expression_list}}
-  end
-
-  def new(:negation, operand) do
-    %__MODULE__{child: %Negation{operand: operand}}
-  end
-
-  def new(:string, string) do
-    %__MODULE__{child: %String_{value: string}}
-  end
-
-  def new(:name, name) do
-    %__MODULE__{child: %Name{value: name}}
-  end
-
-  def new(:boolean, true) do
-    %__MODULE__{child: %Boolean{value: true}}
-  end
-
-  def new(:boolean, false) do
-    %__MODULE__{child: %Boolean{value: false}}
-  end
-
-  def new(:int, int) do
-    %__MODULE__{child: %Number{value: String.to_integer(int)}}
-  end
-
-  def new(:float, float) do
-    float = if String.starts_with?(float, "."), do: "0" <> float, else: float
-    %__MODULE__{child: %Number{value: String.to_float(float)}}
-  end
-
-  def new(:access, name, operand) do
-    name = Helper.filter_expression(name)
-    operand = Helper.filter_expression(operand)
-    %__MODULE__{child: %Access{name: name, operand: operand}}
-  end
-
-  def new(:filter_list, expression_list, expression) do
-    expression_list = Helper.filter_expression(expression_list)
-
-    expression = Helper.filter_expression(expression)
-
-    %__MODULE__{child: %FilterList{list: expression_list, filter: expression}}
-  end
-
-  def new(:function, name, expression_list) do
-    arguments =
-      Enum.map(expression_list, fn expression_list ->
-        Helper.filter_expression(expression_list)
-      end)
-
-    %__MODULE__{child: %Function{name: name, arguments: arguments}}
-  end
-
-  def new(:range, first_bound, second_bound) do
-    %__MODULE__{child: %Range{first_bound: first_bound, second_bound: second_bound}}
-  end
-
-  def new(:for, iteration_context, return_expression) do
-    return_expression = Helper.filter_expression(return_expression)
-
-    %__MODULE__{
-      child: %For{
-        iteration_contexts: iteration_context,
-        return_expression: return_expression
-      }
-    }
-  end
-
-  def new(:arithmetic_op_add, left_tree, right_tree) do
-    left_tree = Helper.filter_expression(left_tree)
-    right_tree = Helper.filter_expression(right_tree)
-
-    %__MODULE__{child: %BinaryOp{type: :add, left_tree: left_tree, right_tree: right_tree}}
-  end
-
-  def new(:arithmetic_op_sub, left_tree, right_tree) do
-    left_tree = Helper.filter_expression(left_tree)
-    right_tree = Helper.filter_expression(right_tree)
-
-    %__MODULE__{child: %BinaryOp{type: :subtract, left_tree: left_tree, right_tree: right_tree}}
-  end
-
-  def new(:arithmetic_op_mul, left_tree, right_tree) do
-    left_tree = Helper.filter_expression(left_tree)
-
-    right_tree = Helper.filter_expression(right_tree)
-
-    %__MODULE__{child: %BinaryOp{type: :multiply, left_tree: left_tree, right_tree: right_tree}}
-  end
-
-  def new(:exponentiation, left_tree, right_tree) do
-    left_tree = Helper.filter_expression(left_tree)
-    right_tree = Helper.filter_expression(right_tree)
-
-    %__MODULE__{
-      child: %BinaryOp{type: :exponentiation, left_tree: left_tree, right_tree: right_tree}
-    }
-  end
-
-  def new(:arithmetic_op_div, left_tree, right_tree) do
-    left_tree = Helper.filter_expression(left_tree)
-
-    right_tree = Helper.filter_expression(right_tree)
-
-    %__MODULE__{child: %BinaryOp{type: :divide, left_tree: left_tree, right_tree: right_tree}}
-  end
-
-  def new(:geq, left_tree, right_tree) do
-    left_tree = Helper.filter_expression(left_tree)
-
-    right_tree = Helper.filter_expression(right_tree)
-
-    %__MODULE__{child: %BinaryOp{type: :geq, left_tree: left_tree, right_tree: right_tree}}
-  end
-
-  def new(:leq, left_tree, right_tree) do
-    left_tree = Helper.filter_expression(left_tree)
-
-    right_tree = Helper.filter_expression(right_tree)
-
-    %__MODULE__{child: %BinaryOp{type: :leq, left_tree: left_tree, right_tree: right_tree}}
-  end
-
-  def new(:lt, left_tree, right_tree) do
-    left_tree = Helper.filter_expression(left_tree)
-
-    right_tree = Helper.filter_expression(right_tree)
-
-    %__MODULE__{child: %BinaryOp{type: :lt, left_tree: left_tree, right_tree: right_tree}}
-  end
-
-  def new(:gt, left_tree, right_tree) do
-    left_tree = Helper.filter_expression(left_tree)
-
-    right_tree = Helper.filter_expression(right_tree)
-
-    %__MODULE__{child: %BinaryOp{type: :gt, left_tree: left_tree, right_tree: right_tree}}
-  end
-
-  def new(:eq, left_tree, right_tree) do
-    left_tree = Helper.filter_expression(left_tree)
-
-    right_tree = Helper.filter_expression(right_tree)
-
-    %__MODULE__{child: %BinaryOp{type: :eq, left_tree: left_tree, right_tree: right_tree}}
-  end
-
-  def new(:neq, left_tree, right_tree) do
-    left_tree = Helper.filter_expression(left_tree)
-
-    right_tree = Helper.filter_expression(right_tree)
-
-    %__MODULE__{child: %BinaryOp{type: :neq, left_tree: left_tree, right_tree: right_tree}}
-  end
-
-  def new(:and, left_tree, right_tree) do
-    left_tree = Helper.filter_expression(left_tree)
-
-    right_tree = Helper.filter_expression(right_tree)
-
-    %__MODULE__{child: %BinaryOp{type: :and, left_tree: left_tree, right_tree: right_tree}}
-  end
-
-  def new(:or, left_tree, right_tree) do
-    left_tree = Helper.filter_expression(left_tree)
-
-    right_tree = Helper.filter_expression(right_tree)
-
-    %__MODULE__{child: %BinaryOp{type: :or, left_tree: left_tree, right_tree: right_tree}}
-  end
-
-  def new(:quantifier, quantifier, iteration_contexts, condition) do
-    iteration_contexts = Helper.filter_expression(iteration_contexts)
-    condition = Helper.filter_expression(condition)
-
-    %__MODULE__{
-      child: %Quantified{
-        quantifier: quantifier,
-        list: iteration_contexts,
-        condition: condition
-      }
-    }
-  end
-
-  def new(:if, {condition_tree, []}, {conditional_statement_tree, []}, {else_statement_tree, []}) do
-    %__MODULE__{
-      child: %If{
-        condition: condition_tree,
-        conditional_statetement: conditional_statement_tree,
-        else_statement: else_statement_tree
-      }
-    }
-  end
-
-  def new(:between, operand, min, max) do
-    operand = Helper.filter_expression(operand)
-    min = Helper.filter_expression(min)
-    max = Helper.filter_expression(max)
-
-    %__MODULE__{
-      child: %Between{
-        operand: operand,
-        min: min,
-        max: max
-      }
-    }
-  end
-
+  @spec evaluate(Expression.t(), map()) :: Value.t() | [Value.t()]
   def evaluate(
-        %__MODULE__{
-          child: %__MODULE__.Between{
+        %Expression{
+          child: %Expression.Between{
             operand: operand,
             min: min,
             max: max
@@ -263,14 +13,22 @@ defmodule FeelEx.Expression do
         },
         context
       ) do
-    left = new(:geq, operand, min)
-    right = new(:leq, operand, max)
-    evaluate(new(:and, left, right), context)
+    left = Expression.BinaryOp.new(:geq, operand, min)
+    right = Expression.BinaryOp.new(:leq, operand, max)
+
+    evaluate(
+      Expression.BinaryOp.new(
+        :and,
+        Helper.filter_expression(left),
+        Helper.filter_expression(right)
+      ),
+      context
+    )
   end
 
   def evaluate(
-        %__MODULE__{
-          child: %Quantified{
+        %Expression{
+          child: %Expression.Quantified{
             quantifier: quantifier,
             list: list,
             condition: condition
@@ -281,32 +39,38 @@ defmodule FeelEx.Expression do
     do_apply_quantifier(quantifier, list, condition, context)
   end
 
-  def evaluate(%__MODULE__{child: %String_{value: string}}, _context) do
+  def evaluate(%Expression{child: %Expression.String_{value: string}}, _context) do
     Value.new(string)
   end
 
-  def evaluate(%__MODULE__{child: %Boolean{value: bool}}, _context) do
+  def evaluate(%Expression{child: %Expression.Boolean{value: bool}}, _context) do
     Value.new(bool)
   end
 
-  def evaluate(%__MODULE__{child: %Name{value: name}}, context) do
+  def evaluate(%Expression{child: %Expression.Name{value: name}}, context) do
     Value.new(context[String.to_atom(name)])
   end
 
-  def evaluate(%__MODULE__{child: %Number{value: number}}, _context) do
+  def evaluate(%Expression{child: %Expression.Number{value: number}}, _context) do
     Value.new(number)
   end
 
   def evaluate(
-        %__MODULE__{child: %BinaryOp{type: :add, left_tree: left_tree, right_tree: right_tree}},
+        %Expression{
+          child: %Expression.BinaryOp{type: :add, left_tree: left_tree, right_tree: right_tree}
+        },
         context
       ) do
     do_add(evaluate(left_tree, context), evaluate(right_tree, context))
   end
 
   def evaluate(
-        %__MODULE__{
-          child: %BinaryOp{type: :multiply, left_tree: left_tree, right_tree: right_tree}
+        %Expression{
+          child: %Expression.BinaryOp{
+            type: :multiply,
+            left_tree: left_tree,
+            right_tree: right_tree
+          }
         },
         context
       ) do
@@ -314,8 +78,12 @@ defmodule FeelEx.Expression do
   end
 
   def evaluate(
-        %__MODULE__{
-          child: %BinaryOp{type: :exponentiation, left_tree: left_tree, right_tree: right_tree}
+        %Expression{
+          child: %Expression.BinaryOp{
+            type: :exponentiation,
+            left_tree: left_tree,
+            right_tree: right_tree
+          }
         },
         context
       ) do
@@ -323,8 +91,8 @@ defmodule FeelEx.Expression do
   end
 
   def evaluate(
-        %__MODULE__{
-          child: %BinaryOp{type: :divide, left_tree: left_tree, right_tree: right_tree}
+        %Expression{
+          child: %Expression.BinaryOp{type: :divide, left_tree: left_tree, right_tree: right_tree}
         },
         context
       ) do
@@ -332,8 +100,12 @@ defmodule FeelEx.Expression do
   end
 
   def evaluate(
-        %__MODULE__{
-          child: %BinaryOp{type: :subtract, left_tree: left_tree, right_tree: right_tree}
+        %Expression{
+          child: %Expression.BinaryOp{
+            type: :subtract,
+            left_tree: left_tree,
+            right_tree: right_tree
+          }
         },
         context
       ) do
@@ -341,73 +113,89 @@ defmodule FeelEx.Expression do
   end
 
   def evaluate(
-        %__MODULE__{child: %BinaryOp{type: :leq, left_tree: left_tree, right_tree: right_tree}},
+        %Expression{
+          child: %Expression.BinaryOp{type: :leq, left_tree: left_tree, right_tree: right_tree}
+        },
         context
       ) do
     do_leq(evaluate(left_tree, context), evaluate(right_tree, context))
   end
 
   def evaluate(
-        %__MODULE__{child: %BinaryOp{type: :gt, left_tree: left_tree, right_tree: right_tree}},
+        %Expression{
+          child: %Expression.BinaryOp{type: :gt, left_tree: left_tree, right_tree: right_tree}
+        },
         context
       ) do
     do_gt(evaluate(left_tree, context), evaluate(right_tree, context))
   end
 
   def evaluate(
-        %__MODULE__{child: %BinaryOp{type: :geq, left_tree: left_tree, right_tree: right_tree}},
+        %Expression{
+          child: %Expression.BinaryOp{type: :geq, left_tree: left_tree, right_tree: right_tree}
+        },
         context
       ) do
     do_geq(evaluate(left_tree, context), evaluate(right_tree, context))
   end
 
   def evaluate(
-        %__MODULE__{child: %BinaryOp{type: :lt, left_tree: left_tree, right_tree: right_tree}},
+        %Expression{
+          child: %Expression.BinaryOp{type: :lt, left_tree: left_tree, right_tree: right_tree}
+        },
         context
       ) do
     do_lt(evaluate(left_tree, context), evaluate(right_tree, context))
   end
 
   def evaluate(
-        %__MODULE__{child: %BinaryOp{type: :eq, left_tree: left_tree, right_tree: right_tree}},
+        %Expression{
+          child: %Expression.BinaryOp{type: :eq, left_tree: left_tree, right_tree: right_tree}
+        },
         context
       ) do
     do_eq(evaluate(left_tree, context), evaluate(right_tree, context))
   end
 
   def evaluate(
-        %__MODULE__{child: %BinaryOp{type: :neq, left_tree: left_tree, right_tree: right_tree}},
+        %Expression{
+          child: %Expression.BinaryOp{type: :neq, left_tree: left_tree, right_tree: right_tree}
+        },
         context
       ) do
     do_neq(evaluate(left_tree, context), evaluate(right_tree, context))
   end
 
   def evaluate(
-        %__MODULE__{child: %BinaryOp{type: :and, left_tree: left_tree, right_tree: right_tree}},
+        %Expression{
+          child: %Expression.BinaryOp{type: :and, left_tree: left_tree, right_tree: right_tree}
+        },
         context
       ) do
     do_and(evaluate(left_tree, context), right_tree, context)
   end
 
   def evaluate(
-        %__MODULE__{child: %BinaryOp{type: :or, left_tree: left_tree, right_tree: right_tree}},
+        %Expression{
+          child: %Expression.BinaryOp{type: :or, left_tree: left_tree, right_tree: right_tree}
+        },
         context
       ) do
     do_or(evaluate(left_tree, context), right_tree, context)
   end
 
   def evaluate(
-        %__MODULE__{child: %Negation{operand: operand}},
+        %Expression{child: %Expression.Negation{operand: operand}},
         context
       ) do
     do_negation(evaluate(operand, context))
   end
 
   def evaluate(
-        %__MODULE__{
-          child: %If{
+        %Expression{
+          child: %Expression.If{
             condition: condition,
-            conditional_statetement: conditional_statement,
+            conditional_statement: conditional_statement,
             else_statement: else_statement
           }
         },
@@ -418,8 +206,8 @@ defmodule FeelEx.Expression do
   end
 
   def evaluate(
-        %__MODULE__{
-          child: %For{
+        %Expression{
+          child: %Expression.For{
             iteration_contexts: iteration_contexts,
             return_expression: return_expression
           }
@@ -429,8 +217,7 @@ defmodule FeelEx.Expression do
     context = Map.put(context, :partial, [])
 
     iteration_contexts
-    |> Enum.map(fn {%FeelEx.Expression{child: %FeelEx.Expression.Name{value: name}},
-                    list_expression} ->
+    |> Enum.map(fn {%Expression{child: %Expression.Name{value: name}}, list_expression} ->
       list_expression =
         case list_expression do
           {exp, _tokens} -> exp
@@ -454,8 +241,8 @@ defmodule FeelEx.Expression do
   end
 
   def evaluate(
-        %__MODULE__{
-          child: %List{
+        %Expression{
+          child: %Expression.List{
             elements: elements
           }
         },
@@ -465,8 +252,8 @@ defmodule FeelEx.Expression do
   end
 
   def evaluate(
-        %__MODULE__{
-          child: %Context{
+        %Expression{
+          child: %Expression.Context{
             keys_with_values: keys_with_values
           }
         },
@@ -485,8 +272,8 @@ defmodule FeelEx.Expression do
   end
 
   def evaluate(
-        %__MODULE__{
-          child: %Access{
+        %Expression{
+          child: %Expression.Access{
             name: name,
             operand: operand
           }
@@ -507,10 +294,10 @@ defmodule FeelEx.Expression do
   end
 
   def evaluate(
-        %__MODULE__{
-          child: %FilterList{
+        %Expression{
+          child: %Expression.FilterList{
             list: list,
-            filter: %FeelEx.Expression{child: %FeelEx.Expression.Number{}} = number
+            filter: %Expression{child: %FeelEx.Expression.Number{}} = number
           }
         },
         context
@@ -521,13 +308,13 @@ defmodule FeelEx.Expression do
   end
 
   def evaluate(
-        %__MODULE__{
-          child: %FilterList{
+        %Expression{
+          child: %Expression.FilterList{
             list: list,
             filter:
-              %FeelEx.Expression{
-                child: %FeelEx.Expression.Negation{
-                  operand: %FeelEx.Expression{child: %FeelEx.Expression.Number{}}
+              %Expression{
+                child: %Expression.Negation{
+                  operand: %Expression{child: %Expression.Number{}}
                 }
               } = number
           }
@@ -540,8 +327,8 @@ defmodule FeelEx.Expression do
   end
 
   def evaluate(
-        %__MODULE__{
-          child: %FilterList{
+        %Expression{
+          child: %Expression.FilterList{
             list: list,
             filter: filter
           }
@@ -553,8 +340,8 @@ defmodule FeelEx.Expression do
   end
 
   def evaluate(
-        %__MODULE__{
-          child: %Function{
+        %Expression{
+          child: %Expression.Function{
             name: name,
             arguments: arguments
           }
@@ -565,7 +352,7 @@ defmodule FeelEx.Expression do
 
     name =
       case name do
-        %__MODULE__{child: %Name{value: name}} ->
+        %Expression{child: %Expression.Name{value: name}} ->
           name
 
         list when is_list(list) ->
@@ -602,8 +389,8 @@ defmodule FeelEx.Expression do
   end
 
   def evaluate(
-        %__MODULE__{
-          child: %Range{
+        %Expression{
+          child: %Expression.Range{
             first_bound: first_bound,
             second_bound: second_bound
           }
