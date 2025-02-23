@@ -1,6 +1,6 @@
 defmodule FeelEx.Parser do
   @moduledoc """
-  Used to get an abstract syntax tree of a program given a sequence of tokens
+  Used to get an abstract syntax tree of a program given a sequence of tokens.
   """
   require Logger
 
@@ -32,10 +32,20 @@ defmodule FeelEx.Parser do
     {operand_tokens, [_ | remaining_tokens]} = Enum.split(tokens, between_index)
     and_index = Enum.find_index(remaining_tokens, fn token -> token.type == :and end)
     {min_tokens, [_ | max_tokens]} = Enum.split(remaining_tokens, and_index)
-    operand = do_parse_expression_first(operand_tokens, precedence)
-    min = do_parse_expression_first(min_tokens, precedence)
-    max = do_parse_expression_first(max_tokens, precedence)
-    {Expression.new(:between, operand, min, max), []}
+
+    operand =
+      do_parse_expression_first(operand_tokens, precedence)
+      |> Helper.filter_expression()
+
+    min =
+      do_parse_expression_first(min_tokens, precedence)
+      |> Helper.filter_expression()
+
+    max =
+      do_parse_expression_first(max_tokens, precedence)
+      |> Helper.filter_expression()
+
+    {Expression.Between.new(operand, min, max), []}
   end
 
   defp do_parse_expression([%Token{type: :eof}], _precedence) do
@@ -63,7 +73,7 @@ defmodule FeelEx.Parser do
 
       return_expression = do_parse_expression_first(return_tokens, -1)
 
-      {Expression.new(:for, iteration_contexts, return_expression), []}
+      {Expression.For.new(iteration_contexts, Helper.filter_expression(return_expression)), []}
     end
   end
 
@@ -84,9 +94,12 @@ defmodule FeelEx.Parser do
         {String.to_atom(name), parse_expression(tl)}
       end)
 
-    expression = {Expression.new(:context, expression_list), []}
-
-    do_parse_expression(expression, remaining_tokens, -1)
+    Enum.map(expression_list, fn {key, value} ->
+      value = Helper.filter_expression(value)
+      {key, value}
+    end)
+    |> (&{Expression.Context.new(&1), []}).()
+    |> (&do_parse_expression(&1, remaining_tokens, -1)).()
   end
 
   defp do_parse_expression(
@@ -100,7 +113,7 @@ defmodule FeelEx.Parser do
       |> Helper.get_list_values()
       |> Enum.map(fn elem_tokens -> do_parse_expression(elem_tokens, -1) end)
 
-    expression = {Expression.new(:list, expression_list), []}
+    expression = {Expression.List.new(Helper.filter_expression(expression_list)), []}
 
     do_parse_expression(expression, remaining_tokens, -1)
   end
@@ -155,10 +168,10 @@ defmodule FeelEx.Parser do
       ([%Token{type: :left_square_bracket}] ++
          expression ++ [%Token{type: :right_square_bracket}])
       |> Helper.get_list_values()
-      |> Enum.map(fn tokens -> do_parse_expression(tokens, -1) end)
+      |> Enum.map(fn tokens -> Helper.filter_expression(do_parse_expression(tokens, -1)) end)
 
-    name = do_parse_expression(name, precedence)
-    function = {Expression.new(:function, name, expression_list), []}
+    name = Helper.filter_expression(do_parse_expression(name, precedence))
+    function = {Expression.Function.new(name, expression_list), []}
 
     do_parse_expression(function, remaining_tokens, -1)
   end
@@ -179,12 +192,12 @@ defmodule FeelEx.Parser do
       ([%Token{type: :left_square_bracket}] ++
          expression ++ [%Token{type: :right_square_bracket}])
       |> Helper.get_list_values()
-      |> Enum.map(fn tokens -> do_parse_expression(tokens, -1) end)
+      |> Enum.map(fn tokens -> Helper.filter_expression(do_parse_expression(tokens, -1)) end)
 
-    name1 = do_parse_expression(name1, -1)
-    name2 = do_parse_expression(name2, -1)
+    name1 = Helper.filter_expression(do_parse_expression(name1, -1))
+    name2 = Helper.filter_expression(do_parse_expression(name2, -1))
 
-    function = {Expression.new(:function, [name1, name2], expression_list), []}
+    function = {Expression.Function.new([name1, name2], expression_list), []}
 
     do_parse_expression(function, remaining_tokens, -1)
   end
@@ -208,39 +221,96 @@ defmodule FeelEx.Parser do
          expression ++ [%Token{type: :right_square_bracket}])
       |> Helper.get_list_values()
       |> Enum.map(fn tokens -> do_parse_expression(tokens, -1) end)
+      |> Helper.filter_expression()
 
     name1 = do_parse_expression(name1, -1)
     name2 = do_parse_expression(%{name2 | :type => :name}, -1)
     name3 = do_parse_expression(name3, -1)
 
-    function = {Expression.new(:function, [name1, name2, name3], expression_list), []}
+    function = {Expression.Function.new([name1, name2, name3], expression_list), []}
 
     do_parse_expression(function, remaining_tokens, -1)
   end
 
-  defp do_parse_expression([%Token{type: type, value: value}, %Token{type: :eof}], _precedence)
-       when type in [:int, :float, :name, :string] do
-    {Expression.new(type, value), []}
+  defp do_parse_expression([%Token{type: :string, value: value}, %Token{type: :eof}], _precedence) do
+    {Expression.String_.new(value), []}
   end
 
-  defp do_parse_expression([%Token{type: type, value: value}, %Token{type: :eof}], _precedence)
-       when type in [:int, :float, :name, :string] do
-    {Expression.new(type, value), []}
+  defp do_parse_expression([%Token{type: :name, value: value}, %Token{type: :eof}], _precedence) do
+    {Expression.Name.new(value), []}
   end
 
-  defp do_parse_expression(%Token{type: type, value: value}, _precedence)
-       when type in [:float, :int, :name, :string] do
-    {Expression.new(type, value), []}
+  defp do_parse_expression([%Token{type: :int, value: value}, %Token{type: :eof}], _precedence) do
+    String.to_integer(value)
+    |> (&{Expression.Number.new(&1), []}).()
   end
 
-  defp do_parse_expression([%Token{type: type, value: value}], _precedence)
-       when type in [:int, :float, :name, :string] do
-    {Expression.new(type, value), []}
+  defp do_parse_expression([%Token{type: :float, value: value}, %Token{type: :eof}], _precedence) do
+    if(String.starts_with?(value, "."), do: "0" <> value, else: value)
+    |> (&String.to_float(&1)).()
+    |> (&{Expression.Number.new(&1), []}).()
+  end
+
+  defp do_parse_expression([%Token{type: :name, value: value}, %Token{type: :eof}], _precedence) do
+    {Expression.Name.new(value), []}
+  end
+
+  defp do_parse_expression([%Token{type: :string, value: value}, %Token{type: :eof}], _precedence) do
+    {Expression.String_.new(value), []}
+  end
+
+  defp do_parse_expression([%Token{type: :int, value: value}, %Token{type: :eof}], _precedence) do
+    String.to_integer(value)
+    |> (&{Expression.Number.new(&1), []}).()
+  end
+
+  defp do_parse_expression([%Token{type: :float, value: value}, %Token{type: :eof}], _precedence) do
+    if(String.starts_with?(value, "."), do: "0" <> value, else: value)
+    |> (&String.to_float(&1)).()
+    |> (&{Expression.Number.new(&1), []}).()
+  end
+
+  defp do_parse_expression(%Token{type: :string, value: value}, _precedence) do
+    {Expression.String_.new(value), []}
+  end
+
+  defp do_parse_expression(%Token{type: :name, value: value}, _precedence) do
+    {Expression.Name.new(value), []}
+  end
+
+  defp do_parse_expression(%Token{type: :int, value: value}, _precedence) do
+    String.to_integer(value)
+    |> (&{Expression.Number.new(&1), []}).()
+  end
+
+  defp do_parse_expression(%Token{type: :float, value: value}, _precedence) do
+    if(String.starts_with?(value, "."), do: "0" <> value, else: value)
+    |> (&String.to_float(&1)).()
+    |> (&{Expression.Number.new(&1), []}).()
+  end
+
+  defp do_parse_expression([%Token{type: :string, value: value}], _precedence) do
+    {Expression.String_.new(value), []}
+  end
+
+  defp do_parse_expression([%Token{type: :name, value: value}], _precedence) do
+    {Expression.Name.new(value), []}
+  end
+
+  defp do_parse_expression([%Token{type: :int, value: value}], _precedence) do
+    String.to_integer(value)
+    |> (&{Expression.Number.new(&1), []}).()
+  end
+
+  defp do_parse_expression([%Token{type: :float, value: value}], _precedence) do
+    if(String.starts_with?(value, "."), do: "0" <> value, else: value)
+    |> (&String.to_float(&1)).()
+    |> (&{Expression.Number.new(&1), []}).()
   end
 
   defp do_parse_expression([%Token{type: :boolean, value: value}], _precedence)
        when value in ["true", "false"] do
-    {Expression.new(:boolean, String.to_atom(value)), []}
+    {Expression.Boolean.new(String.to_atom(value)), []}
   end
 
   defp do_parse_expression(
@@ -248,25 +318,27 @@ defmodule FeelEx.Parser do
          _precedence
        )
        when value in ["true", "false"] do
-    {Expression.new(:boolean, String.to_atom(value)), []}
+    {Expression.Boolean.new(String.to_atom(value)), []}
   end
 
   defp do_parse_expression(
          [
-           %Token{type: :arithmetic_op_sub, value: "-"},
+           %Token{type: :subtract, value: "-"},
            %Token{type: number_type} = number | remaining_tokens
          ],
          precedence
        )
        when number_type in [:int, :float] do
-    {number, []} = do_parse_expression(number, precedence)
+    number =
+      do_parse_expression(number, precedence)
+      |> Helper.filter_expression()
 
-    negated_int = {Expression.new(:negation, number), []}
+    negated_int = {Expression.Negation.new(number), []}
     do_parse_expression(negated_int, remaining_tokens, precedence)
   end
 
   defp do_parse_expression([%Token{type: :string, value: string} | tl], precedence) do
-    string_expression = {Expression.new(:string, string), []}
+    string_expression = {Expression.String_.new(string), []}
     do_parse_expression(string_expression, tl, precedence)
   end
 
@@ -288,9 +360,9 @@ defmodule FeelEx.Parser do
 
       return_tokens = Enum.slice(remaining_tokens, (satisfies_index + 1)..-1//1)
 
-      condition = do_parse_expression_first(return_tokens, -1)
+      condition = Helper.filter_expression(do_parse_expression_first(return_tokens, -1))
 
-      {Expression.new(:quantifier, quantifier, iteration_contexts, condition), []}
+      {Expression.Quantified.new(quantifier, iteration_contexts, condition), []}
     end
   end
 
@@ -304,7 +376,12 @@ defmodule FeelEx.Parser do
       parse_expression_for_if_conditional_statement(remaining_tokens, precedence)
 
     else_condition = do_parse_expression(remaining_tokens, precedence)
-    {Expression.new(:if, condition_expression, conitional_statement, else_condition), []}
+
+    {Expression.If.new(
+       Helper.filter_expression(condition_expression),
+       Helper.filter_expression(conitional_statement),
+       Helper.filter_expression(else_condition)
+     ), []}
   end
 
   defp do_parse_expression(
@@ -315,10 +392,10 @@ defmodule FeelEx.Parser do
          precedence
        )
        when type in [
-              :arithmetic_op_add,
-              :arithmetic_op_sub,
-              :arithmetic_op_mul,
-              :arithmetic_op_div,
+              :add,
+              :subtract,
+              :multiply,
+              :divide,
               :geq,
               :leq,
               :eq,
@@ -348,10 +425,20 @@ defmodule FeelEx.Parser do
          _precedence
        )
        when type in [:int, :float] do
-    filter_expression = parse_expression(number)
-    name_expresion = parse_expression(name_token)
-    expression = {Expression.new(:filter_list, name_expresion, filter_expression), []}
+    filter_expression =
+      number
+      |> parse_expression()
+      |> Helper.filter_expression()
+
+    name_expresion =
+      name_token
+      |> parse_expression()
+      |> Helper.filter_expression()
+
+    expression = {Expression.FilterList.new(name_expresion, filter_expression), []}
+
     do_parse_expression(expression, remaining_tokens, -1)
+    |> Helper.filter_expression()
   end
 
   defp do_parse_expression(
@@ -365,7 +452,7 @@ defmodule FeelEx.Parser do
     lname = String.to_atom(lname)
     name = String.to_atom(name)
 
-    expression = {Expression.new(:access, name, lname), []}
+    expression = {Expression.Access.new(name, lname), []}
 
     do_parse_expression(expression, remaining_tokens, min_prec)
   end
@@ -387,10 +474,9 @@ defmodule FeelEx.Parser do
       filter_list_expression = parse_expression(filter_tokens)
 
       expression =
-        {Expression.new(
-           :filter_list,
-           do_parse_expression(name_token, -1),
-           filter_list_expression
+        {Expression.FilterList.new(
+           Helper.filter_expression(do_parse_expression(name_token, -1)),
+           Helper.filter_expression(filter_list_expression)
          ), []}
 
       remaining_tokens = Enum.slice(remaining_tokens, (right_square_bracket_index + 1)..-1//1)
@@ -411,10 +497,10 @@ defmodule FeelEx.Parser do
          precedence
        )
        when type in [
-              :arithmetic_op_add,
-              :arithmetic_op_sub,
-              :arithmetic_op_mul,
-              :arithmetic_op_div,
+              :add,
+              :subtract,
+              :multiply,
+              :divide,
               :geq,
               :leq,
               :eq,
@@ -442,7 +528,8 @@ defmodule FeelEx.Parser do
          min_prec
        ) do
     name = String.to_atom(name)
-    expression = {Expression.new(:access, name, left_expression), []}
+    left_expression = Helper.filter_expression(left_expression)
+    expression = {Expression.Access.new(name, left_expression), []}
 
     do_parse_expression(expression, remaining_tokens, min_prec)
   end
@@ -457,8 +544,14 @@ defmodule FeelEx.Parser do
          precedence
        )
        when type in [:int, :float] do
-    filter_expression = do_parse_expression(number, precedence)
-    expression = {Expression.new(:filter_list, list_expression, filter_expression), []}
+    filter_expression =
+      do_parse_expression(number, precedence)
+      |> Helper.filter_expression()
+
+    expression =
+      {Expression.FilterList.new(Helper.filter_expression(list_expression), filter_expression),
+       []}
+
     do_parse_expression(expression, remaining_tokens, -1)
   end
 
@@ -476,9 +569,17 @@ defmodule FeelEx.Parser do
       raise ArgumentError, message: "Expected ] after ["
     else
       filter_tokens = Enum.slice(remaining_tokens, 0..(right_square_bracket_index - 1))
-      filter_list_expression = parse_expression(filter_tokens)
 
-      expression = {Expression.new(:filter_list, list_expression, filter_list_expression), []}
+      filter_list_expression =
+        parse_expression(filter_tokens)
+        |> Helper.filter_expression()
+
+      expression =
+        {Expression.FilterList.new(
+           Helper.filter_expression(list_expression),
+           filter_list_expression
+         ), []}
+
       remaining_tokens = Enum.slice(remaining_tokens, (right_square_bracket_index + 1)..-1//1)
 
       do_parse_expression(expression, remaining_tokens, -1)
@@ -540,10 +641,10 @@ defmodule FeelEx.Parser do
          min_prec
        )
        when type in [
-              :arithmetic_op_sub,
-              :arithmetic_op_add,
-              :arithmetic_op_div,
-              :arithmetic_op_mul,
+              :subtract,
+              :add,
+              :divide,
+              :multiply,
               :geq,
               :leq,
               :eq,
@@ -565,7 +666,11 @@ defmodule FeelEx.Parser do
           next_prec
         )
 
-      {Expression.new(type, left_expression, right_expression), remaining_tokens}
+      {Expression.BinaryOp.new(
+         type,
+         Helper.filter_expression(left_expression),
+         Helper.filter_expression(right_expression)
+       ), remaining_tokens}
     end
   end
 
@@ -637,11 +742,11 @@ defmodule FeelEx.Parser do
   def parse_iteration_context(name, remaining_tokens) do
     try do
       {Helper.filter_expression(do_parse_expression(%Token{type: :name, value: name}, -1)),
-       do_parse_expression(remaining_tokens, -1)}
+       Helper.filter_expression(do_parse_expression(remaining_tokens, -1))}
     rescue
       FunctionClauseError ->
         {Helper.filter_expression(do_parse_expression(%Token{type: :name, value: name}, -1)),
-         parse_range(remaining_tokens)}
+         Helper.filter_expression(parse_range(remaining_tokens))}
     end
   end
 
@@ -657,10 +762,9 @@ defmodule FeelEx.Parser do
       second_bound_tokens =
         Enum.slice(remaining_tokens, (double_dot_index + 1)..-1//1)
 
-      {Expression.new(
-         :range,
-         parse_expression(first_bound_tokens),
-         parse_expression(second_bound_tokens)
+      {Expression.Range.new(
+         Helper.filter_expression(parse_expression(first_bound_tokens)),
+         Helper.filter_expression(parse_expression(second_bound_tokens))
        ), []}
     end
   end
@@ -674,9 +778,9 @@ defmodule FeelEx.Parser do
   def precedence(:leq), do: 1
   def precedence(:lt), do: 1
   def precedence(:gt), do: 1
-  def precedence(:arithmetic_op_add), do: 2
-  def precedence(:arithmetic_op_sub), do: 2
-  def precedence(:arithmetic_op_div), do: 3
-  def precedence(:arithmetic_op_mul), do: 3
+  def precedence(:add), do: 2
+  def precedence(:subtract), do: 2
+  def precedence(:divide), do: 3
+  def precedence(:multiply), do: 3
   def precedence(:exponentiation), do: 4
 end

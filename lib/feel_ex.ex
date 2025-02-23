@@ -25,7 +25,7 @@ defmodule FeelEx do
       |> Helper.filter_out_comments()
       |> Parser.parse_expression()
 
-    Expression.evaluate(expression, context)
+    Expression.Evaluator.evaluate(expression, context)
   end
 
   @doc """
@@ -61,7 +61,7 @@ defmodule FeelEx do
       |> Helper.filter_out_comments()
       |> UnaryParser.parse_unary_expression()
 
-    Expression.evaluate(expression, context)
+    Expression.Evaluator.evaluate(expression, context)
   end
 
   @doc """
@@ -91,6 +91,6 @@ defmodule FeelEx do
       |> Helper.filter_out_comments()
       |> UnaryParser.parse_unary_expression()
 
-    Expression.evaluate(expression, context)
+    Expression.Evaluator.evaluate(expression, context)
   end
 end

@@ -92,7 +92,7 @@ defmodule FeelEx.UnaryParser do
     [hd | tl] =
       Helper.get_list_values(tokens)
       |> Enum.map(fn x ->
-        Expression.new(:function, Expression.new(:name, "not"), [do_parse_unary_expression(x)])
+        Expression.Function.new(Expression.Name.new("not"), [do_parse_unary_expression(x)])
       end)
 
     build_and_tree(hd, tl)
@@ -115,12 +115,26 @@ defmodule FeelEx.UnaryParser do
   defp build_or_tree(hd, []), do: hd
 
   defp build_or_tree(hd, tl) do
-    build_or_tree(Expression.new(:or, hd, hd(tl)), tl(tl))
+    build_or_tree(
+      Expression.BinaryOp.new(
+        :or,
+        Helper.filter_expression(hd),
+        Helper.filter_expression(hd(tl))
+      ),
+      tl(tl)
+    )
   end
 
   defp build_and_tree(hd, []), do: hd
 
   defp build_and_tree(hd, tl) do
-    build_and_tree(Expression.new(:and, hd, hd(tl)), tl(tl))
+    build_and_tree(
+      Expression.BinaryOp.new(
+        :and,
+        Helper.filter_expression(hd),
+        Helper.filter_expression(hd(tl))
+      ),
+      tl(tl)
+    )
   end
 end

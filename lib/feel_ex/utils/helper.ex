@@ -85,6 +85,10 @@ defmodule FeelEx.Helper do
     %Duration{hour: hours, minute: minutes, second: seconds}
   end
 
+  def filter_expression(exp_list) when is_list(exp_list) do
+    Enum.map(exp_list, fn exp -> filter_expression(exp) end)
+  end
+
   def filter_expression(exp) do
     case exp do
       {exp, _tokens} -> exp
