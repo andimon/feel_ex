@@ -1,224 +1,132 @@
 defmodule FeelEx.StringTest do
   use ExUnit.Case
-  alias FeelEx.Value
+  import TestHelpers
 
-  test "create string" do
-    assert %Value{value: "Aw dinja", type: :string} == FeelEx.evaluate("\"Aw dinja\"")
+  doctest FeelEx
+
+  describe "string literals" do
+    test "creates string from literal" do
+      assert_feel_result("\"Aw dinja\"", "Aw dinja", :string)
+    end
+
+    test "handles empty string" do
+      assert_feel_result("\"\"", "", :string)
+    end
   end
 
-  test "string concatenation" do
-    assert %Value{value: "Aw Dinja", type: :string} == FeelEx.evaluate("\"Aw\"+\" Dinja\"")
+  describe "string concatenation" do
+    test "concatenates two strings" do
+      assert_feel_result("\"Aw\"+\" Dinja\"", "Aw Dinja", :string)
+    end
+
+    test "concatenates multiple strings" do
+      assert_feel_result("\"Hello\" + \", \" + \"World!\"", "Hello, World!", :string)
+    end
   end
 
-  test "string() - number" do
-    assert %Value{value: "12", type: :string} == FeelEx.evaluate("string(12)")
-    assert %Value{value: "0.22", type: :string} == FeelEx.evaluate("string(.22)")
-    assert %Value{value: "-2.22", type: :string} == FeelEx.evaluate("string(-2.22)")
-    assert %Value{value: "-0.22", type: :string} == FeelEx.evaluate("string(-.22)")
+  describe "string() function - type conversion" do
+    test "converts numbers to strings" do
+      assert_feel_result("string(12)", "12", :string)
+      assert_feel_result("string(.22)", "0.22", :string)
+      assert_feel_result("string(-2.22)", "-2.22", :string)
+      assert_feel_result("string(-.22)", "-0.22", :string)
+    end
+
+    test "converts booleans to strings" do
+      assert_feel_result("string(true)", "true", :string)
+      assert_feel_result("string(false)", "false", :string)
+    end
+
+    test "returns string unchanged" do
+      assert_feel_result("string(\"Aw Dinja\")", "Aw Dinja", :string)
+    end
   end
 
-  test "string() - string" do
-    assert %Value{value: "Aw Dinja", type: :string} == FeelEx.evaluate("string(\"Aw Dinja\")")
+  describe "string() function - temporal types" do
+    test "converts dates to strings" do
+      assert_feel_result("string(@\"2024-01-01\")", "2024-01-01", :string)
+      assert_feel_result("string(date(\"2024-01-01\"))", "2024-01-01", :string)
+    end
+
+    test "converts times to strings" do
+      assert_feel_result("string(time(\"11:45:30\"))", "11:45:30", :string)
+      assert_feel_result("string(time(\"11:45\"))", "11:45:00", :string)
+      assert_feel_result("string(time(\"11:45:30+02:00\"))", "11:45:30+02:00", :string)
+
+      assert_feel_result(
+        "string(time(\"10:31:10@Europe/Paris\"))",
+        "10:31:10@Europe/Paris",
+        :string
+      )
+
+      assert_feel_result("string(@\"11:45:30\")", "11:45:30", :string)
+      assert_feel_result("string(@\"13:30\")", "13:30:00", :string)
+      assert_feel_result("string(@\"10:45:30+02:00\")", "10:45:30+02:00", :string)
+      assert_feel_result("string(@\"10:31:10@Europe/Paris\")", "10:31:10@Europe/Paris", :string)
+    end
+
+    test "converts date-times to strings" do
+      assert_feel_result(
+        "string(date and time(\"2015-09-18T10:31:10\"))",
+        "2015-09-18T10:31:10",
+        :string
+      )
+
+      assert_feel_result(
+        "string(date and time(\"2015-09-18T10:31:10+01:00\"))",
+        "2015-09-18T10:31:10+01:00",
+        :string
+      )
+
+      assert_feel_result(
+        "string(date and time(\"2015-09-18T10:31:10@Europe/Paris\"))",
+        "2015-09-18T10:31:10@Europe/Paris",
+        :string
+      )
+
+      assert_feel_result("string(@\"2015-09-18T10:31:10\")", "2015-09-18T10:31:10", :string)
+
+      assert_feel_result(
+        "string(@\"2015-09-18T10:31:10+01:00\")",
+        "2015-09-18T10:31:10+01:00",
+        :string
+      )
+
+      assert_feel_result(
+        "string(@\"2015-09-18T10:31:10@Europe/Paris\")",
+        "2015-09-18T10:31:10@Europe/Paris",
+        :string
+      )
+    end
+
+    test "converts days-time durations to strings" do
+      assert_feel_result("string(duration(\"P4D\"))", "P4D", :string)
+      assert_feel_result("string(duration(\"PT2H\"))", "PT2H", :string)
+      assert_feel_result("string(duration(\"PT30M\"))", "PT30M", :string)
+      assert_feel_result("string(duration(\"P1DT6H\"))", "P1DT6H", :string)
+      assert_feel_result("string(@\"P4D\")", "P4D", :string)
+      assert_feel_result("string(@\"PT2H\")", "PT2H", :string)
+      assert_feel_result("string(@\"PT30M\")", "PT30M", :string)
+      assert_feel_result("string(@\"P1DT6H\")", "P1DT6H", :string)
+    end
+
+    test "converts years-month durations to strings" do
+      assert_feel_result("string(duration(\"P2Y\"))", "P2Y", :string)
+      assert_feel_result("string(duration(\"P6M\"))", "P6M", :string)
+      assert_feel_result("string(duration(\"P1Y6M\"))", "P1Y6M", :string)
+      assert_feel_result("string(@\"P2Y\")", "P2Y", :string)
+      assert_feel_result("string(@\"P6M\")", "P6M", :string)
+      assert_feel_result("string(@\"P1Y6M\")", "P1Y6M", :string)
+    end
+
+    test "converts lists to strings" do
+      assert_feel_result("string([1,2+4])", "[1, 6]", :string)
+    end
   end
 
-  test "string() - boolean" do
-    assert %Value{value: "true", type: :string} == FeelEx.evaluate("string(true)")
-    assert %Value{value: "false", type: :string} == FeelEx.evaluate("string(false)")
-  end
-
-  test "string() - date" do
-    assert FeelEx.evaluate("string(@\"2024-01-01\")") == %Value{
-             value: "2024-01-01",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(date(\"2024-01-01\"))") == %Value{
-             value: "2024-01-01",
-             type: :string
-           }
-  end
-
-  test "string() - time" do
-    assert FeelEx.evaluate("string(time(\"11:45:30\"))") == %FeelEx.Value{
-             value: "11:45:30",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(time(\"11:45\"))") == %FeelEx.Value{
-             value: "11:45:00",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(time(\"11:45:30+02:00\"))") == %FeelEx.Value{
-             value: "11:45:30+02:00",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(time(\"11:45:30+02:00\"))") == %FeelEx.Value{
-             value: "11:45:30+02:00",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(time(\"10:31:10@Europe/Paris\"))") == %FeelEx.Value{
-             value: "10:31:10@Europe/Paris",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(@\"11:45:30\")") == %FeelEx.Value{
-             value: "11:45:30",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(@\"13:30\")") == %FeelEx.Value{
-             value: "13:30:00",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(@\"10:45:30+02:00\")") == %FeelEx.Value{
-             value: "10:45:30+02:00",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(@\"10:31:10@Europe/Paris\")") == %FeelEx.Value{
-             value: "10:31:10@Europe/Paris",
-             type: :string
-           }
-  end
-
-  test "string() - date-time" do
-    assert FeelEx.evaluate("string(date and time(\"2015-09-18T10:31:10\"))") == %FeelEx.Value{
-             value: "2015-09-18T10:31:10",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(date and time(\"2015-09-18T10:31:10+01:00\"))") ==
-             %FeelEx.Value{
-               value: "2015-09-18T10:31:10+01:00",
-               type: :string
-             }
-
-    assert FeelEx.evaluate("string(date and time(\"2015-09-18T10:31:10@Europe/Paris\"))") ==
-             %FeelEx.Value{
-               value: "2015-09-18T10:31:10@Europe/Paris",
-               type: :string
-             }
-
-    assert FeelEx.evaluate("string(@\"2015-09-18T10:31:10\")") == %FeelEx.Value{
-             value: "2015-09-18T10:31:10",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(@\"2015-09-18T10:31:10+01:00\")") == %FeelEx.Value{
-             value: "2015-09-18T10:31:10+01:00",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(@\"2015-09-18T10:31:10@Europe/Paris\")") == %FeelEx.Value{
-             value: "2015-09-18T10:31:10@Europe/Paris",
-             type: :string
-           }
-  end
-
-  test "string() - days-time-duration" do
-    assert FeelEx.evaluate("string(duration(\"P4D\"))") == %FeelEx.Value{
-             value: "P4D",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(duration(\"PT2H\"))") == %FeelEx.Value{
-             value: "PT2H",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(duration(\"PT30M\"))") == %FeelEx.Value{
-             value: "PT30M",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(duration(\"P1DT6H\"))") == %FeelEx.Value{
-             value: "P1DT6H",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(@\"P4D\")") == %FeelEx.Value{
-             value: "P4D",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(@\"PT2H\")") == %FeelEx.Value{
-             value: "PT2H",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(@\"PT30M\")") == %FeelEx.Value{
-             value: "PT30M",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(@\"P1DT6H\")") == %FeelEx.Value{
-             value: "P1DT6H",
-             type: :string
-           }
-  end
-
-  test "string() - years-month-duration" do
-    assert FeelEx.evaluate("string(duration(\"P2Y\"))") == %FeelEx.Value{
-             value: "P2Y",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(duration(\"P6M\"))") == %FeelEx.Value{
-             value: "P6M",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(duration(\"P1Y6M\"))") == %FeelEx.Value{
-             value: "P1Y6M",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(@\"P2Y\")") == %FeelEx.Value{
-             value: "P2Y",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(@\"P6M\")") == %FeelEx.Value{
-             value: "P6M",
-             type: :string
-           }
-
-    assert FeelEx.evaluate("string(@\"P1Y6M\")") == %FeelEx.Value{
-             value: "P1Y6M",
-             type: :string
-           }
-  end
-
-  test "string() - list" do
-    assert FeelEx.evaluate("string([1,2+4])") == %FeelEx.Value{
-             value: "[1, 6]",
-             type: :string
-           }
-  end
-
-  test "string() - context" do
-    # context =
-    #   """
-    #   string(
-    #   {a: 1,
-    #   "b": date and time("2021-01-01T01:00:00"),
-    #   c: @\"P2Y\"
-    #   }
-    #   )
-    #   """
-
-    # assert FeelEx.evaluate(context) == %FeelEx.Value{
-    #          value: "{a:1, b:2021-01-01T01:00:00, c: P2Y}",
-    #          type: :string
-    #        }
-  end
-
-  test "concatenation" do
-    assert FeelEx.evaluate("\"You are number \"+string(1)") ==
-             %FeelEx.Value{value: "You are number 1", type: :string}
+  describe "string concatenation with conversion" do
+    test "concatenates string with converted number" do
+      assert_feel_result("\"You are number \"+string(1)", "You are number 1", :string)
+    end
   end
 end
