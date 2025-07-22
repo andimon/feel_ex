@@ -1,18 +1,24 @@
 defmodule FeelEx.BooleanFunctionTests do
   use ExUnit.Case
-  alias FeelEx.Value
+  import TestHelpers
+
+  doctest FeelEx
 
   describe "not(boolean)" do
-    test "not true" do
-      assert FeelEx.evaluate("not(true)") == %Value{value: false, type: :boolean}
+    test "returns false when negating true" do
+      assert_feel_result("not(true)", false, :boolean)
     end
 
-    test "not false" do
-      assert FeelEx.evaluate("not(false)") == %Value{value: true, type: :boolean}
+    test "returns true when negating false" do
+      assert_feel_result("not(false)", true, :boolean)
     end
 
-    test "negate a non boolean value" do
-      assert FeelEx.evaluate("not(1)") == %Value{value: nil, type: :null}
+    test "returns null when negating a non-boolean value" do
+      assert_feel_result("not(1)", nil, :null)
+    end
+
+    test "returns null when negating null" do
+      assert_feel_result("not(null)", nil, :null)
     end
   end
 end

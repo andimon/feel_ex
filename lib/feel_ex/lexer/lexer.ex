@@ -8,7 +8,6 @@ defmodule FeelEx.Lexer do
   @start_state States.start_state()
   @bad_state States.bad_state()
   @error_state States.error_state()
-  @states States.states()
   @final_states States.final_states()
   @states_excluding_error_state States.states_excluding_error_state()
   @transition_table States.transition_table()

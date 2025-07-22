@@ -1,14 +1,28 @@
 defmodule FeelEx do
   @moduledoc """
-    A friendly expression language helps users define decision logic without needing deep technical expertise. This language is based on the FEEL(Friendly Enough Expression Language). For more information regarding FEEL, please take a look at the official OMG specification at https://www.omg.org/dmn/.
+  A friendly expression language helps users define decision logic without needing
+  deep technical expertise. This language is based on the FEEL(Friendly Enough Expression Language).
+  For more information regarding FEEL, please take a look at the official OMG specification
+  at https://www.omg.org/dmn/.
   """
 
   require Logger
-  alias FeelEx.{Value, Helper, Lexer, Parser, Expression, UnaryParser}
+
+  alias FeelEx.Value
+  alias FeelEx.Helper
+  alias FeelEx.Lexer
+  alias FeelEx.Parser
+  alias FeelEx.Expression
+  alias FeelEx.UnaryParser
 
   @doc """
-  Evaluates an expression against a context. See https://github.com/ExSemantic/feel_ex/blob/master/README.md
-  to see more examples in detail.
+  Evaluates an expression against a context.
+  See https://github.com/ExSemantic/feel_ex/blob/master/README.md to see more examples in detail.
+
+  ## Parameters
+
+  - `context` - A map of context variables.
+  - `expression` - A string representing the expression to evaluate.
 
   ## Examples
 
@@ -29,6 +43,9 @@ defmodule FeelEx do
   @doc """
   Evaluates an expression.
 
+  ## Parameters
+
+  - `expression` - A string representing the FEEL expression to evaluate.
 
   ## Examples
 
@@ -43,6 +60,12 @@ defmodule FeelEx do
 
   @doc """
   Run a unary test with a given unary expression, input value, context.
+
+  ## Parameters
+
+  - `expression` - A string representing the FEEL expression to evaluate.
+  - `input_value` - A string representing the input value to evaluate the expression against.
+  - `context` - A map of context variables.
 
   ## Examples
 
@@ -67,6 +90,11 @@ defmodule FeelEx do
 
   @doc """
   Run a unary test with a given unary expression and input value.
+
+  ## Parameters
+
+  - `expression` - A string representing the FEEL expression to evaluate.
+  - `input_value` - A string representing the input value to evaluate the expression against.
 
   ## Examples
 
